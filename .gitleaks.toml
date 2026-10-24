@@ -1,0 +1,8 @@
+title = "Controle em Casa"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Manifesto de instalação dos fluxos: só hashes SHA-256 de arquivos, nenhum segredo."
+paths = ['''^\.claude/\.instalacao\.json$''']

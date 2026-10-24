@@ -1,0 +1,15 @@
+{
+  "name": "@controle/dominio",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@controle/contrato": "workspace:*"
+  }
+}

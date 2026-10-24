@@ -1,0 +1,17 @@
+{
+  "name": "@controle/api",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@controle/contrato": "workspace:*",
+    "@controle/dominio": "workspace:*",
+    "hono": "^4.13.13"
+  }
+}

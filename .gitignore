@@ -1,2 +1,12 @@
 .claude/.cache/
 __pycache__/
+node_modules/
+dist/
+coverage/
+.wrangler/
+.env
+.env.*
+!.env.example
+.dev.vars
+*.log
+.pnpm-store/

@@ -1,0 +1,11 @@
+packages:
+  - backend/contrato
+  - backend/dominio
+  - backend/api
+  - backend/scripts
+  - frontend/web
+allowBuilds:
+  esbuild: true
+  unrs-resolver: false
+blockExoticSubdeps: true
+minimumReleaseAge: 1440
