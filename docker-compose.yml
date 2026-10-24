@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: controle_owner
       POSTGRES_PASSWORD: controle_owner
       TZ: UTC
-    ports: ['5432:5432']
+    # Porta do host configurável (PORTA_POSTGRES no .env) para não colidir com outro Postgres local.
+    ports: ['127.0.0.1:${PORTA_POSTGRES:-5432}:5432']
     volumes:
       - dados-banco:/var/lib/postgresql/data
       - ./backend/scripts/init-local.sql:/docker-entrypoint-initdb.d/01-roles.sql:ro

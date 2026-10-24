@@ -30,6 +30,46 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
+  banco:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: controle
+          POSTGRES_USER: controle_owner
+          POSTGRES_PASSWORD: controle_owner
+          TZ: UTC
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U controle_owner -d controle"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    env:
+      EXIGIR_BANCO: '1'
+      PGPASSWORD: controle_owner
+      DATABASE_URL_OWNER: postgres://controle_owner:controle_owner@localhost:5432/controle
+      DATABASE_URL_APP: postgres://controle_app:controle_app@localhost:5432/controle
+      DATABASE_URL_BACKUP: postgres://controle_backup_ro:controle_backup_ro@localhost:5432/controle
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Criar as roles (como o docker-entrypoint faz no local)
+        run: psql -h localhost -U controle_owner -d controle -v ON_ERROR_STOP=1 -f backend/scripts/init-local.sql
+      - name: Migrations do zero
+        run: pnpm migrar
+      - name: Testes de banco (Postgres 17 real)
+        run: pnpm --filter @controle/scripts test
+
   gitleaks:
     runs-on: ubuntu-latest
     steps:
