@@ -1,0 +1,553 @@
+{
+  "intervalo_dias": 7,
+  "fontes": [
+    {
+      "nome": "tlc-spec-driven",
+      "tipo": "pacote",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "registro": "https://cdn.jsdelivr.net/npm/@tech-leads-club/skills-catalog@latest/skills-registry.json",
+      "lockfile": ".agents/.skill-lock.json",
+      "versao": "3.3.0",
+      "usado_em": ".claude/skills/tlc-spec-driven/",
+      "atualizar_com": "npx @tech-leads-club/agent-skills update -s tlc-spec-driven"
+    },
+    {
+      "nome": "superpowers",
+      "tipo": "plugin",
+      "origem": "https://github.com/obra/superpowers",
+      "plugin_id": "superpowers@superpowers-marketplace",
+      "usado_em": "plugin do usuário (~/.claude/plugins/)",
+      "atualizar_com": "/plugin, aba de plugins instalados"
+    },
+    {
+      "nome": "descoberta (spec-kit assess)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/github/spec-kit",
+      "commit": "27d14e20c187c1f2916540ea201ecbdc9f8ed588",
+      "arquivos_origem": [
+        "extensions/assess/commands/speckit.assess.intake.md",
+        "extensions/assess/commands/speckit.assess.research.md",
+        "extensions/assess/commands/speckit.assess.define.md",
+        "extensions/assess/commands/speckit.assess.shape.md"
+      ],
+      "usado_em": ".claude/skills/descoberta/"
+    },
+    {
+      "nome": "decisao (spec-kit assess)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/github/spec-kit",
+      "commit": "27d14e20c187c1f2916540ea201ecbdc9f8ed588",
+      "arquivos_origem": ["extensions/assess/commands/speckit.assess.decide.md"],
+      "usado_em": ".claude/skills/decisao/"
+    },
+    {
+      "nome": "plano-comercial (legado)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/agents/dono.md",
+        ".claude_legado/skills/plano-comercial-drafting/SKILL.md",
+        ".claude_legado/skills/break-even-modeling/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/plano-comercial/"
+    },
+    {
+      "nome": "mockup-visual (legado)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [".claude_legado/skills/visual-mockup-drafting/SKILL.md"],
+      "usado_em": ".claude/skills/mockup-visual/"
+    },
+    {
+      "nome": "bug (bmad bug-template)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-agent-po/assets/bug-template.md"],
+      "usado_em": ".claude/skills/bug/"
+    },
+    {
+      "nome": "bug (spec-kit extensão bug)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/github/spec-kit",
+      "commit": "27d14e20c187c1f2916540ea201ecbdc9f8ed588",
+      "arquivos_origem": [
+        "extensions/bug/commands/speckit.bug.assess.md",
+        "extensions/bug/commands/speckit.bug.fix.md",
+        "extensions/bug/commands/speckit.bug.test.md"
+      ],
+      "usado_em": ".claude/skills/bug/"
+    },
+    {
+      "nome": "bug (silent-failure-hunter)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/claude-plugins-official",
+      "commit": "465f09344424225c25d438f2e052732c3d688d2f",
+      "arquivos_origem": ["plugins/pr-review-toolkit/agents/silent-failure-hunter.md"],
+      "usado_em": ".claude/skills/bug/"
+    },
+    {
+      "nome": "bug (legado)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [".claude_legado/skills/bug-documentation/SKILL.md"],
+      "usado_em": ".claude/skills/bug/"
+    },
+    {
+      "nome": "incidente (wshobson incident-response)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/incident-response/skills/postmortem-writing/SKILL.md",
+        "plugins/incident-response/skills/postmortem-writing/references/details.md",
+        "plugins/incident-response/skills/incident-runbook-templates/SKILL.md",
+        "plugins/incident-response/skills/incident-runbook-templates/references/details.md"
+      ],
+      "usado_em": ".claude/skills/incidente/"
+    },
+    {
+      "nome": "incidente (bmad codebase-historian)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-deep-recon/references/codebase-historian.md"],
+      "usado_em": ".claude/skills/incidente/"
+    },
+    {
+      "nome": "incidente (legado)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [".claude_legado/skills/observability-setup/SKILL.md"],
+      "usado_em": ".claude/skills/incidente/"
+    },
+    {
+      "nome": "spike (bmad spike-template)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-agent-po/assets/spike-template.md"],
+      "usado_em": ".claude/skills/spike/"
+    },
+    {
+      "nome": "spike (legado: the-fool e technical-spike-identification)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/the-fool/references/evidence-audit.md",
+        ".claude_legado/skills/technical-spike-identification/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/spike/"
+    },
+    {
+      "nome": "escolha-tecnologia (wshobson architecture-decision-records)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/documentation-generation/skills/architecture-decision-records/SKILL.md",
+        "plugins/documentation-generation/skills/architecture-decision-records/references/decision-templates.md"
+      ],
+      "usado_em": ".claude/skills/escolha-tecnologia/"
+    },
+    {
+      "nome": "escolha-tecnologia (bmad deep-recon technical)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-deep-recon/types/technical.md"],
+      "usado_em": ".claude/skills/escolha-tecnologia/"
+    },
+    {
+      "nome": "escolha-tecnologia (legado: adr-drafting, tech-stack-selection, build-vs-buy-analysis)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/adr-drafting/SKILL.md",
+        ".claude_legado/skills/tech-stack-selection/SKILL.md",
+        ".claude_legado/skills/build-vs-buy-analysis/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/escolha-tecnologia/"
+    },
+    {
+      "nome": "auditoria-seguranca (tlc security-threat-model)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(security)/security-threat-model/SKILL.md",
+        "packages/skills-catalog/skills/(security)/security-threat-model/references/prompt-template.md",
+        "packages/skills-catalog/skills/(security)/security-threat-model/references/security-controls-and-assets.md"
+      ],
+      "usado_em": ".claude/skills/auditoria-seguranca/"
+    },
+    {
+      "nome": "auditoria-seguranca (wshobson stride-analysis-patterns)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/security-scanning/skills/stride-analysis-patterns/SKILL.md",
+        "plugins/security-scanning/skills/stride-analysis-patterns/references/details.md"
+      ],
+      "usado_em": ".claude/skills/auditoria-seguranca/"
+    },
+    {
+      "nome": "auditoria-seguranca (security-auditor e security-guidance)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/claude-plugins-official",
+      "commit": "465f09344424225c25d438f2e052732c3d688d2f",
+      "arquivos_origem": [
+        "plugins/code-modernization/agents/security-auditor.md",
+        "plugins/security-guidance/hooks/patterns.py"
+      ],
+      "usado_em": ".claude/skills/auditoria-seguranca/"
+    },
+    {
+      "nome": "auditoria-seguranca (legado: seguranca.py e finding-severity-classification)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/scripts/seguranca.py",
+        ".claude_legado/skills/finding-severity-classification/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/auditoria-seguranca/ e .claude/scripts/varredura-seguranca.py"
+    },
+    {
+      "nome": "revisao-codigo (bmad code-review)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": [
+        "skills/bmad-code-review/references/claims-check.md",
+        "skills/bmad-code-review/references/deletion-check.md",
+        "skills/bmad-code-review/review-prompts/edge-case-hunter.md",
+        "skills/bmad-code-review/review-prompts/verification-gap.md"
+      ],
+      "usado_em": ".claude/skills/revisao-codigo/ e .claude/agents/verificador.md"
+    },
+    {
+      "nome": "revisao-codigo (pr-review-toolkit e security-guidance)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/claude-plugins-official",
+      "commit": "465f09344424225c25d438f2e052732c3d688d2f",
+      "arquivos_origem": [
+        "plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+        "plugins/pr-review-toolkit/agents/pr-test-analyzer.md",
+        "plugins/pr-review-toolkit/agents/comment-analyzer.md",
+        "plugins/pr-review-toolkit/agents/type-design-analyzer.md",
+        "plugins/pr-review-toolkit/agents/code-reviewer.md",
+        "plugins/pr-review-toolkit/agents/code-simplifier.md",
+        "plugins/pr-review-toolkit/commands/review-pr.md",
+        "plugins/security-guidance/hooks/patterns.py"
+      ],
+      "usado_em": ".claude/skills/revisao-codigo/"
+    },
+    {
+      "nome": "revisao-codigo (wshobson code-review-excellence)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": ["plugins/developer-essentials/skills/code-review-excellence/SKILL.md"],
+      "usado_em": ".claude/skills/revisao-codigo/"
+    },
+    {
+      "nome": "refatoracao (wshobson tech-debt)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": ["plugins/code-refactoring/commands/tech-debt.md"],
+      "usado_em": ".claude/skills/refatoracao/"
+    },
+    {
+      "nome": "refatoracao (tlc coupling-analysis)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": ["packages/skills-catalog/skills/(architecture)/coupling-analysis/SKILL.md"],
+      "usado_em": ".claude/skills/refatoracao/"
+    },
+    {
+      "nome": "refatoracao (tlc legacy-migration-planner)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(architecture)/legacy-migration-planner/SKILL.md",
+        "packages/skills-catalog/skills/(architecture)/legacy-migration-planner/references/strangler-fig-patterns.md",
+        "packages/skills-catalog/skills/(architecture)/legacy-migration-planner/references/testing-safety-nets.md",
+        "packages/skills-catalog/skills/(architecture)/legacy-migration-planner/references/plan-phase.md",
+        "packages/skills-catalog/skills/(architecture)/legacy-migration-planner/references/assessment-framework.md"
+      ],
+      "usado_em": ".claude/skills/refatoracao/"
+    },
+    {
+      "nome": "refatoracao (bmad verification-gap)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-build/review-prompts/verification-gap.md"],
+      "usado_em": ".claude/skills/refatoracao/"
+    },
+    {
+      "nome": "performance (wshobson performance-optimization e slo-implementation)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/application-performance/commands/performance-optimization.md",
+        "plugins/observability-monitoring/skills/slo-implementation/SKILL.md",
+        "plugins/observability-monitoring/skills/slo-implementation/references/details.md"
+      ],
+      "usado_em": ".claude/skills/performance/"
+    },
+    {
+      "nome": "performance (tlc perf-lighthouse e core-web-vitals)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(performance)/perf-lighthouse/SKILL.md",
+        "packages/skills-catalog/skills/(performance)/core-web-vitals/SKILL.md",
+        "packages/skills-catalog/skills/(performance)/core-web-vitals/references/LCP.md"
+      ],
+      "usado_em": ".claude/skills/performance/"
+    },
+    {
+      "nome": "documentar (claude-md-improver)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/claude-plugins-official",
+      "commit": "465f09344424225c25d438f2e052732c3d688d2f",
+      "arquivos_origem": [
+        "plugins/claude-md-management/skills/claude-md-improver/SKILL.md",
+        "plugins/claude-md-management/skills/claude-md-improver/references/quality-criteria.md",
+        "plugins/claude-md-management/skills/claude-md-improver/references/templates.md",
+        "plugins/claude-md-management/skills/claude-md-improver/references/update-guidelines.md"
+      ],
+      "usado_em": ".claude/skills/documentar/"
+    },
+    {
+      "nome": "documentar (bmad project-context e deep-recon)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": [
+        "skills/bmad-project-context/SKILL.md",
+        "skills/bmad-project-context/references/best-practices.md",
+        "skills/bmad-project-context/references/template.md",
+        "skills/bmad-deep-recon/assets/codebase.template.md"
+      ],
+      "usado_em": ".claude/skills/documentar/"
+    },
+    {
+      "nome": "documentar (wshobson c4-architecture)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/c4-architecture/commands/c4-architecture.md",
+        "plugins/c4-architecture/agents/c4-context.md",
+        "plugins/c4-architecture/agents/c4-container.md"
+      ],
+      "usado_em": ".claude/skills/documentar/"
+    },
+    {
+      "nome": "avaliar-terceiros (tlc security-ownership-map)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(security)/security-ownership-map/SKILL.md",
+        "packages/skills-catalog/skills/(security)/security-ownership-map/scripts/build_ownership_map.py"
+      ],
+      "usado_em": ".claude/skills/avaliar-terceiros/ e .claude/scripts/propriedade-git.py"
+    },
+    {
+      "nome": "avaliar-terceiros (bmad deep-recon technical, dimensão 5)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-deep-recon/types/technical.md"],
+      "usado_em": ".claude/skills/avaliar-terceiros/"
+    },
+    {
+      "nome": "avaliar-terceiros (legado: build-vs-buy-analysis, risk-and-compliance-check)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/build-vs-buy-analysis/SKILL.md",
+        ".claude_legado/skills/risk-and-compliance-check/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/avaliar-terceiros/"
+    },
+    {
+      "nome": "integracao-terceiros (wshobson gdpr-data-handling e pci-compliance)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/hr-legal-compliance/skills/gdpr-data-handling/SKILL.md",
+        "plugins/hr-legal-compliance/skills/gdpr-data-handling/references/details.md",
+        "plugins/payment-processing/skills/pci-compliance/SKILL.md",
+        "plugins/payment-processing/skills/pci-compliance/references/details.md"
+      ],
+      "usado_em": ".claude/skills/integracao-terceiros/"
+    },
+    {
+      "nome": "integracao-terceiros (legado: api-integration, api-contract-design, compliance-validation)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/api-integration/SKILL.md",
+        ".claude_legado/skills/api-contract-design/SKILL.md",
+        ".claude_legado/skills/compliance-validation/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/integracao-terceiros/"
+    },
+    {
+      "nome": "automacao (hookify writing-rules)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/claude-plugins-official",
+      "commit": "465f09344424225c25d438f2e052732c3d688d2f",
+      "arquivos_origem": ["plugins/hookify/skills/writing-rules/SKILL.md"],
+      "usado_em": ".claude/skills/automacao/"
+    },
+    {
+      "nome": "redesign (wshobson wcag-audit-patterns)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/accessibility-compliance/skills/wcag-audit-patterns/SKILL.md",
+        "plugins/accessibility-compliance/skills/wcag-audit-patterns/references/details.md"
+      ],
+      "usado_em": ".claude/skills/redesign/"
+    },
+    {
+      "nome": "redesign (tlc web-accessibility)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(quality)/web-accessibility/SKILL.md",
+        "packages/skills-catalog/skills/(quality)/web-accessibility/references/WCAG.md"
+      ],
+      "usado_em": ".claude/skills/redesign/"
+    },
+    {
+      "nome": "redesign (legado: accessibility-review, design-system-consistency-check, comparar-visual)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/accessibility-review/SKILL.md",
+        ".claude_legado/skills/design-system-consistency-check/SKILL.md",
+        ".claude_legado/scripts/comparar-visual.mjs"
+      ],
+      "usado_em": ".claude/skills/redesign/, .claude/skills/mockup-visual/ e .claude/scripts/comparar-visual.mjs"
+    },
+    {
+      "nome": "aprendizado (tlc learning-opportunities, CC-BY-4.0)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(learning)/learning-opportunities/SKILL.md",
+        "packages/skills-catalog/skills/(learning)/learning-opportunities/references/PRINCIPLES.md"
+      ],
+      "usado_em": ".claude/skills/aprendizado/"
+    },
+    {
+      "nome": "sugestao (wshobson before-you-build)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/before-you-build/skills/before-you-build/SKILL.md",
+        "plugins/before-you-build/skills/before-you-build/references/risk-checklist.md"
+      ],
+      "usado_em": ".claude/skills/sugestao/"
+    },
+    {
+      "nome": "sugestao (legado: product-roadmap-prioritization, commercial-impact-triage)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/product-roadmap-prioritization/SKILL.md",
+        ".claude_legado/skills/commercial-impact-triage/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/sugestao/"
+    },
+    {
+      "nome": "solicitacao (tlc tlc-prd, CC-BY-4.0)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/tech-leads-club/agent-skills",
+      "commit": "bc4f025632b0443ed3450aaec6fe96aec5b9a0c5",
+      "arquivos_origem": [
+        "packages/skills-catalog/skills/(development)/tlc-prd/SKILL.md",
+        "packages/skills-catalog/skills/(development)/tlc-prd/references/document-format.md"
+      ],
+      "usado_em": ".claude/skills/solicitacao/"
+    },
+    {
+      "nome": "solicitacao (bmad ticket-template)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "commit": "61e01f82644c4bb533750cfa0d6d61ab61d2cc9b",
+      "arquivos_origem": ["skills/bmad-agent-po/assets/ticket-template.md"],
+      "usado_em": ".claude/skills/solicitacao/"
+    },
+    {
+      "nome": "solicitacao (legado: requirement-elicitation, effort-estimation)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [
+        ".claude_legado/skills/requirement-elicitation/SKILL.md",
+        ".claude_legado/skills/effort-estimation/SKILL.md"
+      ],
+      "usado_em": ".claude/skills/solicitacao/"
+    },
+    {
+      "nome": "suporte (wshobson on-call-handoff-patterns)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/wshobson/agents",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "arquivos_origem": [
+        "plugins/incident-response/skills/on-call-handoff-patterns/SKILL.md",
+        "plugins/incident-response/skills/on-call-handoff-patterns/references/details.md"
+      ],
+      "usado_em": ".claude/skills/suporte/"
+    },
+    {
+      "nome": "suporte (anthropic-skills internal-comms)",
+      "tipo": "adaptado",
+      "origem": "https://github.com/anthropics/skills",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "arquivos_origem": [
+        "skills/internal-comms/SKILL.md",
+        "skills/internal-comms/examples/faq-answers.md",
+        "skills/internal-comms/examples/general-comms.md"
+      ],
+      "usado_em": ".claude/skills/suporte/"
+    },
+    {
+      "nome": "suporte (legado: bug-documentation)",
+      "tipo": "adaptado",
+      "origem": ".claude_legado",
+      "commit": "15a6ad1",
+      "arquivos_origem": [".claude_legado/skills/bug-documentation/SKILL.md"],
+      "usado_em": ".claude/skills/suporte/"
+    }
+  ]
+}
