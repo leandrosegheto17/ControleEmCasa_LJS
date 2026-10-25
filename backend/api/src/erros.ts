@@ -6,6 +6,8 @@ export class ErroApi extends Error {
     readonly status: ContentfulStatusCode,
     readonly code: string,
     mensagem: string,
+    /** Validação: campo → código do problema (nunca o valor recebido; SDD 7). */
+    readonly campos?: Record<string, string>,
   ) {
     super(mensagem);
     this.name = 'ErroApi';

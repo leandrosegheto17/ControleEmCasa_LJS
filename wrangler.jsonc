@@ -1,4 +1,5 @@
-// Configuração do Worker único (SDD 11.1). Sem segredo aqui (G-32): segredos vão por `wrangler secret`.
+// Configuração do Worker único (SDD 11.1). Sem segredo aqui (G-32): segredos vão por `wrangler secret`
+// (no local, em `.dev.vars`; CHAVE_HMAC e RESEND_API_KEY, ver .env.example).
 // O deploy só sai do deploy.yml (G-42), que injeta URL_PUBLICA e AMBIENTE com --var.
 {
   "name": "controle-em-casa",
@@ -25,6 +26,7 @@
   ],
   "vars": {
     "URL_PUBLICA": "http://localhost:8787",
+    "MAIL_FROM": "Controle em Casa <nao-responda@ljssoftware.com.br>",
     "AMBIENTE": "local",
   },
   "observability": { "enabled": true },

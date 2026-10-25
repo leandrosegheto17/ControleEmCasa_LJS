@@ -83,4 +83,22 @@ export default tseslint.config(
   fronteira('backend/api', 'scripts', 'web'),
   fronteira('backend/scripts', 'web'),
   fronteira('frontend/web', 'dominio', 'api', 'scripts'),
+  // Módulo isolado de e-mail (SDD 2.2; decisão 4 do PLANO): só importa da própria pasta, para ser extraído depois.
+  {
+    files: ['backend/api/src/infraestrutura/email/**/*.ts'],
+    ignores: ['backend/api/src/infraestrutura/email/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', '@controle/*', 'hono', 'hono/*', 'kysely', 'pg', 'cloudflare:*'],
+              message: 'O módulo de e-mail é isolado: importe só da própria pasta (SDD 2.2).',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
