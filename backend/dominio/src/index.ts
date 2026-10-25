@@ -1,6 +1,14 @@
-import type { Centavos } from '@controle/contrato';
-
-/** Soma valores em centavos. Função pura, sem relógio nem I/O. */
-export function somarCentavos(valores: readonly Centavos[]): Centavos {
-  return valores.reduce((total, valor) => total + valor, 0);
-}
+/**
+ * Domínio puro (ADR-003): regras pequenas, sem I/O, sem relógio global e sem dependência de Worker
+ * ou banco. O "hoje" e o instante entram por parâmetro. Agregações ficam em SQL, na API.
+ */
+export * from './resultado';
+export * from './datas';
+export * from './centavos';
+export * from './parcelas';
+export * from './permissoes';
+export * from './orcamento';
+export * from './metas';
+export * from './percentuais';
+export * from './fixas';
+export * from './validacoes';
