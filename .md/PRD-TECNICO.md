@@ -262,7 +262,7 @@ Origem: A lancar_despesa.sql:1-5,73-87; F permissoes_edicao.sql:2-3; L-PRD RN-05
 |---|---|---|---|
 | descrição | sim | sim | não |
 | valor total | sim | sim | não |
-| data da operação | sim | sim, **exceto no Crédito** | não |
+| data da operação | sim | **não** (revisado em 2026-10-25; ver abaixo) | não |
 | categoria do mesmo escopo | sim | sim (só conjunta, visível) | não |
 | categoria de outro escopo (RN-07) | sim | não | não |
 | forma | sim | não | não |
@@ -276,6 +276,7 @@ Regras da edição:
 - Toda edição grava `alterado_por` e `alterado_em`.
 - Mudar valor, parcelas, data, forma ou categoria **recalcula todas as parcelas** pela RN-14: mantém os ids das parcelas que continuam, apaga as que sobram, cria as que faltam e zera `data_ajustada`. Se havia parcela com `data_ajustada`, a edição exige `confirmar_descarte = true` (senão `confirmar_descarte_ajustes`).
 - **Dia congelado:** o recálculo usa o `dia_vencimento_aplicado` gravado, não o dia atual do cartão, a menos que a forma tenha mudado.
+- **Revisão de 2026-10-25 (decisão do usuário, etapa 8):** no legado o outro membro também mudava a data da conjunta fora do Crédito, e a edição dele recalculava as parcelas. A data da operação, a forma e o dia aplicado moram na parte privada do pagador (`lancamento_pagamento`, G-10), que o outro membro não lê nem grava sem `SECURITY DEFINER` (G-04, SDD D-04). Por isso: a data é só do pagador (o outro membro recebe `sem_permissao`); quando o outro membro muda o valor, os valores são redistribuídos pela regra da RN-14 **mantendo a data de cada parcela** (inclusive as ajustadas à mão), sem `confirmar_descarte`; quando ele muda a categoria (mesmo escopo), nada é recalculado. O recálculo completo continua valendo para o pagador.
 - Receita aceita valor, data, descrição e categoria de receita; enviar forma numa receita → `registro_invalido`.
 - Não existe exclusão nem edição de valor/categoria de parcela isolada.
 
@@ -635,7 +636,7 @@ Origem: nova — decisão P1; A inicializar_membro.sql:19-46 (categorias).
 - CA-23.9: QUANDO o convidado já tem lar próprio só com as categorias iniciais (nenhum lançamento, conta, forma, fixa, orçamento, meta ou categoria criada ou alterada por ele), ENTÃO o aceite DEVE descartar esse lar automaticamente e seguir normalmente.
 - CA-23.10: SE o convidado tem lar próprio com qualquer dado, ENTÃO o aceite DEVE ser recusado com `ja_tem_lar`, sem alterar nada, até ele excluir o próprio lar (ação explícita com confirmação).
 - CA-23.11: SE o titular de um lar com membro tenta aceitar convite de outro lar, ENTÃO `ja_tem_lar`.
-- CA-23.12: QUANDO o membro sai ou o titular o remove, ENTÃO o individual dele DEVE ser purgado em 30 dias; as despesas conjuntas que ele pagou DEVEM ficar no lar com o pagador exibido como "Ex-membro" e a parte privada (`lancamento_pagamento`: forma, conta, data_operacao) DEVE ser apagada; os movimentos de meta conjunta feitos por ele DEVEM ficar com autor "Ex-membro", sem a conta.
+- CA-23.12: QUANDO o membro sai ou o titular o remove, ENTÃO o individual dele DEVE ser purgado em 30 dias; as despesas conjuntas que ele pagou DEVEM ficar no lar com o pagador exibido como "Ex-membro" e a parte privada (`lancamento_pagamento`: forma, conta, data_operacao) DEVE ser apagada; os movimentos de meta conjunta feitos por ele DEVEM ficar com autor "Ex-membro", sem a conta. *Desvio aceito em 2026-10-25 (etapa 8):* na saída voluntária a parte privada é apagada na hora; na **remoção pelo titular** ela fica até a purga de 30 dias pela role owner (etapa 14), porque a RLS só do dono (G-10) não deixa o titular apagá-la. Até lá ela é inacessível à API (o id do membro removido nunca mais é o `app.membro_id` de ninguém). **Pendência da etapa 14:** a purga apaga `lancamento_pagamento` dos membros removidos.
 - CA-23.13: QUANDO o membro sai ou é removido, ENTÃO no próximo acesso ele DEVE cair no primeiro acesso (RN-22) e ganhar um lar novo vazio como titular.
 - CA-23.14: SE um não titular tenta remover membro, ENTÃO `registro_invalido`; o titular remove o membro com o mesmo efeito do CA-23.12.
 - CA-23.15: QUANDO o convite é aceito por quem tem o lar descartável, ENTÃO nenhuma despesa, saldo ou dado do lar descartado DEVE aparecer no lar novo.

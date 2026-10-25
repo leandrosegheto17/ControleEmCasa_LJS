@@ -3,6 +3,7 @@ import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { registrarRotasDeAcesso } from './entrada/rotas/acesso';
 import { registrarRotasDeCadastros } from './entrada/rotas/cadastros';
+import { registrarRotasDeLancamentos } from './entrada/rotas/lancamentos';
 import { registrarRotasDeLar } from './entrada/rotas/lar';
 import type { AppEnv, Sessao } from './env';
 import { ErroApi, ehErroDeConexao } from './erros';
@@ -77,6 +78,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   registrarRotasDeAcesso(app, { transporteEmail: opcoes.transporteEmail, versoes });
   registrarRotasDeLar(app, { transporteEmail: opcoes.transporteEmail });
   registrarRotasDeCadastros(app);
+  registrarRotasDeLancamentos(app);
   opcoes.rotas?.(app);
 
   app.notFound((c) => c.json({ code: 'rota_inexistente', message: 'Rota inexistente.' }, 404));

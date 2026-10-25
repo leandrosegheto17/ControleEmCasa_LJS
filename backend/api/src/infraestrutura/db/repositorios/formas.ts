@@ -115,7 +115,7 @@ export interface FormaListada {
 
 /**
  * Formas do dono com a conta em objeto {id, nome}; arquivadas entram. `pode_excluir`: sem movimento de conta
- * ligado. SPEC_DEVIATION: `lancamento_pagamento` (etapa 8) entra neste critério quando nascer.
+ * (pagamento de cartão) nem lançamento ligado (`lancamento_pagamento`, etapa 8).
  */
 export async function listarFormasDoDono(db: Kysely<DB>, donoId: string): Promise<FormaListada[]> {
   const r = await sql<{
@@ -131,7 +131,9 @@ export async function listarFormasDoDono(db: Kysely<DB>, donoId: string): Promis
   }>`
     select f.id, f.nome, f.tipo, c.id as conta_id, c.nome as conta_nome, f.dia_vencimento::int as dia_vencimento,
            f.preferida, f.arquivada,
-           not exists (select 1 from app.movimento_conta m where m.forma_credito_id = f.id) as pode_excluir
+           (not exists (select 1 from app.movimento_conta m where m.forma_credito_id = f.id)
+            and not exists (select 1 from app.lancamento_pagamento lp
+                             where lp.forma_pagamento_id = f.id and lp.dono_id = f.dono_id)) as pode_excluir
       from app.forma_pagamento f
       left join app.conta c on c.id = f.conta_id and c.dono_id = f.dono_id
      where f.dono_id = ${donoId}

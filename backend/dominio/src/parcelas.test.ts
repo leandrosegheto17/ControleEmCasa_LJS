@@ -7,6 +7,7 @@ import {
   diaVencimentoAplicado,
   gerarParcelas,
   parcelasDoPagamentoDeFixa,
+  redistribuirValor,
   type Parcela,
 } from './parcelas';
 
@@ -310,5 +311,44 @@ describe('pagamento de fixa (RN-13, RN-28)', () => {
   });
   it('valor fora da regra → valor_invalido', () => {
     expect(parcelasDoPagamentoDeFixa({ vencimento: '2026-10-10', valorCentavos: 0, numParcelas: 1 })).toEqual(invalido);
+  });
+});
+
+// Decisão do usuário de 2026-10-25 (etapa 8, RN-06 revisada): o outro membro muda o valor da conjunta do pagador
+// sem ler a parte privada; as parcelas mantêm número e data e só os valores mudam, pela regra de valores da RN-14.
+describe('redistribuirValor: valor novo mantendo as datas (edição pelo outro membro)', () => {
+  const atuais = [
+    { numero: 1, data: '2026-11-10' },
+    { numero: 2, data: '2026-12-15' }, // data ajustada à mão: continua onde está
+    { numero: 3, data: '2027-01-10' },
+  ];
+  it('3x de 10.000 → 3.334, 3.333, 3.333 nas mesmas datas (resto na 1ª)', () => {
+    expect(redistribuirValor(atuais, 10_000)).toEqual({
+      ok: true,
+      valor: [p(1, 3_334, '2026-11-10'), p(2, 3_333, '2026-12-15'), p(3, 3_333, '2027-01-10')],
+    });
+  });
+  it('à vista: a parcela única recebe o total na mesma data', () => {
+    expect(redistribuirValor([{ numero: 1, data: '2026-10-15' }], 4_990)).toEqual({
+      ok: true,
+      valor: [p(1, 4_990, '2026-10-15')],
+    });
+  });
+  it('ordena pelo número, qualquer que seja a ordem recebida', () => {
+    const r = redistribuirValor([...atuais].reverse(), 300);
+    expect(r.ok && r.valor.map((x) => x.numero)).toEqual([1, 2, 3]);
+  });
+  it('a soma é sempre o total (CA-T5.2)', () => {
+    for (const total of [3, 4, 5, 100, 99_999, 100_000_000_000]) {
+      const r = redistribuirValor(atuais, total);
+      expect(r.ok && r.valor.reduce((a, x) => a + x.valorCentavos, 0)).toBe(total);
+    }
+  });
+  it('total menor que o nº de parcelas, fora de 1 a 10^11 ou sem parcelas → valor_invalido', () => {
+    expect(redistribuirValor(atuais, 2)).toEqual(invalido);
+    expect(redistribuirValor(atuais, 0)).toEqual(invalido);
+    expect(redistribuirValor(atuais, 100_000_000_001)).toEqual(invalido);
+    expect(redistribuirValor(atuais, 10.5)).toEqual(invalido);
+    expect(redistribuirValor([], 100)).toEqual(invalido);
   });
 });

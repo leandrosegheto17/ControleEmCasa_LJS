@@ -6,7 +6,11 @@ import { normalizarTextoOpcionalSemLimite } from './validacoes';
 /**
  * Quem edita o quê num lançamento (RN-06, RN-07, RN-28; G-13). Quem lançou é o pagador e o dono
  * (RN-05): tudo liberado, salvo as correções da fixa (RN-28). O outro membro só alcança a conjunta:
- * muda descrição, valor, data (não no Crédito) e categoria conjunta; nunca escopo, forma ou parcelas.
+ * muda descrição, valor e categoria conjunta; nunca data, escopo, forma ou parcelas.
+ * SPEC_DEVIATION (decisão do usuário de 2026-10-25, etapa 8): no legado o outro membro também mudava a data
+ * da conjunta fora do Crédito. A data da operação mora na parte privada do pagador (`lancamento_pagamento`,
+ * G-10), que o outro membro não lê nem grava sem `SECURITY DEFINER` (G-04, SDD D-04); por isso a data ficou só
+ * com o pagador. Quando o outro membro muda o valor, as parcelas mantêm as datas (`redistribuirValor`).
  * Pagamento de fixa é só do pagador: o outro membro não muda nada.
  * Origem: F permissoes_edicao.sql:38-59; A editar_lancamento.sql:58-157; A alterar_data_parcela.sql.
  */
@@ -75,7 +79,7 @@ export function permissoesEdicao(ctx: ContextoEdicao): Resultado<PermissoesEdica
   return sucesso({
     descricao: true,
     valor: true,
-    data: !ctx.formaCredito,
+    data: false,
     categoriaMesmoEscopo: true,
     trocaEscopo: false,
     forma: false,

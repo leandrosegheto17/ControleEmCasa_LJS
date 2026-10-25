@@ -50,8 +50,10 @@ describe('permissoesEdicao: casos do pgTAP', () => {
   it('A na própria conjunta crédito 3x: tudo', () => expect(legado(ctx({ formaCredito: true }))).toEqual(tudo));
   it('A na própria individual: tudo', () => expect(legado(ctx({ escopo: 'individual' }))).toEqual(tudo));
   it('A na própria receita (individual): tudo', () => expect(legado(ctx({ escopo: 'individual' }))).toEqual(tudo));
-  it('outro membro na conjunta Pix: descrição, valor, data e categoria conjunta; sem escopo, forma e parcelas', () => {
-    expect(legado(ctx({ souDono: false }))).toEqual([true, true, true, true, false, false, false]);
+  // Alterado na etapa 8 com aprovação do usuário (2026-10-25): no legado o outro membro mudava a data da conjunta
+  // fora do Crédito; a data mora na parte privada do pagador (G-10) e ficou só com ele (RN-06 revisada).
+  it('outro membro na conjunta Pix: descrição, valor e categoria conjunta; sem data, escopo, forma e parcelas', () => {
+    expect(legado(ctx({ souDono: false }))).toEqual([true, true, false, true, false, false, false]);
   });
   it('outro membro na conjunta crédito (3x ou à vista): sem data', () => {
     expect(legado(ctx({ souDono: false, formaCredito: true }))).toEqual([true, true, false, true, false, false, false]);
@@ -107,8 +109,9 @@ describe('avaliarEdicao (RN-06, RN-07, RN-28)', () => {
   it('CA-06.1: outro membro edita descrição e valor de uma conjunta Pix → aceita', () => {
     expect(avaliarEdicao(ctx({ souDono: false }), muda({ descricao: true, valor: true }))).toEqual(ok);
   });
-  it('outro membro troca a data de uma conjunta Pix → aceita', () => {
-    expect(avaliarEdicao(ctx({ souDono: false }), muda({ data: true }))).toEqual(ok);
+  // Alterado na etapa 8 com aprovação do usuário (2026-10-25): a data da conjunta é só do pagador (RN-06 revisada).
+  it('outro membro troca a data de uma conjunta Pix → sem_permissao (a data é só do pagador)', () => {
+    expect(avaliarEdicao(ctx({ souDono: false }), muda({ data: true }))).toEqual(semPermissao);
   });
   it('outro membro troca para outra categoria conjunta → aceita', () => {
     expect(avaliarEdicao(ctx({ souDono: false }), muda({ categoria: true }))).toEqual(ok);

@@ -95,6 +95,49 @@ export interface CategoriaTabela {
   criado_em: Generated<Date>;
 }
 
+/** Cabeçalho do lançamento (SDD 3.5; etapa 8). O id vem do cliente (ADR-010). */
+export interface LancamentoTabela {
+  id: string;
+  lar_id: string;
+  dono_id: string;
+  tipo: 'despesa' | 'receita';
+  escopo: 'conjunto' | 'individual';
+  categoria_id: string;
+  descricao: string | null;
+  /** bigint: o `pg` devolve texto. */
+  valor_total_centavos: ColumnType<string, number, number>;
+  num_parcelas: number;
+  alterado_por: string | null;
+  alterado_em: InstanteOpcional;
+  criado_em: Generated<Date>;
+  categoria_dono_id: ColumnType<string | null, never, never>;
+}
+
+/** Parte privada do pagador (G-10): só o dono a enxerga, mesmo na conjunta. */
+export interface LancamentoPagamentoTabela {
+  lancamento_id: string;
+  lar_id: string;
+  dono_id: string;
+  forma_pagamento_id: string | null;
+  conta_id: string | null;
+  /** date: o `pg` devolve texto `AAAA-MM-DD`. */
+  data_operacao: string;
+  dia_vencimento_aplicado: number | null;
+}
+
+/** Parcela de competência (RN-14, ADR-008). */
+export interface ParcelaTabela {
+  id: Generated<string>;
+  lancamento_id: string;
+  lar_id: string;
+  escopo: 'conjunto' | 'individual';
+  dono_id: string;
+  numero: number;
+  valor_centavos: ColumnType<string, number, number>;
+  data: string;
+  data_ajustada: Generated<boolean>;
+}
+
 export interface DB {
   usuario: UsuarioTabela;
   sessao: SessaoTabela;
@@ -105,4 +148,7 @@ export interface DB {
   membro: MembroTabela;
   convite: ConviteTabela;
   categoria: CategoriaTabela;
+  lancamento: LancamentoTabela;
+  lancamento_pagamento: LancamentoPagamentoTabela;
+  parcela: ParcelaTabela;
 }

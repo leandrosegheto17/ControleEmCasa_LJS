@@ -14,6 +14,7 @@ import {
   renomearLarAtual,
   travarVinculoDoUsuario,
 } from '../../infraestrutura/db/repositorios/lares';
+import { apagarPartePrivadaDoMembro } from '../../infraestrutura/db/repositorios/lancamentos';
 import { inserirMembro, listarAtivosDoLar, marcarSaida } from '../../infraestrutura/db/repositorios/membros';
 import { buscarPorId } from '../../infraestrutura/db/repositorios/usuarios';
 import { derivarVinculo } from '../../infraestrutura/db/transacao';
@@ -77,6 +78,11 @@ export async function renomearLar(deps: DepsLar, nome: string): Promise<void> {
 /**
  * `DELETE /api/lar/membros/:id` (titular; CA-23.14): remove o convidado com o mesmo efeito da saída (CA-23.12).
  * Não titular, o próprio titular, membro de outro lar, inexistente ou que já saiu: `registro_invalido`.
+ * SPEC_DEVIATION (decisão do usuário de 2026-10-25, etapa 8): o CA-23.12 apaga a parte privada dos pagamentos
+ * (`lancamento_pagamento`) do membro na hora; na REMOÇÃO pelo titular ela fica até a purga de 30 dias pela role
+ * owner (etapa 14), porque a RLS só do dono (G-10) não deixa o titular apagá-la e a RLS não muda. Depois da saída,
+ * o id daquele membro nunca mais é o `app.membro_id` de ninguém: a linha fica inacessível à API até a purga.
+ * Pendência da etapa 14: a purga apaga `lancamento_pagamento` dos membros removidos.
  */
 export async function removerMembro(deps: DepsLar, membroId: string): Promise<void> {
   const vinculo = vinculoDe(deps);
@@ -88,12 +94,14 @@ export async function removerMembro(deps: DepsLar, membroId: string): Promise<vo
 /**
  * `POST /api/lar/sair` (membro; CA-23.12, CA-23.13): o convidado sai; no próximo acesso cai no primeiro acesso.
  * O titular não sai por aqui: `registro_invalido` (decisão desta etapa; ver ADR-009).
- * As tabelas de negócio das etapas 7 a 10 (lançamento_pagamento, movimento de meta) acrescentam aqui o
- * apagamento da parte privada; o individual é purgado em 30 dias pela purga (etapa 14).
+ * A parte privada dos pagamentos dele (`lancamento_pagamento`) é apagada na hora (CA-23.12): as conjuntas que ele
+ * pagou ficam no lar com o pagador "Ex-membro". A conta dos movimentos de meta entra na etapa 10; o individual é
+ * purgado em 30 dias pela purga (etapa 14).
  */
 export async function sairDoLar(deps: DepsLar): Promise<void> {
   const vinculo = vinculoDe(deps);
   if (vinculo.papel !== 'membro') throw erroRegistroInvalido();
+  await apagarPartePrivadaDoMembro(deps.tx, vinculo.membroId);
   const afetados = await marcarSaida(deps.tx, {
     membroId: vinculo.membroId,
     papel: 'membro',

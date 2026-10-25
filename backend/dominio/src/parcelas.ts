@@ -136,3 +136,27 @@ export function parcelasDoPagamentoDeFixa(entrada: {
   if (!validarValorLancamento(entrada.valorCentavos).ok) return INVALIDO;
   return sucesso([{ numero: 1, valorCentavos: entrada.valorCentavos, data: entrada.vencimento }]);
 }
+
+/**
+ * Valor novo de um lançamento mantendo número e data de cada parcela (decisão do usuário de 2026-10-25, RN-06
+ * revisada): é a edição de valor pelo outro membro, que não lê a parte privada do pagador (data da operação, dia
+ * de vencimento aplicado; G-10). Vale a regra de valores da RN-14 (base = ⌊total ÷ N⌋, resto na 1ª) e o total de
+ * 1 a 10^11 com total ≥ N. As datas, inclusive as ajustadas à mão, ficam onde estão.
+ */
+export function redistribuirValor(
+  atuais: readonly { readonly numero: number; readonly data: DataCalendario }[],
+  totalCentavos: Centavos,
+): Resultado<Parcela[], 'valor_invalido'> {
+  const n = atuais.length;
+  if (n < 1 || n > MAX_PARCELAS) return INVALIDO;
+  if (!validarValorLancamento(totalCentavos).ok || totalCentavos < n) return INVALIDO;
+  const base = Math.floor(totalCentavos / n);
+  const ordenadas = [...atuais].sort((a, b) => a.numero - b.numero);
+  return sucesso(
+    ordenadas.map((x, i) => ({
+      numero: x.numero,
+      valorCentavos: i === 0 ? totalCentavos - base * (n - 1) : base,
+      data: x.data,
+    })),
+  );
+}

@@ -202,6 +202,27 @@ const CASOS: Record<string, (c: Cenario) => Promise<void>> = {
       }
     });
   },
+  // Etapa 8: o pagamento de cartão é uma rota de formas (SDD #15); a conta de origem é a da vítima ou inexistente.
+  'POST /api/formas/:id/pagamentos': async (c) => {
+    await semMudanca(c.vitima, async () => {
+      for (const { quem } of c.atacantes) {
+        await mesmaRespostaQueInexistente(
+          () =>
+            pedir(c.app, 'POST', `/api/formas/${c.ids.forma}/pagamentos`, quem, {
+              id: ALEATORIO(),
+              conta_id: c.ids.conta,
+              valor_centavos: 100,
+            }),
+          () =>
+            pedir(c.app, 'POST', `/api/formas/${ALEATORIO()}/pagamentos`, quem, {
+              id: ALEATORIO(),
+              conta_id: c.ids.conta,
+              valor_centavos: 100,
+            }),
+        );
+      }
+    });
+  },
   'DELETE /api/formas/:id': async (c) => {
     await semMudanca(c.vitima, async () => {
       for (const { quem } of c.atacantes) {

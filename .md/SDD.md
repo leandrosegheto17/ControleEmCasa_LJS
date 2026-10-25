@@ -398,7 +398,7 @@ Check `lancamento_receita_individual`. Alvos: `unique (id, dono_id)` e `unique (
 | data_operacao | date not null | |
 | dia_vencimento_aplicado | smallint | de 1 a 31 (dia congelado) |
 
-**RLS:** todas as operações com **D**; insert e update também com **L**. Só o pagador enxerga, mesmo na conjunta. Por isso a API **omite** as chaves `pagamento` e `data_ajustada` para o outro membro (RN-04, C `respostas/lancamento.ts`).
+**RLS:** todas as operações com **D**; insert e update também com **L**. Só o pagador enxerga, mesmo na conjunta. Por isso a API **omite** as chaves `pagamento` e `data_ajustada` para o outro membro (RN-04, C `respostas/lancamento.ts`). Como o outro membro nunca grava aqui, a edição dele não muda a data da operação (RN-06 revisada em 2026-10-25). Na remoção do membro pelo titular, estas linhas do removido ficam até a purga (etapa 14; desvio do CA-23.12 aceito em 2026-10-25).
 
 **parcela** (T parcela.sql; RN-14)
 
@@ -627,7 +627,7 @@ Convenções:
 | 12 | `arquivar_forma` | `POST /api/formas/:id/arquivar` | A | — → 204 | RN-03 |
 | 13 | `excluir_forma` | `DELETE /api/formas/:id` | A | — → 204 \| 409 `em_uso` | RN-03 |
 | 14 | `definir_preferida` | `PUT /api/formas/:id/preferida` | A | `entrada.DefinirPreferida {preferida}` → 204 | padrões do lançamento rápido |
-| 15 | `registrar_pagamento_cartao` | `POST /api/formas/:id/pagamentos` | A | `entrada.PagamentoCartao {id, conta_id, valor_centavos, data?}` → `{ id }` | RN-12, RN-13 |
+| 15 | `registrar_pagamento_cartao` | `POST /api/formas/:id/pagamentos` | A | `entrada.PagamentoCartao {id, conta_id, valor_centavos, data?}` → 201 `{ id, ja_existia }` (200 com `ja_existia: true` no reenvio; decisão de 2026-10-25) | RN-12, RN-13 |
 | 16 | view `categorias` | `GET /api/categorias` | A | — → `saida.LinhaCategorias[]` | RN-17 |
 | 17 | `salvar_categoria` | `PUT /api/categorias/:id` | A | `entrada.SalvarCategoria {nome, tipo, escopo, variavel}` → `{ id }` \| 409 `nome_repetido` | RN-17 |
 | 18 | `arquivar_categoria` | `POST /api/categorias/:id/arquivar` | A | — → 204 | RN-17 |
@@ -1201,7 +1201,7 @@ volumes:
 | D-01 | Limite de 2 membros com dois índices únicos parciais (titular e membro), sem `posicao` e sem gatilho | Concorrência e RLS não interferem: a unicidade não enxerga política |
 | D-02 | GUCs `app.usuario_id`, `app.email`, `app.lar_id`, `app.membro_id` (e `app.sistema` só em webhook, cron e purga), todos com `set_config(…, true)` | O lar e o membro vêm da linha de `membro`, não do cliente. As políticas ficam sem subconsulta e sem recursão. Não há `SECURITY DEFINER` |
 | D-03 | Tabelas de acesso sem RLS por linha, protegidas por segredo e grants de coluna | A identidade ainda não existe quando elas são lidas |
-| D-04 | `editar_lancamento` sem `SECURITY DEFINER`: a política de update da conjunta vale para os dois membros, e a matriz RN-06 fica em `dominio` | Remove a única exceção do legado |
+| D-04 | `editar_lancamento` sem `SECURITY DEFINER`: a política de update da conjunta vale para os dois membros, e a matriz RN-06 fica em `dominio`. Revisado em 2026-10-25 (etapa 8): o outro membro não lê nem grava `lancamento_pagamento`, então edita só descrição, valor (redistribuído mantendo as datas das parcelas) e categoria do mesmo escopo; a data é só do pagador (RN-06 revisada) | Remove a única exceção do legado sem abrir a parte privada (G-10) |
 | D-05 | Purga das exclusões por `purgar.ts` no GitHub Actions, como owner | O `app` continua sem DELETE em `meta`, `movimento_meta` e `despesa_fixa` |
 | D-06 | Backup com `--enable-row-security` e a política `backup_leitura` | Dispensa BYPASSRLS no Neon |
 | D-07 | Tokens de confirmação, recuperação, exclusão e convite no fragmento da URL (`#t=`) | O token não aparece em log de servidor nem em `Referer` |

@@ -49,6 +49,11 @@ export default defineConfig({
     // Com a etapa 6 (mais 5 arquivos que usam o banco), o paralelismo padrão (1 por núcleo) fazia os testes de
     // acesso com bcrypt estourarem 5 s por disputa de CPU no Postgres, não por defeito. 4 mantém a suíte estável.
     maxWorkers: 4,
+    // Teto por teste (etapa 8): o padrão de 5 s não cabe nos testes de isolamento por rota, que montam dois lares
+    // completos e fazem dezenas de requisições no Postgres compartilhado. Medido antes desta etapa, sem nenhuma
+    // mudança de código: "a vítima continua vendo..." (cadastros-isolamento, etapa 7) já levava 8,2 s nesta máquina e
+    // estourava o padrão. O teto só adia a detecção de um travamento; nenhuma asserção muda.
+    testTimeout: 30_000,
     globalSetup: ['./testes/banco-global.ts'],
     include: ['src/**/*.test.ts'],
   },
