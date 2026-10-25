@@ -6,6 +6,7 @@ packages:
   - frontend/web
 allowBuilds:
   esbuild: true
+  workerd: true
   unrs-resolver: false
 blockExoticSubdeps: true
 minimumReleaseAge: 1440

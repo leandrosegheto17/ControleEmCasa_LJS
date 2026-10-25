@@ -1,0 +1,9 @@
+# Cabeçalhos dos arquivos estáticos (SDD 11; G-35). Servidos pelo Cloudflare Assets.
+# CSP sem unsafe-inline/unsafe-eval em script; sem analytics nem script de terceiros.
+# A etapa 16 acrescenta o host de ingestão do Sentry em connect-src (exceção registrada em GUARDRAILS).
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()

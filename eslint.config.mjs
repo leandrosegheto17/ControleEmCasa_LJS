@@ -72,6 +72,12 @@ export default tseslint.config(
     settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: './tsconfig.base.json' })] },
     rules: { 'import-x/no-restricted-paths': ['error', { zones: zonas }] },
   },
+  // G-46: console só no logger da API (log.ts). Os testes podem espiar o console.
+  {
+    files: ['backend/api/src/**/*.ts'],
+    ignores: ['backend/api/src/log.ts', 'backend/api/src/**/*.test.ts'],
+    rules: { 'no-console': 'error' },
+  },
   fronteira('backend/contrato', 'dominio', 'api', 'scripts', 'web'),
   fronteira('backend/dominio', 'api', 'scripts', 'web'),
   fronteira('backend/api', 'scripts', 'web'),

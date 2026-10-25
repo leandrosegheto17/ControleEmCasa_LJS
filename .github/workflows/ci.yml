@@ -69,6 +69,8 @@ jobs:
         run: pnpm migrar
       - name: Testes de banco (Postgres 17 real)
         run: pnpm --filter @controle/scripts test
+      - name: Testes da API no Workers (workerd + Postgres 17 real, banco descartável)
+        run: pnpm --filter @controle/api test
 
   gitleaks:
     runs-on: ubuntu-latest
