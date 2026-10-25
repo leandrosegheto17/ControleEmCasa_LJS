@@ -138,6 +138,33 @@ export interface ParcelaTabela {
   data_ajustada: Generated<boolean>;
 }
 
+/** despesa_fixa (etapa 9; SDD 3.5). O id vem do cliente (ADR-010). */
+export interface DespesaFixaTabela {
+  id: string;
+  lar_id: string;
+  descricao: string;
+  categoria_id: string;
+  tipo: Generated<'despesa'>;
+  escopo: Generated<'conjunto'>;
+  valor_previsto_centavos: ColumnType<string, number, number>;
+  dia_vencimento: number;
+  inicio: string;
+  encerrada_em: string | null;
+  criado_em: Generated<Date>;
+}
+
+/** ocorrencia_fixa (etapa 9; SDD 3.5). */
+export interface OcorrenciaFixaTabela {
+  id: Generated<string>;
+  lar_id: string;
+  despesa_fixa_id: string;
+  mes: string;
+  vencimento: string;
+  valor_previsto_centavos: ColumnType<string, number, number>;
+  lancamento_id: string | null;
+  criado_em: Generated<Date>;
+}
+
 export interface DB {
   usuario: UsuarioTabela;
   sessao: SessaoTabela;
@@ -151,4 +178,6 @@ export interface DB {
   lancamento: LancamentoTabela;
   lancamento_pagamento: LancamentoPagamentoTabela;
   parcela: ParcelaTabela;
+  despesa_fixa: DespesaFixaTabela;
+  ocorrencia_fixa: OcorrenciaFixaTabela;
 }

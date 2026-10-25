@@ -6,8 +6,11 @@ import {
   diaParaRecalculo,
   diaVencimentoAplicado,
   edicaoRecalculaParcelas,
+  hojeEmSaoPaulo,
   normalizarTextoOpcional,
+  parcelasDoPagamentoDeFixa,
   redistribuirValor,
+  validarDataPagamentoFixa,
   validarValorLancamento,
   verificarDescarteDeAjustes,
   type ContextoEdicao,
@@ -26,12 +29,12 @@ import {
   type ParcelaNova,
 } from '../../infraestrutura/db/repositorios/lancamentos';
 import {
-  ehPagamentoDeFixa,
   erroCategoriaArquivada,
   erroDe,
   erroFormaArquivada,
   erroRegistroInvalido,
   erroValorInvalido,
+  ocorrenciaPagaPor,
   vinculoDe,
   type DepsLar,
 } from './comum';
@@ -53,6 +56,11 @@ import {
  *   forma, enviar `data` ou `forma_id` sempre conta como mudança. O valor novo é redistribuído mantendo as datas
  *   das parcelas (`redistribuirValor`), sem `confirmar_descarte`.
  *
+ * Pagamento de fixa (RN-28, correção P7 do defeito do legado; etapa 9): o lançamento ligado a uma `ocorrencia_fixa`
+ * tem sempre 1 parcela NO VENCIMENTO da ocorrência, em categoria conjunta. O pagador muda valor, descrição, data da
+ * operação (01/01/2000 a hoje + 30), forma e categoria conjunta, e a parcela não sai do vencimento; categoria
+ * individual é `sem_permissao`, nº de parcelas ≠ 1 é `valor_invalido`; o outro membro não muda nada.
+ *
  * Toda edição grava `alterado_por` e `alterado_em`, mesmo sem mudança efetiva. A resposta é mínima e sem campo
  * privado, também para o autor (§2.1). Origem: A editar_lancamento.sql (sem o SECURITY DEFINER; SDD D-04).
  */
@@ -66,11 +74,12 @@ export async function editarLancamento(
   if (!lanc) throw erroRegistroInvalido();
   const souDono = lanc.dono_id === v.membroId;
   const pagamento = souDono ? await buscarPagamentoDoDono(deps.tx, { lancamentoId: id, donoId: v.membroId }) : null;
+  const ocorrencia = await ocorrenciaPagaPor(deps, id);
   const ctx: ContextoEdicao = {
     souDono,
     escopo: lanc.escopo,
     formaCredito: pagamento?.forma_tipo === 'credito',
-    pagamentoDeFixa: ehPagamentoDeFixa(),
+    pagamentoDeFixa: ocorrencia !== null,
   };
 
   // registro_invalido: a categoria nova tem de ser visível a quem edita e do mesmo tipo do lançamento.
@@ -134,7 +143,17 @@ export async function editarLancamento(
     const formaDominio = formaNova ? { tipo: formaNova.tipo, diaVencimento: formaNova.dia_vencimento } : null;
     const data = entrada.data ?? pagamento.data_operacao;
     const dia = diaParaRecalculo({ diaAplicadoGravado: pagamento.dia_vencimento_aplicado, formaNova: formaDominio });
-    if (edicaoRecalculaParcelas(mudancas)) {
+    if (ocorrencia) {
+      // RN-28 (correção P7 do defeito do legado): o pagamento de fixa tem sempre 1 parcela, NO VENCIMENTO da
+      // ocorrência, qualquer que seja a forma ou a data da operação; a data da operação nova fica na faixa do
+      // pagamento (01/01/2000 a hoje + 30; CA-15.6). A parcela de fixa nunca tem ajuste manual (CA-28.5).
+      if (mudancas.data && !validarDataPagamentoFixa(data, hojeEmSaoPaulo(deps.agora)).ok) throw erroValorInvalido();
+      if (edicaoRecalculaParcelas(mudancas)) {
+        const r = parcelasDoPagamentoDeFixa({ vencimento: ocorrencia.vencimento, valorCentavos: valor, numParcelas });
+        if (!r.ok) throw erroValorInvalido();
+        recalculo = r.valor;
+      }
+    } else if (edicaoRecalculaParcelas(mudancas)) {
       const r = calcularParcelas({ tipo, data, diaVencimento: dia, numParcelas, totalCentavos: valor });
       if (!r.ok) throw erroValorInvalido();
       recalculo = r.valor;

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   apagaAoEncerrar,
+  fixaPodeSerEditada,
+  normalizarFixa,
+  ocorrenciasAGerar,
   compararOcorrencias,
   deveGerarOcorrencia,
   fixaGeraNoMes,
@@ -158,5 +161,85 @@ describe('validarDataPagamentoFixa (CA-15.6)', () => {
   it('o limite de hoje + 30 atravessa o ano', () => {
     expect(validarDataPagamentoFixa('2027-01-30', '2026-12-31').ok).toBe(true);
     expect(validarDataPagamentoFixa('2027-01-31', '2026-12-31').ok).toBe(false);
+  });
+});
+
+// Etapa 9: modelo da fixa (RN-15, RN-18) e geração em lote das ocorrências do mês (CA-15.1 a CA-15.4).
+describe('normalizarFixa (RN-15, RN-18; A salvar_despesa_fixa.sql:27-32)', () => {
+  const valida = { descricao: '  Aluguel  ', valorPrevistoCentavos: 150_000, diaVencimento: 10 };
+
+  it('apara a descrição e devolve o modelo', () => {
+    expect(normalizarFixa(valida)).toEqual({
+      ok: true,
+      valor: { descricao: 'Aluguel', valorPrevistoCentavos: 150_000, diaVencimento: 10 },
+    });
+  });
+
+  it.each([
+    ['descrição vazia', { descricao: '   ' }],
+    ['descrição nula', { descricao: null }],
+    ['descrição com 121 caracteres', { descricao: 'a'.repeat(121) }],
+    ['previsto 0', { valorPrevistoCentavos: 0 }],
+    ['previsto negativo', { valorPrevistoCentavos: -1 }],
+    ['previsto fracionário', { valorPrevistoCentavos: 10.5 }],
+    ['previsto acima de 10^11 (não daria para pagar pelo padrão)', { valorPrevistoCentavos: 100_000_000_001 }],
+    ['dia 0', { diaVencimento: 0 }],
+    ['dia 32', { diaVencimento: 32 }],
+    ['dia nulo', { diaVencimento: null }],
+  ])('%s → valor_invalido', (_nome, mudanca) => {
+    expect(normalizarFixa({ ...valida, ...mudanca } as never)).toEqual({ ok: false, erro: 'valor_invalido' });
+  });
+
+  it('limites aceitos: 120 caracteres, previsto 1 e 10^11, dias 1 e 31', () => {
+    expect(normalizarFixa({ ...valida, descricao: 'a'.repeat(120) }).ok).toBe(true);
+    expect(normalizarFixa({ ...valida, valorPrevistoCentavos: 1 }).ok).toBe(true);
+    expect(normalizarFixa({ ...valida, valorPrevistoCentavos: 100_000_000_000 }).ok).toBe(true);
+    expect(normalizarFixa({ ...valida, diaVencimento: 1 }).ok).toBe(true);
+    expect(normalizarFixa({ ...valida, diaVencimento: 31 }).ok).toBe(true);
+  });
+});
+
+describe('fixaPodeSerEditada (RN-15: fixa encerrada não é editada)', () => {
+  it('ativa pode; encerrada → valor_invalido', () => {
+    expect(fixaPodeSerEditada(null)).toEqual({ ok: true, valor: undefined });
+    expect(fixaPodeSerEditada('2026-10-15')).toEqual({ ok: false, erro: 'valor_invalido' });
+  });
+});
+
+describe('ocorrenciasAGerar (CA-15.1 a CA-15.4; F garantir_ocorrencias.sql)', () => {
+  const hoje = '2026-10-24';
+  const fixa = (id: string, extra: Partial<Parameters<typeof ocorrenciasAGerar>[0][number]> = {}) => ({
+    id,
+    inicio: '2026-01-01',
+    encerradaEm: null,
+    diaVencimento: 10,
+    valorPrevistoCentavos: 1000,
+    ...extra,
+  });
+
+  it('1 ocorrência por fixa ativa, com o previsto e o vencimento do modelo naquele mês', () => {
+    expect(
+      ocorrenciasAGerar([fixa('a'), fixa('b', { diaVencimento: 31, valorPrevistoCentavos: 5 })], '2027-02-17', hoje),
+    ).toEqual([
+      { fixaId: 'a', mes: '2027-02-01', vencimento: '2027-02-10', valorPrevistoCentavos: 1000 },
+      { fixaId: 'b', mes: '2027-02-01', vencimento: '2027-02-28', valorPrevistoCentavos: 5 },
+    ]);
+  });
+
+  it('CA-15.2: fora da janela (novembro/2027 com hoje 24/10/2026) não gera nada; outubro/2027 e outubro/2025 geram', () => {
+    expect(ocorrenciasAGerar([fixa('a', { inicio: '2025-01-01' })], '2027-11-01', hoje)).toEqual([]);
+    expect(ocorrenciasAGerar([fixa('a', { inicio: '2025-01-01' })], '2027-10-01', hoje)).toHaveLength(1);
+    expect(ocorrenciasAGerar([fixa('a', { inicio: '2025-01-01' })], '2025-10-01', hoje)).toHaveLength(1);
+  });
+
+  it('antes do início não gera; CA-15.4: encerrada em 15/10 gera outubro e não novembro', () => {
+    expect(ocorrenciasAGerar([fixa('a', { inicio: '2026-11-01' })], '2026-10-01', hoje)).toEqual([]);
+    const encerrada = fixa('a', { encerradaEm: '2026-10-15' });
+    expect(ocorrenciasAGerar([encerrada], '2026-10-01', hoje)).toHaveLength(1);
+    expect(ocorrenciasAGerar([encerrada], '2026-11-01', hoje)).toEqual([]);
+  });
+
+  it('sem fixas, nada', () => {
+    expect(ocorrenciasAGerar([], '2026-10-01', hoje)).toEqual([]);
   });
 });

@@ -1,4 +1,5 @@
 import { ErroApi } from '../../erros';
+import { ocorrenciaDoLancamento } from '../../infraestrutura/db/repositorios/fixas';
 import { erroRegistroInvalido, vinculoDe, type DepsLar } from '../lar/comum';
 
 /**
@@ -40,10 +41,12 @@ export function erroDe(
 }
 
 /**
- * Pagamento de despesa fixa (RN-28). SPEC_DEVIATION: as tabelas `despesa_fixa` e `ocorrencia_fixa` nascem na
- * etapa 9; até lá nenhum lançamento é pagamento de fixa. A etapa 9 troca esta função pela consulta à
- * `ocorrencia_fixa` pelo id do lançamento (o domínio já aplica as regras da RN-28 quando receber `true`).
+ * O lançamento é o pagamento de uma ocorrência de despesa fixa (RN-28)? Devolve a ocorrência (com o vencimento, onde
+ * a parcela única fica) ou nulo. A ocorrência é do lar: a consulta filtra pelo lar do vínculo além da RLS.
  */
-export function ehPagamentoDeFixa(): boolean {
-  return false;
+export async function ocorrenciaPagaPor(
+  deps: DepsLar,
+  lancamentoId: string,
+): Promise<{ id: string; vencimento: string } | null> {
+  return ocorrenciaDoLancamento(deps.tx, { lancamentoId, larId: vinculoDe(deps).larId });
 }

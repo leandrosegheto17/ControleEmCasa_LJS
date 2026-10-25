@@ -6,7 +6,7 @@ import {
   buscarParcelaDoDono,
   excluirLancamento as excluirLancamentoNoBanco,
 } from '../../infraestrutura/db/repositorios/lancamentos';
-import { ehPagamentoDeFixa, erroDe, erroRegistroInvalido, vinculoDe, type DepsLar } from './comum';
+import { erroDe, erroRegistroInvalido, ocorrenciaPagaPor, vinculoDe, type DepsLar } from './comum';
 
 /**
  * `PATCH /api/parcelas/:id` (#25; CA-06.7, CA-28.5; ADR-008 item 5): só o pagador (dono da parcela), só compra no
@@ -28,7 +28,7 @@ export async function alterarDataDaParcela(
     // O escopo não muda a regra para o dono; o domínio só o usa para o outro membro.
     escopo: 'conjunto',
     formaCredito: parcela.forma_tipo === 'credito',
-    pagamentoDeFixa: ehPagamentoDeFixa(),
+    pagamentoDeFixa: (await ocorrenciaPagaPor(deps, parcela.lancamento_id)) !== null,
   });
   if (!pode.ok) throw erroDe(pode.erro);
   await ajustarDataDaParcela(deps.tx, { id, donoId: v.membroId, data: entrada.data });
@@ -38,8 +38,8 @@ export async function alterarDataDaParcela(
  * `DELETE /api/lancamentos/:id` (#26; RN-06; CA-06.8, CA-15.7, CA-28.7): o dono sempre; o outro membro só a
  * conjunta comum (o pagamento de fixa é só do pagador). Parcelas e parte privada somem juntas pela cascata.
  * Inexistente, individual do outro ou pagamento de fixa do outro: `registro_invalido`. A confirmação é da tela.
- * SPEC_DEVIATION: "pagamento de fixa volta a ocorrência para pendente" (SDD #26) entra com a `ocorrencia_fixa` na
- * etapa 9 (FK `on delete set null`). Origem: A excluir_lancamento.sql.
+ * Excluir o pagamento de uma fixa volta a ocorrência a pendente (SDD #26; RN-15): a FK da ocorrência é
+ * `on delete set null`. Origem: A excluir_lancamento.sql.
  */
 export async function excluirLancamento(deps: DepsLar, id: string): Promise<void> {
   const v = vinculoDe(deps);
@@ -49,7 +49,7 @@ export async function excluirLancamento(deps: DepsLar, id: string): Promise<void
     souDono: lanc.dono_id === v.membroId,
     escopo: lanc.escopo,
     formaCredito: false,
-    pagamentoDeFixa: ehPagamentoDeFixa(),
+    pagamentoDeFixa: (await ocorrenciaPagaPor(deps, id)) !== null,
   });
   if (!pode.ok) throw erroDe(pode.erro);
   if ((await excluirLancamentoNoBanco(deps.tx, { id, larId: v.larId, membroId: v.membroId })) !== 1) {

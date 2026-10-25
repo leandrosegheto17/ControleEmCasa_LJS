@@ -1,5 +1,13 @@
 import type { EntradaDefinirPreferida, EntradaSalvarForma, SaidaLinhaFormasPagamento } from '@controle/contrato';
-import { contaDaFormaPodeSer, formaPodeSerPreferida, normalizarForma, tipoDaFormaPodeMudar } from '@controle/dominio';
+import {
+  contaDaFormaPodeSer,
+  formaPodeSerPreferida,
+  hojeEmSaoPaulo,
+  inicioMes,
+  normalizarForma,
+  tipoDaFormaPodeMudar,
+} from '@controle/dominio';
+import { gastoDosCartoes } from '../../consultas/cartao';
 import { buscarContaDoDono } from '../../infraestrutura/db/repositorios/contas';
 import {
   arquivarForma as arquivarFormaNoBanco,
@@ -23,19 +31,24 @@ import {
 } from './comum';
 
 /**
- * `GET /api/formas` (RN-03).
- * SPEC_DEVIATION: o SDD (§6.1 #10) devolve também o gasto do mês e o comprometido futuro do Crédito, que somam
- * parcelas (etapas 8 e 9). Até lá não há lançamento, então o Crédito leva 0 e Pix e Débito levam nulo; a
- * agregação em SQL entra na etapa 9.
+ * `GET /api/formas` (RN-03, RN-13; CA-13.1, CA-13.3): no Crédito, o gasto do mês corrente (São Paulo) e o
+ * comprometido nos meses seguintes, somados em SQL (`consultas/cartao.ts`); Pix e Débito levam nulo.
+ * Origem: A view formas_pagamento.sql (`app.gasto_cartao(f.id, app.inicio_mes(app.hoje()))`).
  */
 export async function listarFormas(deps: DepsLar): Promise<SaidaLinhaFormasPagamento[]> {
   const v = vinculoDe(deps);
   const formas = await listarFormasDoDono(deps.tx, v.membroId);
-  return formas.map((f) => ({
-    ...f,
-    gasto_mes_centavos: f.tipo === 'credito' ? 0 : null,
-    comprometido_futuro_centavos: f.tipo === 'credito' ? 0 : null,
-  }));
+  const cartoes = new Map(
+    (await gastoDosCartoes(deps.tx, v.membroId, inicioMes(hojeEmSaoPaulo(deps.agora)))).map((g) => [g.forma_id, g]),
+  );
+  return formas.map((f) => {
+    const g = f.tipo === 'credito' ? cartoes.get(f.id) : undefined;
+    return {
+      ...f,
+      gasto_mes_centavos: f.tipo === 'credito' ? (g?.gasto_mes_centavos ?? 0) : null,
+      comprometido_futuro_centavos: f.tipo === 'credito' ? (g?.comprometido_futuro_centavos ?? 0) : null,
+    };
+  });
 }
 
 /**

@@ -7,7 +7,10 @@ import {
   somarDias,
   type DataCalendario,
 } from './datas';
+import type { Centavos } from '@controle/contrato';
+import { validarValorLancamento } from './centavos';
 import { recusa, sucesso, type Resultado } from './resultado';
+import { normalizarTextoObrigatorio, validarDiaVencimento } from './validacoes';
 
 /**
  * Despesas fixas conjuntas (RN-15): em que meses uma fixa gera ocorrência, o vencimento de cada
@@ -129,4 +132,78 @@ export function validarDataPagamentoFixa(
   if (compararDatas(data, DATA_MINIMA_PAGAMENTO) < 0) return recusa('valor_invalido');
   if (compararDatas(data, somarDias(hoje, DIAS_FUTUROS_PAGAMENTO)) > 0) return recusa('valor_invalido');
   return sucesso(data);
+}
+
+/** Modelo da fixa já validado (RN-15, RN-18). */
+export interface ModeloFixa {
+  readonly descricao: string;
+  readonly valorPrevistoCentavos: Centavos;
+  readonly diaVencimento: number;
+}
+
+/**
+ * Valida o modelo da fixa (RN-15, RN-18): descrição obrigatória (aparada, até 120 caracteres), previsto de 1 a
+ * 10^11 centavos e dia de 1 a 31; fora disso `valor_invalido`.
+ * SPEC_DEVIATION: a RN-18 pede só previsto > 0 (o legado não tem teto). Aqui o teto é o do lançamento (10^11,
+ * G-23), porque pagar pelo valor padrão cria um lançamento com o previsto: acima do teto a fixa nunca seria paga.
+ * Origem: A salvar_despesa_fixa.sql:27-32.
+ */
+export function normalizarFixa(entrada: {
+  readonly descricao: string | null;
+  readonly valorPrevistoCentavos: unknown;
+  readonly diaVencimento: unknown;
+}): Resultado<ModeloFixa, 'valor_invalido'> {
+  const descricao = normalizarTextoObrigatorio(entrada.descricao);
+  const valor = validarValorLancamento(entrada.valorPrevistoCentavos);
+  const dia = validarDiaVencimento(entrada.diaVencimento);
+  if (!descricao.ok || !valor.ok || !dia.ok) return recusa('valor_invalido');
+  return sucesso({ descricao: descricao.valor, valorPrevistoCentavos: valor.valor, diaVencimento: dia.valor });
+}
+
+/** Fixa encerrada não é editada: `valor_invalido` (RN-15). Origem: A salvar_despesa_fixa.sql:46-49. */
+export function fixaPodeSerEditada(encerradaEm: DataCalendario | null): Resultado<void, 'valor_invalido'> {
+  return encerradaEm === null ? sucesso(undefined) : recusa('valor_invalido');
+}
+
+/** O que a API sabe de cada fixa do lar para gerar as ocorrências do mês. */
+export interface FixaParaGerar {
+  readonly id: string;
+  readonly inicio: DataCalendario;
+  readonly encerradaEm: DataCalendario | null;
+  readonly diaVencimento: number;
+  readonly valorPrevistoCentavos: Centavos;
+}
+
+export interface OcorrenciaAGerar {
+  readonly fixaId: string;
+  readonly mes: DataCalendario;
+  readonly vencimento: DataCalendario;
+  readonly valorPrevistoCentavos: Centavos;
+}
+
+/**
+ * Ocorrências que a consulta de um mês deve garantir (RN-15; CA-15.1 a CA-15.4): 1 por fixa que gera no mês, só
+ * dentro da janela de ±12 meses de hoje, com o vencimento do modelo naquele mês (último dia se não existir) e o
+ * previsto do modelo. A API grava em lote com `ON CONFLICT DO NOTHING` (idempotente sob concorrência) e nunca
+ * corrige ocorrência já gerada. Origem: F garantir_ocorrencias.sql:1-30.
+ */
+export function ocorrenciasAGerar(
+  fixas: readonly FixaParaGerar[],
+  mes: DataCalendario,
+  hoje: DataCalendario,
+): OcorrenciaAGerar[] {
+  const inicio = inicioMes(mes);
+  const resultado: OcorrenciaAGerar[] = [];
+  for (const f of fixas) {
+    if (!deveGerarOcorrencia({ inicio: f.inicio, encerradaEm: f.encerradaEm, mes: inicio, hoje })) continue;
+    const vencimento = vencimentoDaOcorrencia(inicio, f.diaVencimento);
+    if (!vencimento.ok) continue;
+    resultado.push({
+      fixaId: f.id,
+      mes: inicio,
+      vencimento: vencimento.valor,
+      valorPrevistoCentavos: f.valorPrevistoCentavos,
+    });
+  }
+  return resultado;
 }
