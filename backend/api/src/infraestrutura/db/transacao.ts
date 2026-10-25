@@ -1,23 +1,51 @@
 import { sql, type Kysely, type Transaction } from 'kysely';
-import type { Sessao } from '../../env';
+import type { Sessao, Vinculo } from '../../env';
 import type { DB } from './tipos';
 
 /**
  * Abre a transação da requisição e grava a identidade como GUC LOCAL (G-02, ADR 005):
  * `set_config(..., true)` some no COMMIT e no ROLLBACK, então a conexão volta ao pool do Hyperdrive sem identidade.
  * É o PRIMEIRO comando da transação. GUC vazio ('') nega o acesso nas políticas (`app.usuario_atual()` vira NULL).
+ * Em seguida o vínculo (lar, membro e papel) é DERIVADO de `app.membro` no banco (SDD 5.3; G-03), nunca do
+ * chamador. A função recebe o vínculo lido.
  * Proibido (G-02): GUC global (is_local falso), SET fora de LOCAL e consulta de negócio fora desta transação;
  * a varredura de código dos testes recusa esses padrões.
  */
 export async function emTransacaoComo<T>(
   db: Kysely<DB>,
   sessao: Sessao,
-  fn: (trx: Transaction<DB>) => Promise<T>,
+  fn: (trx: Transaction<DB>, vinculo: Vinculo | null) => Promise<T>,
 ): Promise<T> {
   return db.transaction().execute(async (trx) => {
     await sql`select set_config('app.usuario_id', ${sessao.usuarioId}, true),
-                     set_config('app.email', ${sessao.email}, true),
-                     set_config('app.lar_id', ${sessao.larId ?? ''}, true)`.execute(trx);
-    return fn(trx);
+                     set_config('app.email', ${sessao.email}, true)`.execute(trx);
+    const vinculo = await derivarVinculo(trx, sessao.usuarioId);
+    return fn(trx, vinculo);
   });
+}
+
+/**
+ * Lê o vínculo ativo do usuário e grava `app.lar_id`, `app.membro_id` e `app.papel` NA MESMA instrução, a
+ * partir da mesma linha de `membro` (SDD 5.3): o lar fica validado contra o vínculo por construção (R3).
+ * Sem vínculo, os três ficam vazios (a instrução sempre devolve uma linha). Usado ao abrir a transação e de
+ * novo quando o vínculo muda dentro dela (criar o lar, aceitar convite).
+ * A leitura de `membro` passa pela RLS (`usuario_id = app.usuario_atual()`), já gravado no comando anterior.
+ */
+export async function derivarVinculo(trx: Transaction<DB>, usuarioId: string): Promise<Vinculo | null> {
+  const r = await sql<{ lar: string; membro: string; papel: string }>`
+    with ativo as (
+      select m.lar_id::text as lar, m.id::text as membro, m.papel
+        from app.membro m
+       where m.usuario_id = ${usuarioId} and m.saiu_em is null
+    ), linha as (
+      select coalesce(a.lar, '') as lar, coalesce(a.membro, '') as membro, coalesce(a.papel, '') as papel
+        from (select 1) as um left join ativo a on true
+    )
+    select set_config('app.lar_id', linha.lar, true) as lar,
+           set_config('app.membro_id', linha.membro, true) as membro,
+           set_config('app.papel', linha.papel, true) as papel
+      from linha`.execute(trx);
+  const v = r.rows[0];
+  if (!v || !v.lar || !v.membro || (v.papel !== 'titular' && v.papel !== 'membro')) return null;
+  return { larId: v.lar, membroId: v.membro, papel: v.papel };
 }

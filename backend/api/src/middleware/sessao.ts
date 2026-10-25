@@ -20,6 +20,6 @@ export async function sessaoDoCookie(c: Context<AppEnv>): Promise<Sessao | null>
     limparCookieSessao(c);
     return null;
   }
-  // larId: a derivação de `app.membro` é da etapa 6 (ver SPEC_DEVIATION em env.ts).
-  return { usuarioId: valida.usuarioId, email: valida.email, larId: null };
+  // O lar não vem da sessão: é derivado de `app.membro` ao abrir a transação (SDD 5.3; G-03).
+  return { usuarioId: valida.usuarioId, email: valida.email };
 }

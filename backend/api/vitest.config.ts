@@ -45,6 +45,10 @@ export default defineConfig({
     })),
   ],
   test: {
+    // Teto de arquivos em paralelo: todos dividem o MESMO Postgres, e o bcrypt de custo 12 roda nele (crypt no SQL).
+    // Com a etapa 6 (mais 5 arquivos que usam o banco), o paralelismo padrão (1 por núcleo) fazia os testes de
+    // acesso com bcrypt estourarem 5 s por disputa de CPU no Postgres, não por defeito. 4 mantém a suíte estável.
+    maxWorkers: 4,
     globalSetup: ['./testes/banco-global.ts'],
     include: ['src/**/*.test.ts'],
   },

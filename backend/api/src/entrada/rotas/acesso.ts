@@ -16,6 +16,7 @@ import { transporteDoAmbiente } from '../../infraestrutura/transporte-email-ambi
 import { ipDoCliente } from '../../middleware/limite';
 import { emTransacao } from '../../middleware/transacao';
 import { lerCorpo } from '../corpo';
+import { agendarDe } from './comum';
 
 export interface OpcoesAcesso {
   /** Transporte de e-mail injetado (testes); sem ele, vale o do ambiente (Resend, console em local). */
@@ -32,17 +33,6 @@ function chaveHmacDe(base64url: string): Promise<ChaveHmac> {
     chaves.set(base64url, chave);
   }
   return chave;
-}
-
-function agendarDe(c: Context<AppEnv>): (trabalho: Promise<unknown>) => void {
-  return (trabalho) => {
-    const seguro = trabalho.catch(() => undefined);
-    try {
-      c.executionCtx.waitUntil(seguro);
-    } catch {
-      // sem ExecutionContext (chamada direta): a promessa segue sozinha
-    }
-  };
 }
 
 function exigirSessao(c: Context<AppEnv>) {
@@ -92,7 +82,7 @@ export function registrarRotasDeAcesso(app: Hono<AppEnv>, opcoes: OpcoesAcesso):
   });
   app.get('/api/sessao', emTransacao, async (c) => {
     const sessao = exigirSessao(c);
-    return c.json(await sessaoAtual(c.get('tx'), sessao.usuarioId, opcoes.versoes), 200);
+    return c.json(await sessaoAtual(c.get('tx'), sessao.usuarioId, opcoes.versoes, c.get('vinculo')), 200);
   });
   // Sair é idempotente: revoga a sessão do cookie (se houver) e limpa o cookie (CA-20.4).
   app.post('/api/sessao/sair', async (c) => {

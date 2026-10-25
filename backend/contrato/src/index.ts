@@ -1,3 +1,6 @@
+import { entradaAcesso, saidaAcesso } from './acesso';
+import { entradaLar, saidaLar } from './lar';
+
 export const PRECO_PRO_CENTAVOS = 990;
 export const TRIAL_DIAS = 14;
 
@@ -5,3 +8,8 @@ export const TRIAL_DIAS = 14;
 export type Centavos = number;
 
 export * from './acesso';
+export * from './lar';
+
+/** Schemas de entrada e saída de todas as rotas (SDD 6: `entrada.X` / `saida.X`). */
+export const entrada = { ...entradaAcesso, ...entradaLar } as const;
+export const saida = { ...saidaAcesso, ...saidaLar } as const;

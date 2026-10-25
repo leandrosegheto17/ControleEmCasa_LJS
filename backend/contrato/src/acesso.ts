@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { saidaLar } from './lar';
 
 /**
  * Contrato das rotas de acesso (SDD 6.2: cadastro, sessão, senha e termos; RN-19, RN-20, RN-21).
@@ -40,7 +41,7 @@ const Versao = z.string().min(1).max(40);
 
 export const VersoesAceitas = z.object({ termos: Versao, privacidade: Versao }).strict();
 
-export const entrada = {
+export const entradaAcesso = {
   Cadastro: z.object({ nome: Nome, email: Email, senha: Senha, aceite: VersoesAceitas }).strict(),
   Confirmar: z.object({ token: Token }).strict(),
   Reenviar: z.object({ email: Email }).strict(),
@@ -50,25 +51,25 @@ export const entrada = {
   AceiteTermos: VersoesAceitas,
 } as const;
 
-export const saida = {
+export const saidaAcesso = {
   /**
-   * `GET /api/sessao` (SDD 5.2). `membro`, `lar` e `plano` ficam nulos até as etapas 6 e 13.
-   * Nunca leva o token da sessão (CA-20.8).
+   * `GET /api/sessao` (SDD 5.2). `membro` e `lar` vêm do vínculo ativo (nulos sem lar, etapa 6);
+   * `plano` fica nulo até a etapa 13. Nunca leva o token da sessão (CA-20.8).
    */
   SessaoAtual: z
     .object({
       usuario: z.object({ id: z.uuid(), nome: z.string(), email: z.string() }).strict(),
-      membro: z.null(),
-      lar: z.null(),
+      membro: saidaLar.MembroDaSessao.nullable(),
+      lar: saidaLar.Lar.nullable(),
       plano: z.null(),
       termos_pendentes: z.boolean(),
     })
     .strict(),
 } as const;
 
-export type EntradaCadastro = z.infer<typeof entrada.Cadastro>;
-export type EntradaEntrar = z.infer<typeof entrada.Entrar>;
-export type SaidaSessaoAtual = z.infer<typeof saida.SessaoAtual>;
+export type EntradaCadastro = z.infer<typeof entradaAcesso.Cadastro>;
+export type EntradaEntrar = z.infer<typeof entradaAcesso.Entrar>;
+export type SaidaSessaoAtual = z.infer<typeof saidaAcesso.SessaoAtual>;
 
 /** Códigos de erro estáveis das rotas de acesso (SDD 7; PRD-TECNICO 3). A lista só cresce. */
 export const CODIGOS_ERRO_ACESSO = [

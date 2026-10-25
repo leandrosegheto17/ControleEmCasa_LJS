@@ -18,16 +18,20 @@ export interface Bindings {
   LIMITE_WEBHOOK?: RateLimit;
 }
 
-/** Identidade que a sessão entrega ao middleware de transação. */
+/** Identidade que a sessão entrega ao middleware de transação. O lar NUNCA vem daqui (G-03). */
 export interface Sessao {
   usuarioId: string;
   email: string;
-  /**
-   * SPEC_DEVIATION: o SDD 5.3 manda derivar o lar de `app.membro` na própria instrução do GUC. A tabela
-   * `membro` só nasce na etapa 6; até lá a sessão real (etapa 4) entrega `null` e só os testes informam um lar.
-   * A etapa 6 troca isto pela derivação no banco e remove o campo daqui.
-   */
-  larId: string | null;
+}
+
+/**
+ * Vínculo ativo do usuário (SDD 5.3; G-03): lido de `app.membro` na própria transação, no mesmo comando que
+ * grava `app.lar_id`, `app.membro_id` e `app.papel`. Nulo quando o usuário ainda não tem lar.
+ */
+export interface Vinculo {
+  larId: string;
+  membroId: string;
+  papel: 'titular' | 'membro';
 }
 
 export interface Variaveis {
@@ -38,6 +42,8 @@ export interface Variaveis {
   sessao: Sessao | null;
   /** Transação aberta por `emTransacao`; só existe em rota autenticada. */
   tx: Transaction<DB>;
+  /** Vínculo derivado no banco ao abrir a transação (nulo sem lar). */
+  vinculo: Vinculo | null;
 }
 
 export interface AppEnv {

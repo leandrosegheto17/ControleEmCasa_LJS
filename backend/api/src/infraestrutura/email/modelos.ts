@@ -9,6 +9,8 @@ export interface DadosPorModelo {
   recuperacao: { nome: string; link: string };
   /** Aviso a quem já tem conta e tentou se cadastrar de novo (anti-enumeração, RN-19). */
   conta_existente: { linkEntrar: string; linkRecuperar: string };
+  /** Convite para o lar (`/convite#t=<token>`), válido por 7 dias. Só o nome do titular e o link (RN-23). */
+  convite: { nomeTitular: string; link: string };
 }
 
 export type ModeloEmail = keyof DadosPorModelo;
@@ -87,6 +89,26 @@ export function montarConteudo<M extends ModeloEmail>(modelo: M, dados: DadosPor
             `Esqueceu a senha? <a href="${escaparHtml(d.linkRecuperar)}">Recuperar o acesso</a>.`,
           ],
           { href: d.linkEntrar, rotulo: 'Entrar' },
+        ),
+      };
+    }
+    case 'convite': {
+      const d = dados as DadosPorModelo['convite'];
+      // O nome do titular fica fora do assunto: o assunto não passa pela limpeza de texto (TM-RES-02).
+      return {
+        assunto: `Você recebeu um convite no ${APP}`,
+        texto: `${textoSeguro(d.nomeTitular)} convidou você para organizar as contas da casa juntos no ${APP}.
+
+Para aceitar, abra o link abaixo em até 7 dias (entre ou crie a conta com este mesmo e-mail):
+${d.link}
+
+Se não conhece quem convidou, ignore este e-mail.`,
+        html: pagina(
+          [
+            `${htmlSeguro(d.nomeTitular)} convidou você para organizar as contas da casa juntos no ${APP}.`,
+            'Para aceitar, abra o link abaixo em até 7 dias (entre ou crie a conta com este mesmo e-mail).',
+          ],
+          { href: d.link, rotulo: 'Ver o convite' },
         ),
       };
     }

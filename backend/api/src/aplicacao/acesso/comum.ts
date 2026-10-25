@@ -22,7 +22,7 @@ export const INTERVALO_REENVIO_MS = 2 * 60 * 1000;
 
 /** Agenda o envio e registra só o modelo e o motivo da falha: nunca o destinatário nem o link (G-46). */
 export function agendarEmail<M extends ModeloEmail>(
-  deps: DepsAcesso,
+  deps: Pick<DepsAcesso, 'email' | 'agendar'>,
   para: string,
   modelo: M,
   dados: DadosPorModelo[M],

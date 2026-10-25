@@ -1,24 +1,35 @@
 import type { SaidaSessaoAtual } from '@controle/contrato';
 import type { Kysely } from 'kysely';
+import type { Vinculo } from '../../env';
 import { ErroApi } from '../../erros';
 import { aceitouVersoes, registrarAceite, type Versoes } from '../../infraestrutura/db/repositorios/aceites';
+import { buscarLarAtual } from '../../infraestrutura/db/repositorios/lares';
+import { buscarMembroAtual } from '../../infraestrutura/db/repositorios/membros';
 import { apagarDoUsuario, apagarPorToken } from '../../infraestrutura/db/repositorios/sessoes';
 import { buscarPorId } from '../../infraestrutura/db/repositorios/usuarios';
 import type { DB } from '../../infraestrutura/db/tipos';
 import { hashToken } from '../../infraestrutura/seguranca/token';
 
 /**
- * `GET /api/sessao` (SDD 5.2). `membro`, `lar` e `plano` ficam nulos até as etapas 6 e 13.
+ * `GET /api/sessao` (SDD 5.2). `membro` e `lar` vêm do vínculo derivado no banco ao abrir a transação
+ * (SDD 5.3; G-03): nulos para quem ainda não tem lar. `plano` fica nulo até a etapa 13.
  * `termos_pendentes` é verdadeiro quando a versão vigente dos termos ou da privacidade ainda não foi aceita
  * (CA-19.7); o front leva ao reaceite antes de liberar o app.
  */
-export async function sessaoAtual(db: Kysely<DB>, usuarioId: string, versoes: Versoes): Promise<SaidaSessaoAtual> {
+export async function sessaoAtual(
+  db: Kysely<DB>,
+  usuarioId: string,
+  versoes: Versoes,
+  vinculo: Vinculo | null,
+): Promise<SaidaSessaoAtual> {
   const usuario = await buscarPorId(db, usuarioId);
   if (!usuario) throw new ErroApi(401, 'sessao_expirada', 'Sessão expirada. Entre novamente.');
+  const membro = vinculo ? await buscarMembroAtual(db) : null;
+  const lar = vinculo ? await buscarLarAtual(db) : null;
   return {
     usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email },
-    membro: null,
-    lar: null,
+    membro: membro ? { id: membro.id, nome: membro.nome, papel: membro.papel } : null,
+    lar: membro && lar ? { id: lar.id, nome: lar.nome } : null,
     plano: null,
     termos_pendentes: !(await aceitouVersoes(db, usuarioId, versoes)),
   };

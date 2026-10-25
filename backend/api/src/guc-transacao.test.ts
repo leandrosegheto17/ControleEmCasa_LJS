@@ -15,7 +15,7 @@ import { USUARIO_A, USUARIO_B } from '../testes/constantes';
  *  4. sem GUC (ou vazio), a tabela com RLS devolve 0 linhas, nunca todas.
  * Postgres real (banco descartável), como `controle_app` (sem BYPASSRLS), tabela `fixture_rls` com a política "dono".
  */
-const sessaoDe = (u: { id: string; email: string }): Sessao => ({ usuarioId: u.id, email: u.email, larId: null });
+const sessaoDe = (u: { id: string; email: string }): Sessao => ({ usuarioId: u.id, email: u.email });
 
 /** A sessão do teste vem do cabeçalho X-Teste-Usuario (a sessão real chega na etapa 4). */
 function appDeTeste() {

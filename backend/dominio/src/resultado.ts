@@ -3,7 +3,15 @@
  * (PRD-TECNICO §1.1). O domínio não lança exceção por regra de negócio: quem chama (a API) decide
  * a ordem das recusas (RT-02) e o status HTTP.
  */
-export type CodigoErroDominio = 'valor_invalido' | 'registro_invalido' | 'sem_permissao' | 'confirmar_descarte_ajustes';
+export type CodigoErroDominio =
+  | 'valor_invalido'
+  | 'registro_invalido'
+  | 'sem_permissao'
+  | 'confirmar_descarte_ajustes'
+  | 'lar_cheio'
+  | 'convite_pendente'
+  | 'ja_tem_lar'
+  | 'muitas_tentativas';
 
 export type Resultado<T, E extends CodigoErroDominio = CodigoErroDominio> =
   { readonly ok: true; readonly valor: T } | { readonly ok: false; readonly erro: E };

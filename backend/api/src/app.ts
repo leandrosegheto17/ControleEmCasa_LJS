@@ -2,8 +2,10 @@ import { LIMITES, VERSAO_PRIVACIDADE, VERSAO_TERMOS } from '@controle/contrato';
 import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { registrarRotasDeAcesso } from './entrada/rotas/acesso';
+import { registrarRotasDeLar } from './entrada/rotas/lar';
 import type { AppEnv, Sessao } from './env';
 import { ErroApi, ehErroDeConexao } from './erros';
+import { traduzirErroDoBanco } from './infraestrutura/db/codigo-erro';
 import type { Versoes } from './infraestrutura/db/repositorios/aceites';
 import type { TransporteEmail } from './infraestrutura/email';
 import { relogioDoSistema, type Relogio } from './infraestrutura/relogio';
@@ -17,13 +19,16 @@ import { sessaoDoCookie } from './middleware/sessao';
 /** Limite de corpo (SDD 5.1 passo 2; LIMITES.corpoBytes): 64 KiB. */
 export const CORPO_MAXIMO_BYTES = LIMITES.corpoBytes;
 
-/** Rotas públicas sob `LIMITE_PUBLICO` (SDD 5.1 passo 3). Convites e exclusão entram nas etapas 6 e 14. */
+/** Rotas sob `LIMITE_PUBLICO` (SDD 5.1 passo 3), inclusive as de convite por token. Exclusão entra na etapa 14. */
 const ROTAS_LIMITE_PUBLICO = [
   '/api/cadastro',
   '/api/cadastro/confirmar',
   '/api/cadastro/reenviar',
   '/api/senha/esqueci',
   '/api/senha/redefinir',
+  '/api/convites/atual',
+  '/api/convites/aceitar',
+  '/api/convites/recusar',
 ];
 
 export interface OpcoesDoApp {
@@ -69,6 +74,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   });
 
   registrarRotasDeAcesso(app, { transporteEmail: opcoes.transporteEmail, versoes });
+  registrarRotasDeLar(app, { transporteEmail: opcoes.transporteEmail });
   opcoes.rotas?.(app);
 
   app.notFound((c) => c.json({ code: 'rota_inexistente', message: 'Rota inexistente.' }, 404));
@@ -81,6 +87,9 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
         erro.status,
       );
     }
+    // Erro esperado do banco (unicidade, RLS, check): vira o código estável do SDD 7, sem a mensagem do Postgres.
+    const traduzido = traduzirErroDoBanco(erro);
+    if (traduzido) return c.json({ code: traduzido.code, message: traduzido.message }, traduzido.status);
     const id = c.get('idRequisicao') ?? 'sem-id';
     if (ehErroDeConexao(erro)) {
       logar('warn', 'banco_indisponivel', { id, erro: erro.name });
