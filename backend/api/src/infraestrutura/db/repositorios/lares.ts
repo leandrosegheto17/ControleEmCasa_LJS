@@ -55,6 +55,8 @@ export async function contarRegistrosDeNegocio(db: Kysely<DB>): Promise<number> 
           + (select count(*) from app.forma_pagamento where lar_id = app.lar_atual())
           + (select count(*) from app.movimento_conta where lar_id = app.lar_atual())
           + (select count(*) from app.lancamento where lar_id = app.lar_atual())
-          + (select count(*) from app.despesa_fixa where lar_id = app.lar_atual()))::int as n`.execute(db);
+          + (select count(*) from app.despesa_fixa where lar_id = app.lar_atual())
+          + (select count(*) from app.orcamento where lar_id = app.lar_atual())
+          + (select count(*) from app.meta where lar_id = app.lar_atual()))::int as n`.execute(db);
   return r.rows[0]?.n ?? 0;
 }

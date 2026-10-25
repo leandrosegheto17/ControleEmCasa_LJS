@@ -1,5 +1,6 @@
 import type { Centavos } from '@controle/contrato';
-import { ehCentavos, percentualArredondado } from './centavos';
+import { ehCentavos, percentualArredondado, validarValorLancamento } from './centavos';
+import { recusa, sucesso, type Resultado } from './resultado';
 
 /**
  * Situação do orçamento (RN-16, "Orçamento"). O orçado e o realizado chegam já agregados do SQL
@@ -60,4 +61,20 @@ export function destaquesOrcamento<T extends { readonly percentual: number | nul
   linhas: readonly T[],
 ): T[] {
   return [...linhas].sort(compararLinhasOrcamento).slice(0, QUANTIDADE_DESTAQUES);
+}
+
+/**
+ * Valor do orçamento (RN-16 "Definir"; RN-18): ausente (nulo) **remove**; presente vai de 1 a 10^11 centavos
+ * (teto do lançamento, G-23); fora disso `valor_invalido`. Origem: A definir_orcamento.sql:36-47.
+ */
+export function normalizarValorOrcamento(
+  valor: Centavos | null | undefined,
+): Resultado<
+  { readonly remover: true } | { readonly remover: false; readonly valorCentavos: Centavos },
+  'valor_invalido'
+> {
+  if (valor === null || valor === undefined) return sucesso({ remover: true });
+  const v = validarValorLancamento(valor);
+  if (!v.ok) return recusa('valor_invalido');
+  return sucesso({ remover: false, valorCentavos: v.valor });
 }

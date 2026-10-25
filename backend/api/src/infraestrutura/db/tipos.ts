@@ -165,6 +165,45 @@ export interface OcorrenciaFixaTabela {
   criado_em: Generated<Date>;
 }
 
+/** orcamento (etapa 10; SDD 3.5). O id é gerado no banco; a escrita é por (categoria, mês). */
+export interface OrcamentoTabela {
+  id: Generated<string>;
+  lar_id: string;
+  mes: string;
+  categoria_id: string;
+  tipo: Generated<'despesa'>;
+  escopo: 'conjunto' | 'individual';
+  dono_id: string | null;
+  valor_centavos: ColumnType<string, number, number>;
+  criado_em: Generated<Date>;
+}
+
+/** meta (etapa 10; SDD 3.5). O id vem do cliente (ADR-010). */
+export interface MetaTabela {
+  id: string;
+  lar_id: string;
+  dono_id: string;
+  nome: string;
+  alvo_centavos: ColumnType<string, number, number>;
+  prazo: string | null;
+  escopo: 'conjunto' | 'individual';
+  atingida_em: string | null;
+  criado_em: Generated<Date>;
+}
+
+/** movimento_meta (etapa 10; SDD 3.5): imutável. O id vem do cliente (ADR-010). */
+export interface MovimentoMetaTabela {
+  id: string;
+  lar_id: string;
+  meta_id: string;
+  tipo: 'aporte' | 'retirada';
+  valor_centavos: ColumnType<string, number, never>;
+  data: string;
+  local: string;
+  autor_id: string;
+  criado_em: Generated<Date>;
+}
+
 export interface DB {
   usuario: UsuarioTabela;
   sessao: SessaoTabela;
@@ -180,4 +219,7 @@ export interface DB {
   parcela: ParcelaTabela;
   despesa_fixa: DespesaFixaTabela;
   ocorrencia_fixa: OcorrenciaFixaTabela;
+  orcamento: OrcamentoTabela;
+  meta: MetaTabela;
+  movimento_meta: MovimentoMetaTabela;
 }

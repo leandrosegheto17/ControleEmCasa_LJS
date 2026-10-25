@@ -144,16 +144,16 @@ export interface CategoriaListada extends CategoriaVisivel {
 }
 
 /**
- * Conjuntas do lar e individuais do membro; arquivadas entram. `pode_excluir`: sem lançamento (etapa 8) nem despesa
- * fixa (etapa 9) ligados. SPEC_DEVIATION: o orçamento (etapa 10) entra neste critério quando nascer. Sob a RLS, o
- * lançamento que usa uma categoria visível também é visível (conjunta do lar, ou individual do próprio dono); a fixa
- * é do lar e usa só conjuntas.
+ * Conjuntas do lar e individuais do membro; arquivadas entram. `pode_excluir`: sem lançamento (etapa 8), despesa
+ * fixa (etapa 9) nem orçamento (etapa 10) ligados. Sob a RLS, o lançamento e o orçamento que usam uma categoria
+ * visível também são visíveis (conjunta do lar, ou individual do próprio dono); a fixa é do lar e usa só conjuntas.
  */
 export async function listarCategoriasVisiveis(db: Kysely<DB>, visao: Visao): Promise<CategoriaListada[]> {
   const r = await sql<CategoriaListada>`
     select c.id, c.nome, c.tipo, c.escopo, c.variavel, c.arquivada,
            (not exists (select 1 from app.lancamento l where l.categoria_id = c.id)
-            and not exists (select 1 from app.despesa_fixa f where f.categoria_id = c.id)) as pode_excluir
+            and not exists (select 1 from app.despesa_fixa f where f.categoria_id = c.id)
+            and not exists (select 1 from app.orcamento o where o.categoria_id = c.id)) as pode_excluir
       from app.categoria c
      where c.lar_id = ${visao.larId} and (c.escopo = 'conjunto' or c.dono_id = ${visao.membroId})
      order by c.tipo, c.escopo, c.nome, c.id`.execute(db);

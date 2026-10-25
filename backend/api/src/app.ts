@@ -6,6 +6,7 @@ import { registrarRotasDeCadastros } from './entrada/rotas/cadastros';
 import { registrarRotasDeFixas } from './entrada/rotas/fixas';
 import { registrarRotasDeLancamentos } from './entrada/rotas/lancamentos';
 import { registrarRotasDeLar } from './entrada/rotas/lar';
+import { registrarRotasDeOrcamentoEMetas } from './entrada/rotas/orcamento-metas';
 import type { AppEnv, Sessao } from './env';
 import { ErroApi, ehErroDeConexao } from './erros';
 import { traduzirErroDoBanco } from './infraestrutura/db/codigo-erro';
@@ -81,6 +82,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   registrarRotasDeCadastros(app);
   registrarRotasDeLancamentos(app);
   registrarRotasDeFixas(app);
+  registrarRotasDeOrcamentoEMetas(app);
   opcoes.rotas?.(app);
 
   app.notFound((c) => c.json({ code: 'rota_inexistente', message: 'Rota inexistente.' }, 404));

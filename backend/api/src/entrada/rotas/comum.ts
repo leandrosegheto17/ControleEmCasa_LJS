@@ -27,8 +27,8 @@ export function depsDe(c: Context<AppEnv>): DepsLar {
 const Uuid = z.uuid();
 
 /** Id de rota: malformado é tratado como inexistente (mesma resposta; RT-01). */
-export function idDaRota(c: Context<AppEnv>): string {
-  const id = c.req.param('id');
+export function idDaRota(c: Context<AppEnv>, parametro = 'id'): string {
+  const id = c.req.param(parametro);
   if (!Uuid.safeParse(id).success) throw erroRegistroInvalido();
   return id as string;
 }

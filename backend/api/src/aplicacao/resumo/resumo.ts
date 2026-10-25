@@ -1,10 +1,21 @@
 import type { SaidaResumoMes, SaidaTotalPorCategoria } from '@controle/contrato';
-import { hojeEmSaoPaulo, inicioMes, mesFechado, pagoPorMembro, type DataCalendario } from '@controle/dominio';
+import {
+  destaquesOrcamento,
+  hojeEmSaoPaulo,
+  inicioMes,
+  mesFechado,
+  pagoPorMembro,
+  type DataCalendario,
+} from '@controle/dominio';
 import { gastoDosCartoes } from '../../consultas/cartao';
+import { orcadoRealizadoDoEscopo, type Escopo } from '../../consultas/orcamento';
 import { pagoPorMembroDoMes, somasDoMesPorCategoria, type SomaPorCategoria } from '../../consultas/resumo';
 import { listarContasComSaldo } from '../../consultas/saldos';
+import { guardadoNoMes, listarMetasVisiveis, type MetaGravada } from '../../infraestrutura/db/repositorios/metas';
 import { garantirOcorrencias, ocorrenciasComSituacao } from '../fixas/ocorrencias';
 import { vinculoDe, type DepsLar } from '../lancamentos/comum';
+import { linhaDaMeta } from '../metas/metas';
+import { comporOrcamento } from '../orcamento/orcamento';
 
 const colacao = new Intl.Collator('pt-BR');
 
@@ -30,6 +41,34 @@ function porCategoria(linhas: readonly SomaPorCategoria[]): SaidaTotalPorCategor
 const soma = (linhas: readonly SomaPorCategoria[], filtro: (l: SomaPorCategoria) => boolean = () => true) =>
   linhas.filter(filtro).reduce((s, l) => s + l.total_centavos, 0);
 
+/** Bloco `orcamento` do resumo (F resumo_orcamento.sql): total do escopo e os 3 destaques; nulo sem orçamento. */
+async function orcamentoDoResumo(
+  deps: DepsLar,
+  dados: { larId: string; membroId: string; mes: string; escopo: Escopo },
+): Promise<{ resumo: SaidaResumoMes['conjunto']['orcamento']; orcadoCentavos: number }> {
+  const { linhas, total } = comporOrcamento(await orcadoRealizadoDoEscopo(deps.tx, dados));
+  if (!total) return { resumo: null, orcadoCentavos: 0 };
+  return { resumo: { ...total, destaques: destaquesOrcamento(linhas) }, orcadoCentavos: total.orcado_centavos };
+}
+
+/** Metas do bloco, com o progresso atual (independente do mês navegado): não atingidas primeiro, depois por nome. */
+function metasDoResumo(metas: readonly MetaGravada[], hoje: DataCalendario): SaidaResumoMes['conjunto']['metas'] {
+  return metas
+    .map((m) => linhaDaMeta(m, hoje))
+    .sort((a, b) => Number(a.atingida) - Number(b.atingida) || colacao.compare(a.nome, b.nome))
+    .map((l) => ({
+      meta_id: l.id,
+      nome: l.nome,
+      alvo_centavos: l.alvo_centavos,
+      guardado_centavos: l.guardado_centavos,
+      falta_centavos: l.falta_centavos,
+      percentual: l.percentual,
+      prazo: l.prazo,
+      mensal_necessario_centavos: l.mensal_necessario_centavos,
+      atingida: l.atingida,
+    }));
+}
+
 /**
  * `GET /api/resumo?mes=` (#33; RN-16a a RN-16e, RN-12, RN-13, RN-15; CA-16.1 a CA-16.10, CA-12.4, CA-12.5, CA-13.4;
  * G-12, G-51; A resumo_mes.sql). O mês ausente é o corrente; qualquer dia é normalizado (futuro permitido).
@@ -40,9 +79,11 @@ const soma = (linhas: readonly SomaPorCategoria[], filtro: (l: SomaPorCategoria)
  * - `individual`: SÓ do membro que consulta (RN-16e): minha parte (conjuntas que eu paguei) + meu individual,
  *   receitas, resultado, contas (saldo atual, até hoje, em qualquer mês) e cartões.
  * Ajuste de saldo e pagamento de cartão são movimentos de conta: não entram em total nenhum (CA-12.4).
- * SPEC_DEVIATION: orçamento, metas e "guardado no mês" são da etapa 10 (as tabelas ainda não existem). Até lá os
- * blocos levam `orcamento: null` (o escopo sem orçamento, como no legado), `metas: []` e `guardado_no_mes_centavos: 0`;
- * o resultado conjunto é "orçado ausente conta 0" − total do casal (RN-16d).
+ * Orçamento (etapa 10): cada bloco leva o total do escopo e os 3 destaques (nulo se o escopo não tem orçamento no
+ * mês; o individual só compara categorias individuais, RN-16c). O resultado conjunto é o orçado conjunto (ausente
+ * conta 0) − total do casal (RN-16d). Metas: o progresso atual das visíveis em cada bloco (CA-08.6). "Guardado no
+ * mês" = Σ aportes − Σ retiradas feitos por mim no mês: informativo, pode ser negativo e não reduz o resultado
+ * individual (RN-16c; CA-16.10). Free e Pro veem os dados existentes (RN-25).
  */
 export async function resumoDoMes(deps: DepsLar, mesInformado: DataCalendario | undefined): Promise<SaidaResumoMes> {
   const v = vinculoDe(deps);
@@ -56,6 +97,11 @@ export async function resumoDoMes(deps: DepsLar, mesInformado: DataCalendario | 
   const ocorrencias = await ocorrenciasComSituacao(deps, mes);
   const contas = await listarContasComSaldo(deps.tx, v.membroId, hoje);
   const cartoes = await gastoDosCartoes(deps.tx, v.membroId, mes);
+  const visao = { larId: v.larId, membroId: v.membroId };
+  const orcConjunto = await orcamentoDoResumo(deps, { ...visao, mes, escopo: 'conjunto' });
+  const orcIndividual = await orcamentoDoResumo(deps, { ...visao, mes, escopo: 'individual' });
+  const metas = await listarMetasVisiveis(deps.tx, visao);
+  const guardado = await guardadoNoMes(deps.tx, { ...visao, mes });
 
   const conjuntas = somas.filter((l) => l.tipo === 'despesa' && l.escopo === 'conjunto');
   const minhaParte = conjuntas.filter((l) => l.minha);
@@ -93,10 +139,13 @@ export async function resumoDoMes(deps: DepsLar, mesInformado: DataCalendario | 
         valor_previsto_centavos: o.valor_previsto_centavos,
         situacao: o.situacao === 'atrasada' ? 'atrasada' : 'pendente',
       })),
-      orcamento: null,
+      orcamento: orcConjunto.resumo,
       por_categoria: porCategoria(conjuntas),
-      resultado: { valor_centavos: 0 - totalCasal, parcial },
-      metas: [],
+      resultado: { valor_centavos: orcConjunto.orcadoCentavos - totalCasal, parcial },
+      metas: metasDoResumo(
+        metas.filter((m) => m.escopo === 'conjunto'),
+        hoje,
+      ),
     },
     individual: {
       meu_total_centavos: meuTotal,
@@ -105,8 +154,8 @@ export async function resumoDoMes(deps: DepsLar, mesInformado: DataCalendario | 
       total_variaveis_centavos: soma(minhaParte, (l) => l.variavel) + soma(meuIndividual, (l) => l.variavel),
       receitas_centavos: receitas,
       resultado: { valor_centavos: receitas - meuTotal, parcial },
-      guardado_no_mes_centavos: 0,
-      orcamento: null,
+      guardado_no_mes_centavos: guardado,
+      orcamento: orcIndividual.resumo,
       por_categoria: porCategoria(meuIndividual),
       minha_parte_por_categoria: porCategoria(minhaParte),
       contas: contas
@@ -123,7 +172,10 @@ export async function resumoDoMes(deps: DepsLar, mesInformado: DataCalendario | 
           gasto_mes_centavos: f.gasto_mes_centavos,
           comprometido_futuro_centavos: f.comprometido_futuro_centavos,
         })),
-      metas: [],
+      metas: metasDoResumo(
+        metas.filter((m) => m.escopo === 'individual'),
+        hoje,
+      ),
     },
   };
 }

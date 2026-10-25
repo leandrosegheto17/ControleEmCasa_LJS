@@ -95,8 +95,10 @@ export async function removerMembro(deps: DepsLar, membroId: string): Promise<vo
  * `POST /api/lar/sair` (membro; CA-23.12, CA-23.13): o convidado sai; no próximo acesso cai no primeiro acesso.
  * O titular não sai por aqui: `registro_invalido` (decisão desta etapa; ver ADR-009).
  * A parte privada dos pagamentos dele (`lancamento_pagamento`) é apagada na hora (CA-23.12): as conjuntas que ele
- * pagou ficam no lar com o pagador "Ex-membro". A conta dos movimentos de meta entra na etapa 10; o individual é
- * purgado em 30 dias pela purga (etapa 14).
+ * pagou ficam no lar com o pagador "Ex-membro". Os movimentos de meta conjunta dele ficam com o autor "Ex-membro"
+ * (o nome é trocado abaixo); o movimento de CONTA ligado a eles é imutável pelo grant (SDD 4) e do dono, então
+ * fica inacessível à API (ninguém mais será o dono) e some na purga de 30 dias, com o individual (etapa 14).
+ * `GET /api/metas/:id/movimentos` só devolve `conta` ao próprio autor: a conta nunca aparece para ninguém.
  */
 export async function sairDoLar(deps: DepsLar): Promise<void> {
   const vinculo = vinculoDe(deps);

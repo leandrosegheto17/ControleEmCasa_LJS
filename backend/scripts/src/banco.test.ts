@@ -98,7 +98,7 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // Etapa 6 acrescentou lar, membro, convite e categoria (migration 20261024130000); a etapa 7,
       // conta, forma_pagamento e movimento_conta (migration 20261024140000); a etapa 8, lancamento,
       // lancamento_pagamento e parcela (migration 20261025120000); a etapa 9, despesa_fixa e ocorrencia_fixa
-      // (migration 20261026120000).
+      // (migration 20261026120000); a etapa 10, orcamento, meta e movimento_meta (migration 20261027120000).
       expect(r.rows.map((x) => x.tablename)).toEqual([
         'aceite_termos',
         'categoria',
@@ -110,8 +110,11 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
         'lancamento_pagamento',
         'lar',
         'membro',
+        'meta',
         'movimento_conta',
+        'movimento_meta',
         'ocorrencia_fixa',
+        'orcamento',
         'parcela',
         'sessao',
         'tentativa_login',
@@ -252,7 +255,9 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // Motivo da mudança (etapa 8): a migration de lançamentos acrescenta 3 tabelas (lancamento, lancamento_pagamento,
       // parcela); as mesmas checagens de privilégio valem para elas. Motivo da mudança (etapa 9): a migration de
       // fixas acrescenta 2 tabelas (despesa_fixa, ocorrencia_fixa), com as mesmas checagens.
-      expect(r.tabelas.rows.length).toBe(17); // 5 de acesso (etapa 2) + 4 de lar e vínculo (etapa 6) + 3 de cadastros (etapa 7) + 3 de lançamentos (etapa 8) + 2 de fixas (etapa 9)
+      // Motivo da mudança (etapa 10): a migration de orçamento e metas acrescenta 3 tabelas (orcamento, meta,
+      // movimento_meta), com as mesmas checagens.
+      expect(r.tabelas.rows.length).toBe(20); // 17 até a etapa 9 + 3 de orçamento e metas (etapa 10)
       for (const t of r.tabelas.rows) {
         expect(t.proibido, `app com privilégio proibido em ${t.relname}`).toBe(false);
         expect(t.ro_escreve, `backup_ro escreve em ${t.relname}`).toBe(false);
