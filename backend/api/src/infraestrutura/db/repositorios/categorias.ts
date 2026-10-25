@@ -2,8 +2,9 @@ import { sql, type Kysely } from 'kysely';
 import type { DB } from '../tipos';
 
 /**
- * Categorias do lar (SDD 3.5; RN-17). Nesta etapa só as iniciais e a leitura que decide se o lar é
- * descartável (CA-23.9). As rotas de cadastro são da etapa 7.
+ * Categorias do lar (SDD 3.5; RN-17): as iniciais (etapa 6), a leitura que decide se o lar é descartável
+ * (CA-23.9) e o cadastro (etapa 7). O cadastro filtra por lar e por "conjunta ou do próprio membro" além da
+ * RLS (CA-T1.4: as duas camadas); a individual do outro membro nunca é enxergada.
  */
 
 export interface CategoriaParaCriar {
@@ -55,4 +56,103 @@ export async function listarDoLarAtual(db: Kysely<DB>): Promise<CategoriaDoLar[]
 /** Descarte do lar só com as iniciais (CA-23.9): apaga as categorias que o vínculo atual enxerga no lar. */
 export async function apagarDoLarAtual(db: Kysely<DB>): Promise<void> {
   await sql`delete from app.categoria where lar_id = app.lar_atual()`.execute(db);
+}
+
+export interface CategoriaVisivel {
+  id: string;
+  nome: string;
+  tipo: 'despesa' | 'receita';
+  escopo: 'conjunto' | 'individual';
+  variavel: boolean | null;
+  arquivada: boolean;
+}
+
+export interface Visao {
+  larId: string;
+  membroId: string;
+}
+
+/** A categoria que o membro enxerga: conjunta do lar ou individual dele (nula nos demais casos). */
+export async function buscarCategoriaVisivel(
+  db: Kysely<DB>,
+  dados: Visao & { id: string },
+): Promise<CategoriaVisivel | null> {
+  const r = await sql<CategoriaVisivel>`
+    select id, nome, tipo, escopo, variavel, arquivada from app.categoria
+     where id = ${dados.id} and lar_id = ${dados.larId} and (escopo = 'conjunto' or dono_id = ${dados.membroId})`.execute(
+    db,
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Cria a categoria se o id está livre (`false` se já existe, do membro em corrida ou de outro). A unicidade de
+ * nome (`categoria_unica`) continua levantando 23505, que a API traduz em `nome_repetido`.
+ */
+export async function inserirCategoriaSeLivre(
+  db: Kysely<DB>,
+  dados: Visao & {
+    id: string;
+    tipo: string;
+    escopo: string;
+    nome: string;
+    variavel: boolean | null;
+    agora: Date;
+  },
+): Promise<boolean> {
+  const donoId = dados.escopo === 'individual' ? dados.membroId : null;
+  const r = await sql`
+    insert into app.categoria (id, lar_id, tipo, escopo, dono_id, nome, variavel, criado_em)
+    values (${dados.id}, ${dados.larId}, ${dados.tipo}, ${dados.escopo}, ${donoId}, ${dados.nome}, ${dados.variavel},
+            ${dados.agora.toISOString()}::timestamptz)
+    on conflict (id) do nothing`.execute(db);
+  return Number(r.numAffectedRows ?? 0) === 1;
+}
+
+export async function atualizarCategoria(
+  db: Kysely<DB>,
+  dados: Visao & { id: string; nome: string; variavel: boolean | null },
+): Promise<void> {
+  await sql`
+    update app.categoria set nome = ${dados.nome}, variavel = ${dados.variavel}
+     where id = ${dados.id} and lar_id = ${dados.larId} and (escopo = 'conjunto' or dono_id = ${dados.membroId})`.execute(
+    db,
+  );
+}
+
+export async function arquivarCategoria(db: Kysely<DB>, dados: Visao & { id: string }): Promise<number> {
+  const r = await sql`
+    update app.categoria set arquivada = true
+     where id = ${dados.id} and lar_id = ${dados.larId} and (escopo = 'conjunto' or dono_id = ${dados.membroId})`.execute(
+    db,
+  );
+  return Number(r.numAffectedRows ?? 0);
+}
+
+/** Exclui. Com vínculo (lançamento, orçamento, fixa; etapas 8 a 10) o Postgres recusa com 23503. */
+export async function excluirCategoria(db: Kysely<DB>, dados: Visao & { id: string }): Promise<number> {
+  const r = await sql`
+    delete from app.categoria
+     where id = ${dados.id} and lar_id = ${dados.larId} and (escopo = 'conjunto' or dono_id = ${dados.membroId})`.execute(
+    db,
+  );
+  return Number(r.numAffectedRows ?? 0);
+}
+
+export interface CategoriaListada extends CategoriaVisivel {
+  pode_excluir: boolean;
+}
+
+/**
+ * Conjuntas do lar e individuais do membro; arquivadas entram. `pode_excluir`: sem vínculo por FK.
+ * SPEC_DEVIATION: lançamento, orçamento e fixa (etapas 8 a 10) entram neste critério quando nascerem; hoje
+ * nenhuma tabela referencia `categoria`, então toda categoria pode ser excluída.
+ */
+export async function listarCategoriasVisiveis(db: Kysely<DB>, visao: Visao): Promise<CategoriaListada[]> {
+  const r = await sql<CategoriaListada>`
+    select c.id, c.nome, c.tipo, c.escopo, c.variavel, c.arquivada, true as pode_excluir
+      from app.categoria c
+     where c.lar_id = ${visao.larId} and (c.escopo = 'conjunto' or c.dono_id = ${visao.membroId})
+     order by c.tipo, c.escopo, c.nome, c.id`.execute(db);
+  return r.rows;
 }

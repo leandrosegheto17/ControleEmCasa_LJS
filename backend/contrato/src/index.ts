@@ -1,4 +1,5 @@
 import { entradaAcesso, saidaAcesso } from './acesso';
+import { entradaCadastros, saidaCadastros } from './cadastros';
 import { entradaLar, saidaLar } from './lar';
 
 export const PRECO_PRO_CENTAVOS = 990;
@@ -9,7 +10,8 @@ export type Centavos = number;
 
 export * from './acesso';
 export * from './lar';
+export * from './cadastros';
 
 /** Schemas de entrada e saída de todas as rotas (SDD 6: `entrada.X` / `saida.X`). */
-export const entrada = { ...entradaAcesso, ...entradaLar } as const;
-export const saida = { ...saidaAcesso, ...saidaLar } as const;
+export const entrada = { ...entradaAcesso, ...entradaLar, ...entradaCadastros } as const;
+export const saida = { ...saidaAcesso, ...saidaLar, ...saidaCadastros } as const;

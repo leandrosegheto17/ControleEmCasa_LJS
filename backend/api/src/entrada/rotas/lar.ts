@@ -1,42 +1,24 @@
 import { entrada } from '@controle/contrato';
 import type { Context, Hono } from 'hono';
-import { z } from 'zod';
 import { aceitarConvite, conviteAtual, convidar, recusarConvite, revogarConvite } from '../../aplicacao/lar/convites';
 import {
   erroConviteInvalido,
   erroRegistroInvalido,
   erroTitularObrigatorio,
   type DepsConvite,
-  type DepsLar,
 } from '../../aplicacao/lar/comum';
 import { criarLar, detalheLar, removerMembro, renomearLar, sairDoLar } from '../../aplicacao/lar/lar';
 import { lerConfig } from '../../config';
 import type { AppEnv } from '../../env';
-import { ErroApi } from '../../erros';
 import { criarEnviadorDeEmail, type TransporteEmail } from '../../infraestrutura/email';
 import { transporteDoAmbiente } from '../../infraestrutura/transporte-email-ambiente';
 import { emTransacao, exigirLar } from '../../middleware/transacao';
 import { lerCorpo } from '../corpo';
-import { agendarDe } from './comum';
+import { agendarDe, depsDe, idDaRota } from './comum';
 
 export interface OpcoesLar {
   /** Transporte de e-mail injetado (testes); sem ele, vale o do ambiente (Resend, console em local). */
   transporteEmail?: TransporteEmail;
-}
-
-const Uuid = z.uuid();
-
-function depsDe(c: Context<AppEnv>): DepsLar {
-  const sessao = c.get('sessao');
-  if (!sessao) throw new ErroApi(401, 'sessao_expirada', 'Sessão expirada. Entre novamente.');
-  return { tx: c.get('tx'), agora: c.get('agora'), sessao, vinculo: c.get('vinculo') };
-}
-
-/** Id de rota: malformado é tratado como inexistente (mesma resposta; RT-01). */
-function idDaRota(c: Context<AppEnv>): string {
-  const id = c.req.param('id');
-  if (!Uuid.safeParse(id).success) throw erroRegistroInvalido();
-  return id as string;
 }
 
 /**

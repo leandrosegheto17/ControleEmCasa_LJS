@@ -28,3 +28,8 @@ export function traduzirErroDoBanco(erro: unknown): ErroTraduzido | null {
   if (code === '23514') return VALOR_INVALIDO;
   return null;
 }
+
+/** `true` para violação de chave estrangeira (23503): excluir algo que ainda tem vínculo vira `em_uso`. */
+export function ehViolacaoDeChaveEstrangeira(erro: unknown): boolean {
+  return erro instanceof Error && (erro as { code?: unknown }).code === '23503';
+}

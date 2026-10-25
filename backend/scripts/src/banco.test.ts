@@ -95,13 +95,17 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       const r = await comCliente(urlOwner, (c) =>
         c.query<{ tablename: string }>(`select tablename from pg_tables where schemaname = 'app' order by 1`),
       );
-      // Etapa 6 acrescentou lar, membro, convite e categoria (migration 20261024130000).
+      // Etapa 6 acrescentou lar, membro, convite e categoria (migration 20261024130000); a etapa 7,
+      // conta, forma_pagamento e movimento_conta (migration 20261024140000).
       expect(r.rows.map((x) => x.tablename)).toEqual([
         'aceite_termos',
         'categoria',
+        'conta',
         'convite',
+        'forma_pagamento',
         'lar',
         'membro',
+        'movimento_conta',
         'sessao',
         'tentativa_login',
         'token_email',
@@ -238,7 +242,7 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
         expect(s.app, `app com CREATE em ${s.nspname}`).toBe(false);
         expect(s.ro, `backup_ro com CREATE em ${s.nspname}`).toBe(false);
       }
-      expect(r.tabelas.rows.length).toBe(9); // 5 de acesso (etapa 2) + 4 de lar e vínculo (etapa 6)
+      expect(r.tabelas.rows.length).toBe(12); // 5 de acesso (etapa 2) + 4 de lar e vínculo (etapa 6) + 3 de cadastros (etapa 7)
       for (const t of r.tabelas.rows) {
         expect(t.proibido, `app com privilégio proibido em ${t.relname}`).toBe(false);
         expect(t.ro_escreve, `backup_ro escreve em ${t.relname}`).toBe(false);

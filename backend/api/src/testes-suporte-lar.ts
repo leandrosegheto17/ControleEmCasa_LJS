@@ -67,7 +67,7 @@ const SEM_LIMITE: Partial<Bindings> = { LIMITE_ENTRAR: LIMITE_LIVRE, LIMITE_PUBL
 /** Requisição com o cookie da pessoa e, nas escritas, os cabeçalhos de CSRF. */
 export function pedir(
   app: App,
-  metodo: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   caminho: string,
   quem: Pessoa | null,
   corpo?: unknown,

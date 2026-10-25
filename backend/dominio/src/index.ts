@@ -13,3 +13,4 @@ export * from './percentuais';
 export * from './fixas';
 export * from './validacoes';
 export * from './lar';
+export * from './cadastros';

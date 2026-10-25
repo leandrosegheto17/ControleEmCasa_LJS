@@ -74,8 +74,8 @@ const CHAVES_INICIAIS = [
  * O lar ainda tem só as categorias iniciais, intactas (CA-23.9): as 13, nenhuma a mais ou a menos,
  * nenhuma renomeada, arquivada ou com a marca variável trocada. Qualquer diferença é dado criado ou
  * alterado pelo titular (CA-23.10).
- * As tabelas das etapas seguintes (lançamento, conta, forma, fixa, orçamento, meta) entram na decisão
- * de `decidirAceite` pela API, que precisa conferir também que estão vazias.
+ * As demais tabelas de negócio (conta, forma, movimento; lançamento, fixa, orçamento, meta nas etapas 8 a 10)
+ * entram em `decidirAceite` pela contagem `registrosDeNegocio`, que a API lê sob RLS.
  */
 export function soCategoriasIniciais(categorias: readonly LinhaCategoriaLar[]): boolean {
   if (categorias.some((c) => c.arquivada)) return false;
@@ -89,6 +89,11 @@ export interface VinculoParaAceite {
   /** Outras linhas de `membro` no lar (ativas ou que já saíram), além da do próprio usuário. */
   readonly outrosMembrosNoLar: number;
   readonly categorias: readonly LinhaCategoriaLar[];
+  /**
+   * Linhas do próprio lar nas tabelas de negócio além de `categoria` (conta, forma de pagamento, movimento de
+   * conta e as que as etapas 8 a 10 criarem). Qualquer uma é "dado" (CA-23.10). Ausente vale 0.
+   */
+  readonly registrosDeNegocio?: number;
 }
 
 /**
@@ -103,6 +108,7 @@ export function decidirAceite(vinculo: VinculoParaAceite | null): Resultado<'liv
   if (!vinculo) return sucesso('livre');
   if (vinculo.papel !== 'titular') return recusa('ja_tem_lar');
   if (vinculo.outrosMembrosNoLar > 0) return recusa('ja_tem_lar');
+  if ((vinculo.registrosDeNegocio ?? 0) > 0) return recusa('ja_tem_lar');
   return soCategoriasIniciais(vinculo.categorias) ? sucesso('descartar') : recusa('ja_tem_lar');
 }
 

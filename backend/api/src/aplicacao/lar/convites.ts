@@ -12,7 +12,11 @@ import {
   revogarDoLar,
   ultimoParaEmail,
 } from '../../infraestrutura/db/repositorios/convites';
-import { buscarLarAtual, travarVinculoDoUsuario } from '../../infraestrutura/db/repositorios/lares';
+import {
+  buscarLarAtual,
+  contarRegistrosDeNegocio,
+  travarVinculoDoUsuario,
+} from '../../infraestrutura/db/repositorios/lares';
 import {
   buscarMembroAtual,
   contarOutrosNoLar,
@@ -132,6 +136,7 @@ export async function aceitarConvite(deps: DepsLar, token: string): Promise<void
       papel: atual.papel,
       outrosMembrosNoLar: await contarOutrosNoLar(tx, atual.membroId),
       categorias: await listarDoLarAtual(tx),
+      registrosDeNegocio: await contarRegistrosDeNegocio(tx),
     });
     if (!decisao.ok) throw erroDoDominio(decisao.erro);
     // Descarte do lar que só tem as categorias iniciais (CA-23.9): nada dele vai para o lar novo (CA-23.15).

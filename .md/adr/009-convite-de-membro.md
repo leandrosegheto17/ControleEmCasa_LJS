@@ -1,6 +1,6 @@
 # ADR-009: Convite de membro
 
-- **Status:** Proposto em 2026-10-24 (etapa 6; aguarda a aprovação da etapa)
+- **Status:** Aceito em 2026-10-24 (etapa 6 aprovada; antes: Proposto)
 - **Data:** 2026-10-24
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** RN-11, RN-17, RN-22 e RN-23 do `PRD-TECNICO.md`; SDD §3.4, §5.3, §6.2, §8.4 e §12.2; GUARDRAILS G-03, G-05, G-14 e G-19; THREAT-MODEL TM-API-06, TM-API-07, TM-API-16, TM-RES-02 e TM-RES-03; ADR-004 e ADR-005

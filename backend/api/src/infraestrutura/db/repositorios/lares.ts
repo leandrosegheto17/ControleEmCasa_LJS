@@ -42,3 +42,16 @@ export async function renomearLarAtual(db: Kysely<DB>, nome: string): Promise<nu
   const r = await sql`update app.lar set nome = ${nome} where id = app.lar_atual()`.execute(db);
   return Number(r.numAffectedRows ?? 0);
 }
+
+/**
+ * Linhas que o vínculo atual enxerga nas tabelas de negócio além de `categoria`: conta, forma de pagamento e
+ * movimento de conta (etapa 7). As tabelas das etapas 8 a 10 entram aqui quando nascerem (ADR-009, item 7).
+ * Sob RLS, o titular sozinho conta só o que é dele, que é tudo o que o lar tem.
+ */
+export async function contarRegistrosDeNegocio(db: Kysely<DB>): Promise<number> {
+  const r = await sql<{ n: number }>`
+    select ((select count(*) from app.conta where lar_id = app.lar_atual())
+          + (select count(*) from app.forma_pagamento where lar_id = app.lar_atual())
+          + (select count(*) from app.movimento_conta where lar_id = app.lar_atual()))::int as n`.execute(db);
+  return r.rows[0]?.n ?? 0;
+}
