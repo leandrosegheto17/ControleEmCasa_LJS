@@ -1,0 +1,21 @@
+.aviso {
+  position: fixed;
+  z-index: 40;
+  left: var(--espaco-4);
+  right: var(--espaco-4);
+  bottom: calc(var(--altura-barra-inferior) + var(--espaco-4) + env(safe-area-inset-bottom));
+  max-width: var(--largura-dialogo);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso-texto);
+  font-weight: var(--peso-semi);
+}
+
+:global(html.com-folha) .aviso {
+  bottom: calc(var(--altura-botao-principal) + var(--espaco-6) + env(safe-area-inset-bottom));
+}

@@ -1,0 +1,10 @@
+.aviso-erro-topo {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: flex-start;
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-estourado-fundo);
+  color: var(--cor-estourado);
+  font-weight: var(--peso-semi);
+}

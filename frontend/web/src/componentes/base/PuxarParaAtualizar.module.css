@@ -1,0 +1,34 @@
+.raiz {
+  position: relative;
+  background: var(--cor-fundo);
+  overscroll-behavior-y: contain;
+}
+
+.indicador {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--alvo-minimo);
+  height: var(--alvo-minimo);
+  margin-left: calc(var(--alvo-minimo) / -2);
+  color: var(--cor-texto-suave);
+  pointer-events: none;
+  transition: transform 0.15s ease-out;
+}
+
+.indicador.pronto {
+  color: var(--cor-acao);
+}
+
+.giro {
+  composes: giro from './Giro.module.css';
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicador {
+    transition: none;
+  }
+}

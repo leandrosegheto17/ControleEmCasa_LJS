@@ -1,0 +1,45 @@
+.barra {
+  display: block;
+  height: var(--altura-barra);
+  margin-top: var(--espaco-1);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-trilha);
+  overflow: hidden;
+}
+
+.barra > span {
+  display: block;
+  height: 100%;
+  width: var(--p);
+  background: var(--cor-barra, var(--cor-primaria));
+  border-radius: inherit;
+}
+
+.barra-dentro {
+  --cor-barra: var(--cor-dentro);
+}
+.barra-atencao {
+  --cor-barra: var(--cor-atencao);
+}
+.barra-estourado {
+  --cor-barra: var(--cor-estourado);
+}
+.barra-casa {
+  --cor-barra: var(--cor-casa);
+}
+.barra-eu {
+  --cor-barra: var(--cor-eu);
+}
+
+.orc-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.item-sub {
+  flex-wrap: wrap;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

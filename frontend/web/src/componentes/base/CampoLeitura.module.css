@@ -1,0 +1,15 @@
+.campo {
+  display: grid;
+  gap: var(--espaco-1);
+}
+.rotulo {
+  font-weight: var(--peso-semi);
+}
+.texto {
+  font-family: var(--fonte-numero);
+  font-size: var(--tam-titulo-cartao);
+}
+.ajuda {
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

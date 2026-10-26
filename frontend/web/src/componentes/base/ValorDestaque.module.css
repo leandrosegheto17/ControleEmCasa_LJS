@@ -1,0 +1,23 @@
+.valor-destaque {
+  font-family: var(--fonte-numero);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--tam-destaque);
+  font-weight: var(--peso-destaque);
+  line-height: 1.1;
+}
+
+.linha-destaque {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.rotulo-parcial {
+  display: inline-block;
+  padding: 0 var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-pilula);
+}

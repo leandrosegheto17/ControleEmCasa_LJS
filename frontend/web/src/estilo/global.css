@@ -1,0 +1,90 @@
+/* Base global do mockup; as demais regras vivem nos CSS Modules dos componentes. */
+/* ============ Base ============ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--fonte-texto);
+  font-size: var(--tam-texto);
+  line-height: var(--altura-linha);
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+}
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: 2px;
+}
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.icone {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.valor {
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.texto-2 {
+  color: var(--cor-texto-2);
+}
+.pequeno {
+  font-size: var(--tam-pequeno);
+}
+
+/* Folha aberta: trava a rolagem da página (e a captura fica do tamanho da tela). */
+html.com-folha,
+html.com-folha body {
+  overflow: hidden;
+  height: 100%;
+}
+/* A página atrás da folha não pode ser mais alta que a tela (senão estica body.scrollHeight e a captura). */
+html.com-folha #raiz {
+  max-height: 100%;
+  overflow: hidden;
+}

@@ -1,0 +1,8 @@
+.icone-passo {
+  vertical-align: -0.25em;
+}
+
+.rodape {
+  display: grid;
+  gap: var(--espaco-2);
+}

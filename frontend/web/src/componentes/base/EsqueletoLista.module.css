@@ -1,0 +1,16 @@
+.lista {
+  composes: lista from '../GrupoMenu.module.css';
+  padding-top: var(--espaco-2);
+  padding-bottom: var(--espaco-2);
+}
+.linha {
+  composes: esqueleto from './Esqueleto.module.css';
+  height: 28px;
+  width: 100%;
+  margin-top: var(--espaco-3);
+}
+.curta {
+  composes: linha;
+  width: 70%;
+  margin-bottom: var(--espaco-3);
+}

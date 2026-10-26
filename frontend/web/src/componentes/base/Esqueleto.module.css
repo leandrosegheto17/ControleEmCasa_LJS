@@ -1,0 +1,34 @@
+.esqueleto {
+  background: var(--cor-esqueleto);
+  border-radius: var(--raio-controle);
+}
+
+.titulo {
+  height: 14px;
+  width: 40%;
+  margin-bottom: var(--espaco-3);
+}
+
+.valor {
+  height: 30px;
+  width: 60%;
+  margin-bottom: var(--espaco-3);
+}
+
+.linha {
+  height: 14px;
+  width: 100%;
+  margin-top: var(--espaco-3);
+}
+
+.linha-curta {
+  height: 14px;
+  width: 70%;
+  margin-top: var(--espaco-3);
+}
+
+.bloco-titulo {
+  height: 14px;
+  width: 30%;
+  margin: var(--espaco-4) 0 var(--espaco-3);
+}

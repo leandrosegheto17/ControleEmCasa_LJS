@@ -1,0 +1,19 @@
+.interruptor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-minimo);
+}
+.texto {
+  display: block;
+}
+.ajuda {
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+.interruptor input {
+  width: var(--alvo-minimo);
+  height: 26px;
+  accent-color: var(--cor-primaria);
+}

@@ -1,0 +1,88 @@
+.campo {
+  composes: campo from './Campo.module.css';
+}
+.rotulo {
+  composes: rotulo from './Campo.module.css';
+}
+.rotulo.rotulo-afastado {
+  margin-bottom: var(--espaco-2);
+  padding: 0 2px;
+}
+.campo-erro {
+  composes: campo-erro from './Campo.module.css';
+}
+.chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-2);
+}
+.chip {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: var(--espaco-2);
+  text-align: left;
+  background: var(--chip-fundo, var(--cor-superficie));
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-controle);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chip-nome {
+  font-weight: var(--peso-semi);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.chip-marcado {
+  position: absolute;
+  top: var(--espaco-1);
+  right: var(--espaco-1);
+  color: var(--cor-eu);
+}
+.chip:has(input:checked) {
+  background: var(--cor-selecionado-fundo);
+  border: 2px solid var(--cor-eu);
+}
+.chip:has(input:focus-visible) {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: 2px;
+}
+.chip-escopo {
+  display: flex;
+  font-size: var(--tam-pequeno);
+}
+.chip-outras {
+  justify-items: center;
+  text-align: center;
+  color: var(--cor-acao);
+}
+.chip-escolhida {
+  background: var(--cor-selecionado-fundo);
+  border: 2px solid var(--cor-eu);
+}
+.chip:is(button):focus-visible {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: 2px;
+}
+.chips-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+.chips-linha .chip {
+  min-height: var(--alvo-minimo);
+  padding: 0 var(--espaco-3);
+  text-align: center;
+}

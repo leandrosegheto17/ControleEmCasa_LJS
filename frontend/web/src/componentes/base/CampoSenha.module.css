@@ -1,0 +1,7 @@
+.linha {
+  display: flex;
+  gap: var(--espaco-2);
+}
+.alternar {
+  border: 1px solid var(--cor-contorno);
+}

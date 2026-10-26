@@ -5,3 +5,7 @@ pnpm-lock.yaml
 dist
 coverage
 .wrangler
+test-results
+playwright-report
+frontend/web/src/estilo/tokens.css
+frontend/web/src/estilo/global.css

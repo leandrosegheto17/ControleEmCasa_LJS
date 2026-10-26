@@ -1,0 +1,29 @@
+.botao {
+  position: relative;
+  min-width: var(--alvo-minimo);
+  min-height: var(--alvo-minimo);
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--cor-texto);
+  border-radius: var(--raio-controle);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.contador {
+  position: absolute;
+  top: var(--espaco-1);
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--espaco-1);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+  font-size: var(--tam-mini);
+  font-weight: var(--peso-forte);
+  line-height: 18px;
+  text-align: center;
+}

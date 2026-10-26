@@ -1,0 +1,7 @@
+.valor input {
+  min-height: calc(var(--tam-campo-valor) + var(--espaco-4));
+  font-family: var(--fonte-numero);
+  font-size: var(--tam-campo-valor);
+  font-weight: var(--peso-semi);
+  font-variant-numeric: tabular-nums;
+}

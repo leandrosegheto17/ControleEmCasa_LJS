@@ -1,0 +1,51 @@
+.campo {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.rotulo {
+  padding: 0;
+  margin-bottom: var(--espaco-1);
+  font-weight: var(--peso-semi);
+}
+.campo-erro {
+  margin: 0;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-estourado);
+  font-weight: var(--peso-semi);
+}
+.campo > label {
+  font-weight: var(--peso-semi);
+}
+.entrada {
+  width: 100%;
+  min-height: var(--altura-campo);
+  padding: 0 var(--espaco-3);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-controle);
+}
+.entrada[aria-invalid='true'] {
+  border-color: var(--cor-estourado);
+  border-width: 2px;
+}
+.ajuda {
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+.erro {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-estourado);
+  font-weight: var(--peso-semi);
+}
+.erro svg {
+  width: 1em;
+  height: 1em;
+}

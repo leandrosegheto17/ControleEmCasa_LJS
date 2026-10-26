@@ -1,0 +1,30 @@
+.tela-entrar {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--espaco-6) var(--espaco-4);
+}
+.cartao-entrar {
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  gap: var(--espaco-4);
+  min-width: 0;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  padding: var(--espaco-4);
+  box-shadow: var(--sombra-cartao);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-forte);
+  color: var(--cor-marca);
+}
+.titulo-pagina {
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-semi);
+}

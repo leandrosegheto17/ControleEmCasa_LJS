@@ -1,0 +1,33 @@
+.cartao {
+  min-width: 0;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  padding: var(--espaco-4);
+  box-shadow: var(--sombra-cartao);
+}
+
+.casa {
+  border-top: var(--borda-destaque-cartao) solid var(--cor-casa);
+}
+.eu {
+  border-top: var(--borda-destaque-cartao) solid var(--cor-eu);
+}
+
+.cartao h2,
+.cartao h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto-2);
+}
+
+.cartao-total h2,
+.cartao-total h3 {
+  color: var(--cor-texto);
+}

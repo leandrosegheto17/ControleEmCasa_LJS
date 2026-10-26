@@ -1,0 +1,10 @@
+.veu {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--cor-veu);
+}
+
+.dialogo {
+  z-index: 30;
+}

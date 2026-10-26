@@ -1,0 +1,5 @@
+.formula {
+  margin-top: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

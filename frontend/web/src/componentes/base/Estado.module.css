@@ -1,0 +1,46 @@
+.estado {
+  display: grid;
+  justify-items: center;
+  gap: var(--espaco-3);
+  text-align: center;
+  padding: var(--espaco-6) var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  margin-top: var(--espaco-4);
+}
+
+.estado :global(.icone) {
+  width: 40px;
+  height: 40px;
+  color: var(--cor-texto-2);
+}
+
+.estado-erro :global(.icone) {
+  color: var(--cor-estourado);
+}
+
+.semMargem {
+  margin-top: 0;
+}
+
+.estado h2 {
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-semi);
+}
+
+/* O h3 (estado dentro de folha) mantém o peso padrão do navegador, como no mockup. */
+.estado h3 {
+  font-size: var(--tam-titulo-cartao);
+}
+
+.estado p {
+  color: var(--cor-texto-2);
+  max-width: 32em;
+}
+
+.estado-linha {
+  padding: var(--espaco-2) 0;
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}

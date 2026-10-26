@@ -1,0 +1,59 @@
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: 2px var(--espaco-2);
+  border-radius: var(--raio-pilula);
+  font-size: var(--tam-pequeno);
+  font-weight: var(--peso-semi);
+  white-space: nowrap;
+}
+.selo :global(.icone) {
+  width: 1em;
+  height: 1em;
+}
+.selo-dentro {
+  color: var(--cor-dentro);
+  background: var(--cor-dentro-fundo);
+}
+.selo-atencao {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-fundo);
+}
+.selo-estourado,
+.selo-atrasada {
+  color: var(--cor-estourado);
+  background: var(--cor-estourado-fundo);
+}
+.selo-pendente {
+  color: var(--cor-texto-2);
+  background: var(--cor-neutro-fundo);
+}
+.selo-paga {
+  color: var(--cor-dentro);
+  background: var(--cor-dentro-fundo);
+}
+.selo-ajustada {
+  color: var(--cor-eu);
+  background: var(--cor-ajustada-fundo);
+}
+.selo-variavel {
+  color: var(--cor-texto-2);
+  border: 1px solid var(--cor-contorno);
+  padding: 0 var(--espaco-2);
+}
+.selo-aguardando {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-fundo);
+}
+.selo-escopo {
+  color: var(--cor-texto-2);
+  padding: 0;
+  font-weight: var(--peso-medio);
+}
+.selo-escopo.casa :global(.icone) {
+  color: var(--cor-casa);
+}
+.selo-escopo.eu :global(.icone) {
+  color: var(--cor-eu);
+}

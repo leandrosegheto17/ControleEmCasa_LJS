@@ -1,0 +1,22 @@
+.link-mais {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--espaco-1);
+  min-height: var(--alvo-minimo);
+  margin-top: var(--espaco-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: var(--peso-semi);
+  color: var(--cor-acao);
+  text-decoration: none;
+  cursor: pointer;
+}
+.link-mais:hover {
+  text-decoration: underline;
+}
+.centro {
+  justify-self: center;
+}

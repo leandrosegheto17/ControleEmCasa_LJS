@@ -1,0 +1,17 @@
+.formulario {
+  display: contents;
+}
+
+.item-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.item-titulo {
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+}

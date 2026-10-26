@@ -1,0 +1,11 @@
+.nota {
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-neutro-fundo);
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}
+
+.nota :global(.icone) {
+  vertical-align: -0.25em;
+}

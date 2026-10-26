@@ -1,0 +1,37 @@
+.dialogo {
+  position: fixed;
+  z-index: 31;
+  left: var(--espaco-4);
+  right: var(--espaco-4);
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: var(--largura-dialogo);
+  margin: 0 auto;
+  padding: var(--espaco-5);
+  background: var(--cor-superficie-elevada);
+  border-radius: var(--raio-folha);
+  box-shadow: var(--sombra-folha);
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.titulo {
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-semi);
+}
+
+.texto {
+  color: var(--cor-texto-2);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.neutra > :last-child {
+  flex: 1;
+}

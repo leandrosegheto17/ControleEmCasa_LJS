@@ -1,0 +1,56 @@
+.segmentado {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-controle);
+  overflow: hidden;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.grupo {
+  display: grid;
+  justify-items: stretch;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.legenda {
+  padding: 0 2px;
+  margin-bottom: var(--espaco-2);
+  font-weight: var(--peso-semi);
+}
+.ajuda {
+  margin: var(--espaco-2) 0 0;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+.segmentado label {
+  display: grid;
+  place-items: center;
+  min-height: var(--alvo-minimo);
+  padding: 0 var(--espaco-4);
+  cursor: pointer;
+  font-weight: var(--peso-semi);
+  color: var(--cor-texto-2);
+}
+.segmentado input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.segmentado label:has(input:checked) {
+  background: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+}
+.segmentado label:has(input:focus-visible) {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: -3px;
+}
+.segmentado label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

@@ -1,0 +1,44 @@
+.campo {
+  display: grid;
+  gap: var(--espaco-1);
+}
+.rotulo {
+  font-weight: var(--peso-semi);
+}
+.botao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  width: 100%;
+  min-height: var(--altura-campo);
+  padding: 0 var(--espaco-3);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-controle);
+  cursor: pointer;
+  text-align: left;
+}
+.botao:focus-visible {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: 2px;
+}
+.tipo {
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}
+.ajuda {
+  margin: 0;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+/* O grupo repete o rótulo do campo só para o leitor de tela. */
+.lista legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,40 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-height: var(--alvo-minimo);
+  padding: 0 var(--espaco-4);
+  border-radius: var(--raio-controle);
+  font-weight: var(--peso-semi);
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: transparent;
+}
+.principal {
+  min-height: var(--altura-botao-principal);
+  background: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+}
+.secundario {
+  color: var(--cor-acao);
+  border-color: var(--cor-contorno);
+}
+.perigo {
+  color: var(--cor-estourado);
+  border-color: var(--cor-estourado);
+}
+.texto {
+  color: var(--cor-acao);
+  padding: 0 var(--espaco-2);
+}
+.texto:hover {
+  text-decoration: underline;
+}
+.bloco {
+  width: 100%;
+}
+.botao[aria-disabled='true'] {
+  cursor: progress;
+}
