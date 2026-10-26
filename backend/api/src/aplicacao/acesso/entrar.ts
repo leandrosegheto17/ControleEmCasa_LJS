@@ -1,5 +1,6 @@
 import type { EntradaEntrar } from '@controle/contrato';
 import { ErroApi } from '../../erros';
+import { estaEmExclusao } from '../../infraestrutura/db/repositorios/exclusoes';
 import { apagarPorToken, criarSessao } from '../../infraestrutura/db/repositorios/sessoes';
 import { descartarFalha, registrarSucesso, reservarFalha } from '../../infraestrutura/db/repositorios/tentativas';
 import { verificarCredenciais } from '../../infraestrutura/db/repositorios/usuarios';
@@ -13,9 +14,8 @@ import type { DepsAcesso } from './comum';
  *    A falha é reservada antes do bcrypt, o que impede tentativas paralelas de furar o limite.
  * 2. Senha errada e e-mail inexistente: a mesma resposta, com o mesmo bcrypt (HASH_FIXO; G-19).
  * 3. Senha certa em conta não confirmada: `email_nao_confirmado` (só com a senha certa; CA-19.5).
- * 4. Sucesso: sessão NOVA (rotação), e a sessão do cookie anterior deste navegador é apagada (CA-20.1).
- *
- * `conta_em_exclusao` (RN-26) entra com a tabela `exclusao_conta`, na etapa 14.
+ * 4. Senha certa em conta com exclusão confirmada: `conta_em_exclusao` (RN-26, CA-26.6; só com a senha certa).
+ * 5. Sucesso: sessão NOVA (rotação), e a sessão do cookie anterior deste navegador é apagada (CA-20.1).
  */
 export async function entrar(
   deps: DepsAcesso,
@@ -38,6 +38,11 @@ export async function entrar(
   if (!usuario.emailConfirmado) {
     await descartarFalha(deps.db, reserva.id);
     throw new ErroApi(403, 'email_nao_confirmado', 'Confirme seu e-mail antes de entrar.');
+  }
+  // Exclusão confirmada e ainda não purgada (CA-26.6, D8): recusado sem reativar a conta; só com a senha certa.
+  if (await estaEmExclusao(deps.db, usuario.id)) {
+    await descartarFalha(deps.db, reserva.id);
+    throw new ErroApi(403, 'conta_em_exclusao', 'Esta conta está em exclusão e não pode mais entrar.');
   }
 
   const token = gerarToken();

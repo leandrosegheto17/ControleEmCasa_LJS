@@ -5,6 +5,7 @@ import type { Vinculo } from '../../env';
 import { ErroApi } from '../../erros';
 import { aceitouVersoes, registrarAceite, type Versoes } from '../../infraestrutura/db/repositorios/aceites';
 import { buscarAssinaturaAtual } from '../../infraestrutura/db/repositorios/assinaturas';
+import { encerramentoDoLarAtual } from '../../infraestrutura/db/repositorios/exclusoes';
 import { buscarLarAtual } from '../../infraestrutura/db/repositorios/lares';
 import { buscarMembroAtual } from '../../infraestrutura/db/repositorios/membros';
 import { apagarDoUsuario, apagarPorToken } from '../../infraestrutura/db/repositorios/sessoes';
@@ -36,13 +37,19 @@ export async function sessaoAtual(
   if (!usuario) throw new ErroApi(401, 'sessao_expirada', 'Sessão expirada. Entre novamente.');
   const membro = vinculo ? await buscarMembroAtual(db) : null;
   const lar = vinculo ? await buscarLarAtual(db) : null;
-  return {
+  const saida: SaidaSessaoAtual = {
     usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email },
     membro: membro ? { id: membro.id, nome: membro.nome, papel: membro.papel } : null,
     lar: membro && lar ? { id: lar.id, nome: lar.nome } : null,
     plano: membro && lar ? await planoDoLar(db, agora) : null,
     termos_pendentes: !(await aceitouVersoes(db, usuarioId, versoes)),
   };
+  // Aviso no app ao membro (D1, CA-26.7): o titular confirmou a exclusão e o lar some inteiro na data da purga.
+  if (membro?.papel === 'membro' && lar) {
+    const purga = await encerramentoDoLarAtual(db);
+    if (purga) saida.encerramento = { purga_em: purga.toISOString() };
+  }
+  return saida;
 }
 
 /** Sair (CA-20.4): revoga a sessão deste aparelho no servidor; idempotente. */

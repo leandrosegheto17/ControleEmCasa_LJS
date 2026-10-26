@@ -1,5 +1,6 @@
 import { entradaAcesso, saidaAcesso } from './acesso';
 import { entradaCadastros, saidaCadastros } from './cadastros';
+import { entradaConta } from './conta';
 import { entradaFixas, saidaFixas } from './fixas';
 import { entradaLancamento, saidaLancamento } from './lancamento';
 import { entradaLar, saidaLar } from './lar';
@@ -19,10 +20,12 @@ export * from './lancamento';
 export * from './fixas';
 export * from './orcamento-metas';
 export * from './plano';
+export * from './conta';
 
 /** Schemas de entrada e saída de todas as rotas (SDD 6: `entrada.X` / `saida.X`). */
 export const entrada = {
   ...entradaAcesso,
+  ...entradaConta,
   ...entradaLar,
   ...entradaCadastros,
   ...entradaLancamento,

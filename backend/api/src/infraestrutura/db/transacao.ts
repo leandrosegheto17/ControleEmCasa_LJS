@@ -16,12 +16,18 @@ export async function emTransacaoComo<T>(
   sessao: Sessao,
   fn: (trx: Transaction<DB>, vinculo: Vinculo | null) => Promise<T>,
 ): Promise<T> {
-  return db.transaction().execute(async (trx) => {
-    await sql`select set_config('app.usuario_id', ${sessao.usuarioId}, true),
-                     set_config('app.email', ${sessao.email}, true)`.execute(trx);
-    const vinculo = await derivarVinculo(trx, sessao.usuarioId);
-    return fn(trx, vinculo);
-  });
+  return db.transaction().execute(async (trx) => fn(trx, await assumirIdentidade(trx, sessao)));
+}
+
+/**
+ * Grava a identidade como GUC LOCAL na transação já aberta e deriva o vínculo (o mesmo que `emTransacaoComo` faz ao
+ * abrir). Fora de `emTransacaoComo`, só a confirmação da exclusão de conta usa isto (RN-26): o usuário vem do token
+ * consumido na MESMA transação (tabela de acesso, sem RLS), e o resto da confirmação precisa do vínculo dele.
+ */
+export async function assumirIdentidade(trx: Transaction<DB>, sessao: Sessao): Promise<Vinculo | null> {
+  await sql`select set_config('app.usuario_id', ${sessao.usuarioId}, true),
+                   set_config('app.email', ${sessao.email}, true)`.execute(trx);
+  return derivarVinculo(trx, sessao.usuarioId);
 }
 
 /**

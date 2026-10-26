@@ -17,6 +17,13 @@ export interface DadosPorModelo {
   pagamento_confirmado: { nome: string; valorCentavos: number; link: string };
   /** Cobrança vencida sem pagamento (RN-24, CA-24.9): o Pro continua durante a carência. */
   atraso: { nome: string; vencimento: string; diasCarencia: number; link: string };
+  /** Link de confirmação da exclusão da conta (`/confirmar-exclusao#t=<token>`), válido por 30 min (RN-26). */
+  exclusao: { nome: string; link: string };
+  /**
+   * Aviso ao membro de que o titular excluiu a conta (D1, CA-26.7): na data da purga (AAAA-MM-DD) o lar, o conjunto e
+   * o individual dele serão apagados. Sem o nome do titular e sem dado financeiro.
+   */
+  lar_encerrado: { nome: string; dataPurga: string; link: string };
 }
 
 export type ModeloEmail = keyof DadosPorModelo;
@@ -180,6 +187,33 @@ ${d.link}`,
           href: d.link,
           rotulo: 'Pagar agora',
         }),
+      };
+    }
+    case 'exclusao': {
+      const d = dados as DadosPorModelo['exclusao'];
+      const aviso =
+        'Recebemos o pedido para excluir a sua conta. Para confirmar, abra o link abaixo em até 30 minutos. Depois da confirmação, você sai de todos os aparelhos, não consegue mais entrar e os seus dados são apagados em 30 dias.';
+      return {
+        assunto: `Confirme a exclusão da sua conta no ${APP}`,
+        texto: `Olá, ${textoSeguro(d.nome)}.\n\n${aviso}\n${d.link}\n\nSe não foi você, ignore este e-mail: nada muda na sua conta.`,
+        html: pagina(
+          [`Olá, ${htmlSeguro(d.nome)}.`, aviso, 'Se não foi você, ignore este e-mail: nada muda na sua conta.'],
+          {
+            href: d.link,
+            rotulo: 'Confirmar a exclusão',
+          },
+        ),
+      };
+    }
+    case 'lar_encerrado': {
+      const d = dados as DadosPorModelo['lar_encerrado'];
+      const data = dataBr(d.dataPurga);
+      const aviso = `O titular do seu lar excluiu a conta. Em ${data}, o lar será encerrado e apagado por inteiro: os lançamentos e dados conjuntos e também os seus dados individuais (contas, formas de pagamento, lançamentos, orçamentos e metas individuais). Até lá, você continua usando o app normalmente.`;
+      const depois = 'Depois dessa data, ao entrar, você começa um lar novo e vazio, como titular.';
+      return {
+        assunto: `Seu lar no ${APP} será encerrado`,
+        texto: `Olá, ${textoSeguro(d.nome)}.\n\n${aviso}\n\n${depois}\n${d.link}`,
+        html: pagina([`Olá, ${htmlSeguro(d.nome)}.`, aviso, depois], { href: d.link, rotulo: 'Abrir o app' }),
       };
     }
     default: {

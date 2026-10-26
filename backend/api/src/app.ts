@@ -3,6 +3,7 @@ import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { registrarRotasDeAcesso } from './entrada/rotas/acesso';
 import { registrarRotasDeCadastros } from './entrada/rotas/cadastros';
+import { registrarRotasDeConta } from './entrada/rotas/conta';
 import { registrarRotasDeFixas } from './entrada/rotas/fixas';
 import { registrarRotasDeLancamentos } from './entrada/rotas/lancamentos';
 import { registrarRotasDeLar } from './entrada/rotas/lar';
@@ -25,7 +26,7 @@ import { sessaoDoCookie } from './middleware/sessao';
 /** Limite de corpo (SDD 5.1 passo 2; LIMITES.corpoBytes): 64 KiB. */
 export const CORPO_MAXIMO_BYTES = LIMITES.corpoBytes;
 
-/** Rotas sob `LIMITE_PUBLICO` (SDD 5.1 passo 3), inclusive as de convite por token. Exclusão entra na etapa 14. */
+/** Rotas sob `LIMITE_PUBLICO` (SDD 5.1 passo 3), inclusive as de convite e de exclusão por token (etapa 14). */
 const ROTAS_LIMITE_PUBLICO = [
   '/api/cadastro',
   '/api/cadastro/confirmar',
@@ -35,6 +36,7 @@ const ROTAS_LIMITE_PUBLICO = [
   '/api/convites/atual',
   '/api/convites/aceitar',
   '/api/convites/recusar',
+  '/api/conta/exclusao/confirmar',
 ];
 
 export interface OpcoesDoApp {
@@ -83,6 +85,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   });
 
   registrarRotasDeAcesso(app, { transporteEmail: opcoes.transporteEmail, versoes });
+  registrarRotasDeConta(app, { transporteEmail: opcoes.transporteEmail, asaas: opcoes.asaas });
   registrarRotasDeLar(app, { transporteEmail: opcoes.transporteEmail, asaas: opcoes.asaas });
   registrarRotasDeCadastros(app);
   registrarRotasDeLancamentos(app);

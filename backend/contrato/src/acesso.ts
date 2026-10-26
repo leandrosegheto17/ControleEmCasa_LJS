@@ -56,6 +56,8 @@ export const saidaAcesso = {
   /**
    * `GET /api/sessao` (SDD 5.2). `membro` e `lar` vêm do vínculo ativo (nulos sem lar, etapa 6);
    * `plano` é o efetivo do lar (`free` ou `pro`), nulo sem lar (etapa 13). Nunca leva o token da sessão (CA-20.8).
+   * `encerramento` (etapa 14; RN-26, CA-26.7, D1): só para o membro cujo titular confirmou a exclusão da conta; diz
+   * quando o lar inteiro (conjunto e o individual dele) será apagado. Sem encerramento, a chave não existe.
    */
   SessaoAtual: z
     .object({
@@ -64,6 +66,7 @@ export const saidaAcesso = {
       lar: saidaLar.Lar.nullable(),
       plano: PlanoEfetivo.nullable(),
       termos_pendentes: z.boolean(),
+      encerramento: z.object({ purga_em: z.iso.datetime() }).strict().optional(),
     })
     .strict(),
 } as const;

@@ -5,7 +5,7 @@ import type { DB } from '../tipos';
  * Tokens de link por e-mail (G-18; SDD 3.3 `token_email`): 256 bits, só o SHA-256 no banco, 30 min, uso único.
  * Pedir outro marca os abertos como usados (o índice único parcial garante um aberto por finalidade).
  */
-export type Finalidade = 'confirmacao' | 'recuperacao';
+export type Finalidade = 'confirmacao' | 'recuperacao' | 'exclusao';
 
 export const VALIDADE_MS = 30 * 60 * 1000;
 
