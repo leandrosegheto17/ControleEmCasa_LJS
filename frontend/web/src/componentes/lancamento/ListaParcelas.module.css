@@ -1,0 +1,58 @@
+.secao {
+  composes: cartao from '../CartaoConta.module.css';
+}
+
+.titulo {
+  composes: titulo from '../CartaoConta.module.css';
+}
+
+.lista > li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-minimo);
+  padding: var(--espaco-2) 0;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.lista > li:first-child {
+  border-top: 0;
+}
+
+.info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.direita {
+  display: grid;
+  justify-items: end;
+  gap: var(--espaco-1);
+  text-align: right;
+}
+
+.seletor {
+  grid-column: 1 / -1;
+}
+
+/* Fora da vista, mas no fluxo do documento: o seletor nativo precisa de um campo renderizado. */
+.seletorOculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

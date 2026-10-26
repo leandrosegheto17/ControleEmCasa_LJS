@@ -1,0 +1,32 @@
+{
+  "mes": "2026-10-01",
+  "mes_fechado": false,
+  "pendentes_previstos_centavos": 0,
+  "conjunto": {
+    "total_centavos": 0,
+    "total_variaveis_centavos": 0,
+    "previsto_a_pagar_centavos": 0,
+    "pago_por_membro": [],
+    "fixas_total": 0,
+    "fixas_pendentes": [],
+    "orcamento": null,
+    "por_categoria": [],
+    "resultado": { "valor_centavos": 0, "parcial": true },
+    "metas": []
+  },
+  "individual": {
+    "meu_total_centavos": 0,
+    "minha_parte_conjunto_centavos": 0,
+    "meu_individual_centavos": 0,
+    "total_variaveis_centavos": 0,
+    "receitas_centavos": 0,
+    "resultado": { "valor_centavos": 0, "parcial": true },
+    "guardado_no_mes_centavos": 0,
+    "orcamento": null,
+    "por_categoria": [],
+    "minha_parte_por_categoria": [],
+    "contas": [],
+    "credito": [],
+    "metas": []
+  }
+}

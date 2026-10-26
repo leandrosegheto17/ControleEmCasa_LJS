@@ -1,0 +1,25 @@
+.primeiros-passos {
+  min-width: 0;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-top: var(--borda-destaque-cartao) solid var(--cor-primaria);
+  border-radius: var(--raio-cartao);
+  padding: var(--espaco-4);
+  box-shadow: var(--sombra-cartao);
+}
+
+.titulo {
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+}
+
+.texto {
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}
+
+.lista {
+  margin-top: var(--espaco-3);
+}

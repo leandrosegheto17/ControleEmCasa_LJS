@@ -1,0 +1,5 @@
+.fixas > li.item-fixa {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: var(--espaco-1);
+}

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { sair, sairDeTodos } from '../dados/sessao';
 import type { ErroDados } from '../comum/erros';
 import { esvaziarCache } from './esvaziarCache';
+import { desmarcarSaidaDeProposito, marcarSaidaDeProposito } from './saidaDeProposito';
 
 export type EscopoSaida = 'local' | 'global';
 
@@ -14,7 +15,10 @@ export function useSair() {
   return useMutation<void, ErroDados, EscopoSaida>({
     mutationFn: (escopo) => (escopo === 'local' ? sair() : sairDeTodos()),
     networkMode: 'always',
+    onMutate: marcarSaidaDeProposito,
     onSettled: (_dado, erro, escopo) => {
+      // Saída recusada: a sessão continua valendo, não há saída a explicar à guarda.
+      if (erro) desmarcarSaidaDeProposito();
       if (!erro || escopo === 'local') esvaziarCache(cliente, { sessaoAcabou: !erro });
     },
   });

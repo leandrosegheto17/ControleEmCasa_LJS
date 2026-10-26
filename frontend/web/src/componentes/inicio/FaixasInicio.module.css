@@ -1,0 +1,10 @@
+.ver {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--espaco-2);
+  color: var(--cor-acao);
+}
+
+.ver:hover {
+  text-decoration: underline;
+}

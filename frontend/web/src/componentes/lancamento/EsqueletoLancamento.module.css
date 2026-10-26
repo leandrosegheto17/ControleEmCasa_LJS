@@ -1,0 +1,12 @@
+.cartao {
+  composes: cartao from '../CartaoConta.module.css';
+}
+
+.campo {
+  height: var(--altura-campo);
+}
+
+.campo > div {
+  height: 100%;
+  margin-top: 0;
+}

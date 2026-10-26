@@ -1,0 +1,6 @@
+.lista-sub {
+  margin-top: var(--espaco-3);
+  font-size: var(--tam-pequeno);
+  font-weight: var(--peso-semi);
+  color: var(--cor-texto-2);
+}

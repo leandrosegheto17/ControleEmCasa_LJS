@@ -1,0 +1,16 @@
+{
+  "categorias_despesa": [
+    {
+      "id": "00000000-0000-4000-8000-000000000406",
+      "nome": "Almoço/Alimentação fora",
+      "escopo": "conjunto",
+      "variavel": true
+    },
+    { "id": "00000000-0000-4000-8000-000000000401", "nome": "Mercado", "escopo": "conjunto", "variavel": true }
+  ],
+  "categorias_receita": [{ "id": "00000000-0000-4000-8000-000000000421", "nome": "Salário", "escopo": "individual" }],
+  "formas": [],
+  "forma_padrao_id": null,
+  "contas": [],
+  "conta_receita_padrao_id": null
+}

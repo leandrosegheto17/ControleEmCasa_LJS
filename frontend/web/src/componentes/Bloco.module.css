@@ -1,0 +1,44 @@
+.bloco {
+  margin-top: var(--espaco-4);
+}
+
+.bloco-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+  font-size: var(--tam-titulo-bloco);
+  font-weight: var(--peso-forte);
+  text-transform: uppercase;
+  letter-spacing: var(--espacamento-titulo-bloco);
+}
+
+.nome {
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto-2);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.casa .bloco-titulo {
+  color: var(--cor-casa);
+}
+
+.eu .bloco-titulo {
+  color: var(--cor-eu);
+}
+
+.grade {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grade-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

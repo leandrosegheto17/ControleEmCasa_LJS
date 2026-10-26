@@ -29,10 +29,12 @@ function AjustesInstalavel({ Ajustes }: { Ajustes: typeof import('./paginas/Ajus
 }
 
 const estreito = { estreito: true };
+const comMes = { comMes: true };
 
 /**
  * Rotas do front (SDD 9.3). Acesso em `/entrar` e `/redefinir-senha`; o app inteiro sob `/app`.
- * Fica para a etapa 12 o resto de `/app/*`; para a 14, a landing em `/`.
+ * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2); fixas, orçamento e metas vêm nos lotes seguintes.
+ * Rotas de `/app/...` ficam antes do coringa `/app/*`. Para a etapa 14, a landing em `/`.
  */
 export const mapaRotas: RouteObject[] = [
   // SPEC_DEVIATION: a landing (`/`) é da etapa 14; até lá a raiz leva ao app, e a guarda a leva a /entrar sem sessão.
@@ -87,7 +89,19 @@ export const mapaRotas: RouteObject[] = [
   {
     element: <AreaComInstalacao />,
     children: [
-      { path: '/app', element: <Inicio />, handle: { titulo: 'Início' } satisfies HandleRota },
+      { path: '/app', element: <Inicio />, handle: { titulo: 'Início', ...comMes } satisfies HandleRota },
+      // A rota abre a folha Lançar sobre o Início; fechá-la volta a `/app` (`useAberturaLancar`).
+      { path: '/app/lancar', element: <Inicio />, handle: { titulo: 'Lançar' } satisfies HandleRota },
+      {
+        path: '/app/lancamentos',
+        lazy: () => import('./paginas/Lancamentos').then((m) => ({ Component: m.Lancamentos })),
+        handle: { titulo: 'Lançamentos', ...comMes } satisfies HandleRota,
+      },
+      {
+        path: '/app/lancamentos/:id',
+        lazy: () => import('./paginas/Lancamento').then((m) => ({ Component: m.Lancamento })),
+        handle: { titulo: 'Lançamento', ...estreito } satisfies HandleRota,
+      },
       {
         path: '/app/bem-vindo',
         lazy: () => import('./paginas/app/BemVindo').then((m) => ({ Component: m.BemVindo })),

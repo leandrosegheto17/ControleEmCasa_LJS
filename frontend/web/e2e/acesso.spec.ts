@@ -83,12 +83,17 @@ test('entrar e sair: o app abre depois do login e volta a Entrar na saída', asy
   await page.getByLabel('Senha', { exact: true }).fill('senha-correta-123');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
-  await expect(page.getByText('Olá, Ana.')).toBeVisible();
+  // SPEC_DEVIATION (lote 2 da etapa 12): o início provisório ("Olá, Ana." e "Sair") deu lugar ao Início real,
+  // cujo marcador é o seletor de mês; a saída mora em Ajustes.
+  await expect(page.getByRole('heading', { level: 1, name: /\d{4}$/ })).toBeVisible();
   await expect(page).toHaveURL(/\/app$/);
 
-  await page.getByRole('button', { name: 'Sair' }).click();
+  await page.getByRole('link', { name: 'Ajustes' }).first().click();
+  await page.getByRole('button', { name: /Sair deste aparelho/ }).click();
 
   await expect(page.getByRole('heading', { level: 1, name: 'Entrar' })).toBeVisible();
+  // Saída de propósito: sem `volta` para a área privada (senão o próximo login cairia nos Ajustes).
+  await expect(page).toHaveURL(/\/entrar$/);
 });
 
 test('redefinir senha: o token do link sai do endereço assim que a página abre', async ({ page }) => {

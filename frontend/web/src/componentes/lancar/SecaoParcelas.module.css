@@ -1,0 +1,22 @@
+.secao {
+  display: grid;
+  gap: var(--espaco-2);
+}
+.ajuda {
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+.passo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+.passo button {
+  min-width: var(--alvo-minimo);
+}
+.numero {
+  min-width: 3ch;
+  text-align: center;
+  font-weight: var(--peso-semi);
+  font-variant-numeric: tabular-nums;
+}

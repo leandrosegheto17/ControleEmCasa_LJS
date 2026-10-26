@@ -1,0 +1,235 @@
+{
+  "mes": "2026-10-01",
+  "filtros": { "escopo": "individual", "categoria_id": null, "forma_id": null, "variavel": true },
+  "total_filtrado_centavos": 84630,
+  "quantidade": 15,
+  "itens": [
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000615",
+      "lancamento_id": "00000000-0000-4000-8000-000000000515",
+      "data": "2026-10-10",
+      "descricao": "Fone bluetooth",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000414", "nome": "Lazer pessoal", "variavel": true },
+      "valor_centavos": 8000,
+      "parcela_numero": 2,
+      "total_parcelas": 3,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000614",
+      "lancamento_id": "00000000-0000-4000-8000-000000000514",
+      "data": "2026-10-09",
+      "descricao": "Almoço",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 4120,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000613",
+      "lancamento_id": "00000000-0000-4000-8000-000000000513",
+      "data": "2026-10-08",
+      "descricao": "Restaurante Sabor",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 4290,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000612",
+      "lancamento_id": "00000000-0000-4000-8000-000000000512",
+      "data": "2026-10-08",
+      "descricao": "Uber",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000413", "nome": "Transporte", "variavel": true },
+      "valor_centavos": 2340,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000611",
+      "lancamento_id": "00000000-0000-4000-8000-000000000511",
+      "data": "2026-10-07",
+      "descricao": "Almoço",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 3850,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000610",
+      "lancamento_id": "00000000-0000-4000-8000-000000000510",
+      "data": "2026-10-06",
+      "descricao": "iFood pizza",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000412", "nome": "Delivery pessoal", "variavel": true },
+      "valor_centavos": 5400,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000609",
+      "lancamento_id": "00000000-0000-4000-8000-000000000509",
+      "data": "2026-10-06",
+      "descricao": "Almoço",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 4990,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000608",
+      "lancamento_id": "00000000-0000-4000-8000-000000000508",
+      "data": "2026-10-05",
+      "descricao": "Cinema",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000414", "nome": "Lazer pessoal", "variavel": true },
+      "valor_centavos": 7000,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000607",
+      "lancamento_id": "00000000-0000-4000-8000-000000000507",
+      "data": "2026-10-05",
+      "descricao": "Café e lanche",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 2300,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000606",
+      "lancamento_id": "00000000-0000-4000-8000-000000000506",
+      "data": "2026-10-03",
+      "descricao": "Almoço com a equipe",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 12000,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000605",
+      "lancamento_id": "00000000-0000-4000-8000-000000000505",
+      "data": "2026-10-02",
+      "descricao": "Recarga do metrô",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000413", "nome": "Transporte", "variavel": true },
+      "valor_centavos": 6000,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000604",
+      "lancamento_id": "00000000-0000-4000-8000-000000000504",
+      "data": "2026-10-02",
+      "descricao": "Almoço",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 5180,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000603",
+      "lancamento_id": "00000000-0000-4000-8000-000000000503",
+      "data": "2026-10-01",
+      "descricao": "Uber",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000413", "nome": "Transporte", "variavel": true },
+      "valor_centavos": 10260,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000602",
+      "lancamento_id": "00000000-0000-4000-8000-000000000502",
+      "data": "2026-10-01",
+      "descricao": "Almoço",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": {
+        "id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true
+      },
+      "valor_centavos": 4500,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    },
+    {
+      "parcela_id": "00000000-0000-4000-8000-000000000601",
+      "lancamento_id": "00000000-0000-4000-8000-000000000501",
+      "data": "2026-10-01",
+      "descricao": "iFood",
+      "tipo": "despesa",
+      "escopo": "individual",
+      "categoria": { "id": "00000000-0000-4000-8000-000000000412", "nome": "Delivery pessoal", "variavel": true },
+      "valor_centavos": 4400,
+      "parcela_numero": 1,
+      "total_parcelas": 1,
+      "pagador": { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro" }
+    }
+  ]
+}

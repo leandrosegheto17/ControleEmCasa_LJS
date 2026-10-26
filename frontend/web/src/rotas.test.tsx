@@ -99,7 +99,8 @@ describe('guarda de /app/*', () => {
     servidor.sessao = { termos_pendentes: false, lar: LAR };
     const { roteador } = montar('/app');
 
-    expect(await screen.findByText('Olá, Ana.')).toBeInTheDocument();
+    // SPEC_DEVIATION (lote 2): o início provisório ("Olá, Ana.") deu lugar ao Início real; o marcador é o seletor de mês.
+    expect(await screen.findByRole('heading', { level: 1, name: /\d{4}$/ })).toBeInTheDocument();
     expect(local(roteador)).toBe('/app');
   });
 
@@ -120,13 +121,13 @@ describe('guarda de /app/*', () => {
   it('sem rede mas com usuário lembrado neste aparelho, o app abre mesmo assim (lançar offline)', async () => {
     servidor.sessao = { termos_pendentes: false, lar: LAR };
     const primeira = montar('/app');
-    expect(await screen.findByText('Olá, Ana.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /\d{4}$/ })).toBeInTheDocument();
     primeira.unmount();
 
     servidor.semRede = true;
     const { roteador } = montar('/app');
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Controle em Casa' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /\d{4}$/ })).toBeInTheDocument();
     expect(local(roteador)).toBe('/app');
   });
 
@@ -211,10 +212,10 @@ describe('sair (G-39)', () => {
   it('chama POST /api/sessao/sair, limpa o aparelho e volta para /entrar', async () => {
     servidor.sessao = { termos_pendentes: false, lar: LAR };
     const user = userEvent.setup();
-    const { roteador, consulta } = montar('/app');
-    await screen.findByText('Olá, Ana.');
+    // O botão de sair mora em Ajustes (o início provisório tinha um "Sair" próprio; SPEC_DEVIATION do lote 2).
+    const { roteador, consulta } = montar('/app/ajustes');
 
-    await user.click(screen.getByRole('button', { name: 'Sair' }));
+    await user.click(await screen.findByRole('button', { name: /Sair deste aparelho/ }));
 
     await waitFor(() => expect(local(roteador)).toContain('/entrar'));
     expect(chamadas.some((c) => c.url === '/api/sessao/sair' && c.metodo === 'POST')).toBe(true);

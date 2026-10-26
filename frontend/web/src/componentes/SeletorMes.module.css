@@ -1,0 +1,11 @@
+.seletor {
+  display: flex;
+  align-items: center;
+  margin-left: calc(-1 * var(--espaco-3));
+}
+
+.mes {
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-semi);
+  white-space: nowrap;
+}

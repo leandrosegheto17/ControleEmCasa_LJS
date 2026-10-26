@@ -1,0 +1,23 @@
+.item-link {
+  min-width: 0;
+}
+
+.item-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.item-titulo {
+  font-weight: var(--peso-medio);
+}
+
+.item-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

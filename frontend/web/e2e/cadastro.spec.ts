@@ -85,7 +85,9 @@ test('cadastro → confirmar → entrar → criar o lar', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Bem-vindo' })).toBeVisible();
   await expect(page).toHaveURL(/\/app\/bem-vindo$/);
   await page.getByRole('button', { name: 'Criar meu lar' }).click();
-  await expect(page.getByText('Olá, Ana Souza.')).toBeVisible();
+  // O Início real (lote 2 da etapa 12) substituiu o provisório: o marcador é o seletor de mês.
+  await expect(page.getByRole('heading', { level: 1, name: /\d{4}$/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/app$/);
 });
 
 test('link de confirmação usado de novo: expirado, com reenvio neutro', async ({ page }) => {

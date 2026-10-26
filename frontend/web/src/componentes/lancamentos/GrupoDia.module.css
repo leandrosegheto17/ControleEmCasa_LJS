@@ -1,0 +1,10 @@
+.grupo-dia {
+  margin-top: var(--espaco-4);
+}
+
+.grupo-dia > h2 {
+  font-size: var(--tam-pequeno);
+  font-weight: var(--peso-semi);
+  color: var(--cor-texto-2);
+  margin-bottom: var(--espaco-1);
+}

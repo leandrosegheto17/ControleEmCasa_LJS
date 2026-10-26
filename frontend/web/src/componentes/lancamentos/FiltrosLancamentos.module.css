@@ -1,0 +1,37 @@
+.filtros {
+  display: flex;
+  gap: var(--espaco-2);
+  overflow-x: auto;
+  padding: var(--espaco-1) 0 var(--espaco-2);
+}
+
+.filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  flex: none;
+  min-height: var(--alvo-minimo);
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-contorno);
+  border-radius: var(--raio-pilula);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filtro[aria-pressed='true'] {
+  background: var(--cor-selecionado-fundo);
+  border: 2px solid var(--cor-eu);
+  font-weight: var(--peso-semi);
+}
+
+.filtro:focus-visible {
+  outline: var(--anel-foco) solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.lista {
+  padding-bottom: var(--espaco-2);
+}

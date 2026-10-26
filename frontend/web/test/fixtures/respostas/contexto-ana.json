@@ -1,0 +1,6 @@
+{
+  "membro": { "id": "00000000-0000-4000-8000-000000000102", "nome": "Ana", "email": "ana@exemplo.com" },
+  "outro_membro": { "nome": "Leandro" },
+  "mes_corrente": "2026-10-01",
+  "hoje": "2026-10-09"
+}

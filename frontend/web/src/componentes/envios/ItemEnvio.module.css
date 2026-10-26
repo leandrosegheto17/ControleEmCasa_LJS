@@ -1,0 +1,12 @@
+.erro {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-estourado);
+  font-weight: var(--peso-semi);
+}
+.erro :global(.icone) {
+  width: 1em;
+  height: 1em;
+}

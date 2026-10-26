@@ -1,0 +1,50 @@
+{
+  "categorias_despesa": [
+    {
+      "id": "00000000-0000-4000-8000-000000000406",
+      "nome": "Almoço/Alimentação fora",
+      "escopo": "conjunto",
+      "variavel": true
+    },
+    { "id": "00000000-0000-4000-8000-000000000401", "nome": "Mercado", "escopo": "conjunto", "variavel": true },
+    { "id": "00000000-0000-4000-8000-000000000413", "nome": "Transporte", "escopo": "individual", "variavel": true },
+    {
+      "id": "00000000-0000-4000-8000-000000000402",
+      "nome": "Delivery/iFood do casal",
+      "escopo": "conjunto",
+      "variavel": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000412",
+      "nome": "Delivery pessoal",
+      "escopo": "individual",
+      "variavel": true
+    },
+    { "id": "00000000-0000-4000-8000-000000000414", "nome": "Lazer pessoal", "escopo": "individual", "variavel": true },
+    { "id": "00000000-0000-4000-8000-000000000404", "nome": "Contas da casa", "escopo": "conjunto", "variavel": false },
+    { "id": "00000000-0000-4000-8000-000000000403", "nome": "Moradia", "escopo": "conjunto", "variavel": false },
+    { "id": "00000000-0000-4000-8000-000000000405", "nome": "Outros da casa", "escopo": "conjunto", "variavel": false },
+    { "id": "00000000-0000-4000-8000-000000000415", "nome": "Outros", "escopo": "individual", "variavel": false }
+  ],
+  "categorias_receita": [
+    { "id": "00000000-0000-4000-8000-000000000421", "nome": "Salário", "escopo": "individual" },
+    { "id": "00000000-0000-4000-8000-000000000422", "nome": "Extra", "escopo": "individual" },
+    { "id": "00000000-0000-4000-8000-000000000423", "nome": "Outros", "escopo": "individual" }
+  ],
+  "formas": [
+    { "id": "00000000-0000-4000-8000-000000000301", "nome": "Pix Nubank", "tipo": "pix", "preferida": true },
+    { "id": "00000000-0000-4000-8000-000000000302", "nome": "Débito Itaú", "tipo": "debito", "preferida": false },
+    {
+      "id": "00000000-0000-4000-8000-000000000303",
+      "nome": "Cartão de crédito XP",
+      "tipo": "credito",
+      "preferida": false
+    }
+  ],
+  "forma_padrao_id": "00000000-0000-4000-8000-000000000301",
+  "contas": [
+    { "id": "00000000-0000-4000-8000-000000000201", "nome": "Nubank" },
+    { "id": "00000000-0000-4000-8000-000000000202", "nome": "Itaú" }
+  ],
+  "conta_receita_padrao_id": "00000000-0000-4000-8000-000000000201"
+}

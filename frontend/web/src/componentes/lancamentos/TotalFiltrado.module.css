@@ -1,0 +1,26 @@
+.total-filtrado {
+  position: sticky;
+  top: calc(var(--alvo-minimo) + var(--espaco-4));
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  margin: 0 calc(-1 * var(--espaco-4));
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.valor {
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-semi);
+}
+
+@media (min-width: 1024px) {
+  .total-filtrado {
+    margin: 0;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-cartao);
+  }
+}

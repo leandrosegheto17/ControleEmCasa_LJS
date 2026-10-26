@@ -1,0 +1,27 @@
+.formulario {
+  display: grid;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-3);
+}
+
+.grade {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.acoes > :first-child {
+  flex: 1;
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

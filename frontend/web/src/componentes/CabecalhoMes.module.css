@@ -1,0 +1,17 @@
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: calc(var(--alvo-minimo) + var(--espaco-4));
+  background: var(--cor-fundo);
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-1);
+}

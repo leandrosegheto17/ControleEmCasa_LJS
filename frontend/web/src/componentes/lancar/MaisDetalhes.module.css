@@ -1,0 +1,16 @@
+.mais-detalhes summary {
+  min-height: var(--alvo-minimo);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  cursor: pointer;
+  color: var(--cor-acao);
+  font-weight: var(--peso-semi);
+}
+.mais-detalhes[open] summary {
+  margin-bottom: var(--espaco-3);
+}
+.campos {
+  display: grid;
+  gap: var(--espaco-4);
+}

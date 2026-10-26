@@ -1,0 +1,24 @@
+.meta {
+  padding: var(--espaco-2) 0;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.meta:first-of-type {
+  border-top: 0;
+}
+
+.meta-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.meta-link [role='progressbar'] {
+  display: block;
+}
+
+.item-sub {
+  display: block;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

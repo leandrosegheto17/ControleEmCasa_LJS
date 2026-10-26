@@ -56,7 +56,7 @@ describe('rotas de Ajustes e cadastros', () => {
     const usuario = userEvent.setup();
     const { local } = montarApp('/app');
 
-    const atalho = (await screen.findAllByRole('link', { name: 'Ajustes' })).find((l) => l.closest('main'));
+    const atalho = (await screen.findAllByRole('link', { name: 'Ajustes' })).find((l) => l.closest('header'));
     await usuario.click(atalho!);
 
     expect(await screen.findByText('Ana · ana@exemplo.com')).toBeInTheDocument();

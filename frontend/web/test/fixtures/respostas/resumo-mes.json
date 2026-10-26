@@ -1,0 +1,262 @@
+{
+  "mes": "2026-10-01",
+  "mes_fechado": false,
+  "pendentes_previstos_centavos": 154000,
+  "conjunto": {
+    "total_centavos": 241870,
+    "total_variaveis_centavos": 113620,
+    "previsto_a_pagar_centavos": 154000,
+    "pago_por_membro": [
+      {
+        "membro_id": "00000000-0000-4000-8000-000000000101",
+        "nome": "Leandro",
+        "valor_centavos": 140250,
+        "percentual": 58
+      },
+      { "membro_id": "00000000-0000-4000-8000-000000000102", "nome": "Ana", "valor_centavos": 101620, "percentual": 42 }
+    ],
+    "fixas_total": 7,
+    "fixas_pendentes": [
+      {
+        "ocorrencia_id": "00000000-0000-4000-8000-000000000804",
+        "descricao": "Internet",
+        "vencimento": "2026-10-05",
+        "valor_previsto_centavos": 11990,
+        "situacao": "atrasada"
+      },
+      {
+        "ocorrencia_id": "00000000-0000-4000-8000-000000000801",
+        "descricao": "Aluguel",
+        "vencimento": "2026-10-10",
+        "valor_previsto_centavos": 120000,
+        "situacao": "pendente"
+      },
+      {
+        "ocorrencia_id": "00000000-0000-4000-8000-000000000802",
+        "descricao": "Condomínio",
+        "vencimento": "2026-10-15",
+        "valor_previsto_centavos": 22010,
+        "situacao": "pendente"
+      }
+    ],
+    "orcamento": {
+      "orcado_centavos": 430000,
+      "realizado_centavos": 241870,
+      "percentual": 56,
+      "situacao": "dentro",
+      "destaques": [
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000404",
+          "nome": "Contas da casa",
+          "orcado_centavos": 30000,
+          "realizado_centavos": 33250,
+          "percentual": 111,
+          "situacao": "estourado"
+        },
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000402",
+          "nome": "Delivery/iFood do casal",
+          "orcado_centavos": 40000,
+          "realizado_centavos": 36800,
+          "percentual": 92,
+          "situacao": "atencao"
+        },
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000401",
+          "nome": "Mercado",
+          "orcado_centavos": 100000,
+          "realizado_centavos": 76820,
+          "percentual": 77,
+          "situacao": "dentro"
+        }
+      ]
+    },
+    "por_categoria": [
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000403",
+        "nome": "Moradia",
+        "variavel": false,
+        "total_centavos": 85000
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000401",
+        "nome": "Mercado",
+        "variavel": true,
+        "total_centavos": 76820
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000402",
+        "nome": "Delivery/iFood do casal",
+        "variavel": true,
+        "total_centavos": 36800
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000404",
+        "nome": "Contas da casa",
+        "variavel": false,
+        "total_centavos": 33250
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000405",
+        "nome": "Outros da casa",
+        "variavel": false,
+        "total_centavos": 10000
+      }
+    ],
+    "resultado": { "valor_centavos": 188130, "parcial": true },
+    "metas": [
+      {
+        "meta_id": "00000000-0000-4000-8000-000000000901",
+        "nome": "Reserva de emergência",
+        "alvo_centavos": 3000000,
+        "guardado_centavos": 1850000,
+        "falta_centavos": 1150000,
+        "percentual": 62,
+        "prazo": null,
+        "mensal_necessario_centavos": null,
+        "atingida": false
+      },
+      {
+        "meta_id": "00000000-0000-4000-8000-000000000902",
+        "nome": "Viagem Nordeste",
+        "alvo_centavos": 1200000,
+        "guardado_centavos": 620000,
+        "falta_centavos": 580000,
+        "percentual": 52,
+        "prazo": "2027-07",
+        "mensal_necessario_centavos": 64445,
+        "atingida": false
+      }
+    ]
+  },
+  "individual": {
+    "meu_total_centavos": 224880,
+    "minha_parte_conjunto_centavos": 140250,
+    "meu_individual_centavos": 84630,
+    "total_variaveis_centavos": 150370,
+    "receitas_centavos": 750000,
+    "resultado": { "valor_centavos": 525120, "parcial": true },
+    "guardado_no_mes_centavos": 50000,
+    "orcamento": {
+      "orcado_centavos": 120000,
+      "realizado_centavos": 84630,
+      "percentual": 71,
+      "situacao": "dentro",
+      "destaques": [
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000411",
+          "nome": "Almoço/Alimentação fora",
+          "orcado_centavos": 40000,
+          "realizado_centavos": 41230,
+          "percentual": 103,
+          "situacao": "estourado"
+        },
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000412",
+          "nome": "Delivery pessoal",
+          "orcado_centavos": 12000,
+          "realizado_centavos": 9800,
+          "percentual": 82,
+          "situacao": "atencao"
+        },
+        {
+          "categoria_id": "00000000-0000-4000-8000-000000000413",
+          "nome": "Transporte",
+          "orcado_centavos": 30000,
+          "realizado_centavos": 18600,
+          "percentual": 62,
+          "situacao": "dentro"
+        }
+      ]
+    },
+    "por_categoria": [
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000411",
+        "nome": "Almoço/Alimentação fora",
+        "variavel": true,
+        "total_centavos": 41230
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000413",
+        "nome": "Transporte",
+        "variavel": true,
+        "total_centavos": 18600
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000414",
+        "nome": "Lazer pessoal",
+        "variavel": true,
+        "total_centavos": 15000
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000412",
+        "nome": "Delivery pessoal",
+        "variavel": true,
+        "total_centavos": 9800
+      }
+    ],
+    "minha_parte_por_categoria": [
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000403",
+        "nome": "Moradia",
+        "variavel": false,
+        "total_centavos": 65000
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000401",
+        "nome": "Mercado",
+        "variavel": true,
+        "total_centavos": 54120
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000402",
+        "nome": "Delivery/iFood do casal",
+        "variavel": true,
+        "total_centavos": 11620
+      },
+      {
+        "categoria_id": "00000000-0000-4000-8000-000000000404",
+        "nome": "Contas da casa",
+        "variavel": false,
+        "total_centavos": 9510
+      }
+    ],
+    "contas": [
+      { "conta_id": "00000000-0000-4000-8000-000000000201", "nome": "Nubank", "saldo_centavos": 321485 },
+      { "conta_id": "00000000-0000-4000-8000-000000000202", "nome": "Itaú", "saldo_centavos": 109000 }
+    ],
+    "credito": [
+      {
+        "forma_id": "00000000-0000-4000-8000-000000000303",
+        "nome": "Cartão de crédito XP",
+        "dia_vencimento": 10,
+        "gasto_mes_centavos": 128460,
+        "comprometido_futuro_centavos": 215000
+      }
+    ],
+    "metas": [
+      {
+        "meta_id": "00000000-0000-4000-8000-000000000903",
+        "nome": "Notebook novo",
+        "alvo_centavos": 600000,
+        "guardado_centavos": 240000,
+        "falta_centavos": 360000,
+        "percentual": 40,
+        "prazo": null,
+        "mensal_necessario_centavos": null,
+        "atingida": false
+      },
+      {
+        "meta_id": "00000000-0000-4000-8000-000000000904",
+        "nome": "Curso de inglês",
+        "alvo_centavos": 180000,
+        "guardado_centavos": 180000,
+        "falta_centavos": 0,
+        "percentual": 100,
+        "prazo": null,
+        "mensal_necessario_centavos": null,
+        "atingida": true
+      }
+    ]
+  }
+}

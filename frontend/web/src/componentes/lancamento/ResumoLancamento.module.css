@@ -1,0 +1,18 @@
+.resumo {
+  composes: cartao from '../CartaoConta.module.css';
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.titulo {
+  font-weight: var(--peso-medio);
+}
+
+.sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
