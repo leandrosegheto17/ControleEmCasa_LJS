@@ -215,4 +215,23 @@ export default tseslint.config(
       ],
     },
   },
+  // Módulo isolado de Web Push (SDD 2.2; decisão 4 do PLANO; ADR-014): mesma fronteira, e só `fetch`/`crypto.subtle`.
+  {
+    files: ['backend/api/src/infraestrutura/push/**/*.ts'],
+    ignores: ['backend/api/src/infraestrutura/push/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', '@controle/*', 'hono', 'hono/*', 'kysely', 'pg', 'cloudflare:*', 'node:*', 'web-push'],
+              message: 'O módulo de push é isolado: importe só da própria pasta, sem SDK (SDD 2.2).',
+            },
+          ],
+        },
+      ],
+      'no-console': 'error',
+    },
+  },
 );

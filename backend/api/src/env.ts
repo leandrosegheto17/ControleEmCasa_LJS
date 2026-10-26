@@ -22,6 +22,12 @@ export interface Bindings {
   ASAAS_API_KEY?: string;
   /** Segredo: token que o Asaas manda no cabeçalho `asaas-access-token` do webhook (32 a 255 caracteres). */
   ASAAS_WEBHOOK_TOKEN?: string;
+  /** Chave pública VAPID: ponto P-256 não comprimido (65 bytes), base64url (SDD 11.2; etapa 15). */
+  VAPID_PUBLIC_KEY?: string;
+  /** Segredo: `d` da chave privada VAPID (32 bytes), base64url. Só `wrangler secret` (no local, `.dev.vars`). */
+  VAPID_PRIVATE_KEY?: string;
+  /** Contato do operador no JWT VAPID (`mailto:`). */
+  VAPID_SUBJECT?: string;
 }
 
 /** Identidade que a sessão entrega ao middleware de transação. O lar NUNCA vem daqui (G-03). */
@@ -50,6 +56,11 @@ export interface Variaveis {
   tx: Transaction<DB>;
   /** Vínculo derivado no banco ao abrir a transação (nulo sem lar). */
   vinculo: Vinculo | null;
+  /**
+   * Trabalhos a rodar só DEPOIS do COMMIT da transação da rota (em `waitUntil`), como o push "meta atingida" (SDD 8.6).
+   * Com ROLLBACK, nada roda.
+   */
+  aposCommit: Array<() => Promise<unknown>>;
 }
 
 export interface AppEnv {

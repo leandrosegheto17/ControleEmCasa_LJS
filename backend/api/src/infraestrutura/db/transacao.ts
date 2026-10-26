@@ -79,3 +79,12 @@ export async function emTransacaoDeSistema<T>(
 export async function enxergarLarNoSistema(trx: Transaction<DB>, larId: string): Promise<void> {
   await sql`select set_config('app.lar_id', ${larId}, true)`.execute(trx);
 }
+
+/**
+ * Dentro de uma transação de sistema com o lar já fixado, passa a enxergar também o individual de UM membro (o cron
+ * do lembrete diário confere se ele lançou no dia; TM-PUSH-01). O membro vem de uma linha de `membro` já lida no
+ * mesmo lar, nunca de fora. Troca o membro anterior (só um por vez).
+ */
+export async function enxergarMembroNoSistema(trx: Transaction<DB>, membroId: string): Promise<void> {
+  await sql`select set_config('app.membro_id', ${membroId}, true)`.execute(trx);
+}

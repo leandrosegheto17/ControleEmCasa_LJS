@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { cloudflareTest } from '@cloudflare/vitest-plugin';
@@ -16,6 +16,18 @@ const CHAVE_HMAC_TESTE = randomBytes(32).toString('base64url');
 // nenhuma chamada sai para o Asaas e nenhum segredo real é lido.
 const ASAAS_API_KEY_TESTE = `teste_${randomBytes(16).toString('hex')}`;
 const ASAAS_WEBHOOK_TOKEN_TESTE = randomBytes(32).toString('base64url');
+// VAPID dos testes (etapa 15): par P-256 aleatório a cada execução; os testes injetam um envio falso e nada sai para
+// um serviço de push.
+const VAPID_TESTE = (() => {
+  const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const jwk = privateKey.export({ format: 'jwk' });
+  const publica = Buffer.concat([
+    Buffer.from([4]),
+    Buffer.from(jwk.x as string, 'base64url'),
+    Buffer.from(jwk.y as string, 'base64url'),
+  ]);
+  return { publica: publica.toString('base64url'), privada: jwk.d as string };
+})();
 
 /**
  * Testes da API rodam dentro do runtime do Workers (workerd), com Postgres real.
@@ -47,6 +59,9 @@ export default defineConfig({
           ASAAS_API_URL: 'https://asaas.teste.invalid/v3',
           ASAAS_API_KEY: ASAAS_API_KEY_TESTE,
           ASAAS_WEBHOOK_TOKEN: ASAAS_WEBHOOK_TOKEN_TESTE,
+          VAPID_PUBLIC_KEY: VAPID_TESTE.publica,
+          VAPID_PRIVATE_KEY: VAPID_TESTE.privada,
+          VAPID_SUBJECT: 'mailto:operacao@teste.exemplo.local',
         },
       },
     })),

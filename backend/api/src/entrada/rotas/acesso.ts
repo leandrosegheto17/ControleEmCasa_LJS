@@ -96,7 +96,7 @@ export function registrarRotasDeAcesso(app: Hono<AppEnv>, opcoes: OpcoesAcesso):
   // Sair de todos (CA-20.5): revoga todas as sessões do usuário; repetir (já sem sessão) é sucesso sem efeito.
   app.post('/api/sessao/sair-de-todos', async (c) => {
     const sessao = c.get('sessao');
-    if (sessao) await sairDeTodos(c.get('db'), sessao.usuarioId);
+    if (sessao) await sairDeTodos(c.get('db'), sessao);
     limparCookieSessao(c);
     return c.body(null, 204);
   });

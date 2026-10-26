@@ -23,13 +23,22 @@ describe('varredura de app.sistema', () => {
     expect(quem).toEqual(['./infraestrutura/db/transacao.ts']);
   });
 
-  it('só o webhook abre transação de sistema; nenhuma rota de usuário', () => {
+  // Motivo da mudança (etapa 15): o `scheduled` chegou. Os casos de uso dos crons (`aplicacao/agendadas/`: avisos de
+  // push e limpeza diária) também abrem a transação de sistema, como o SDD 5.3 prevê; o "meta atingida" usa o mesmo
+  // caso de uso, depois do COMMIT da rota (SDD 8.6). Nenhuma rota (`entrada/rotas/`) abre ou grava o contexto.
+  it('só o webhook e os casos de uso agendados abrem transação de sistema; nenhuma rota de usuário', () => {
     const quem = producao
       .filter(
         ([caminho, c]) =>
           caminho !== './infraestrutura/db/transacao.ts' && /emTransacaoDeSistema\s*\(/.test(semComentarios(c)),
       )
-      .map(([caminho]) => caminho);
-    expect(quem).toEqual(['./aplicacao/plano/webhook.ts']);
+      .map(([caminho]) => caminho)
+      .sort();
+    expect(quem).toEqual([
+      './aplicacao/agendadas/limpeza.ts',
+      './aplicacao/agendadas/push.ts',
+      './aplicacao/plano/webhook.ts',
+    ]);
+    expect(quem.filter((c) => c.startsWith('./entrada/'))).toEqual([]);
   });
 });

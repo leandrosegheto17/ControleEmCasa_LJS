@@ -9,6 +9,7 @@
     "migrar": "node --env-file-if-exists=../../.env node_modules/node-pg-migrate/bin/node-pg-migrate.js up -m migracoes --database-url-var DATABASE_URL_OWNER --no-single-transaction",
     "seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
     "purgar": "tsx --env-file-if-exists=../../.env src/purgar.ts",
+    "gerar-vapid": "tsx src/gerar-vapid.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "massa": "tsx --env-file-if-exists=../../.env src/massa-dois-anos.ts",

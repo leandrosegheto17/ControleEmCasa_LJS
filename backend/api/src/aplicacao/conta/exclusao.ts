@@ -7,6 +7,7 @@ import { buscarAssinaturaAtual } from '../../infraestrutura/db/repositorios/assi
 import { cancelarPendentesDoLar } from '../../infraestrutura/db/repositorios/convites';
 import { abrirPedido, confirmarPedido, convidadoAtivoDoLarAtual } from '../../infraestrutura/db/repositorios/exclusoes';
 import { apagarPartePrivadaDoMembro } from '../../infraestrutura/db/repositorios/lancamentos';
+import { removerInscricoesDoUsuario } from '../../infraestrutura/db/repositorios/push';
 import { marcarSaida } from '../../infraestrutura/db/repositorios/membros';
 import { apagarDoUsuario } from '../../infraestrutura/db/repositorios/sessoes';
 import { descartarFalha, reservarFalha } from '../../infraestrutura/db/repositorios/tentativas';
@@ -24,7 +25,7 @@ import { cancelarAssinaturaDoLarDescartado } from '../plano/plano';
  * Exclusão de conta (RN-26; SDD 6.2 "Conta", E-1, E-2; CA-26.1 a CA-26.9; G-49; ADR-013).
  * - Pedir (`POST /api/conta/exclusao`, A0): confere a senha e manda o link. Nada muda na conta (CA-26.1).
  * - Confirmar (`POST /api/conta/exclusao/confirmar`, P): numa transação, consome o token, confirma o pedido com a
- *   purga em 30 dias, revoga todas as sessões e aplica o efeito no lar:
+ *   purga em 30 dias, revoga todas as sessões, remove todas as inscrições de push (G-49) e aplica o efeito no lar:
  *   - titular: revoga o convite pendente, avisa o convidado ativo (D1, CA-26.7) e cancela a assinatura no Asaas;
  *   - convidado: sai do lar como na saída voluntária (CA-23.12): a parte privada dos pagamentos some na hora;
  *   - sem lar: nada além.
@@ -108,6 +109,8 @@ export async function confirmarExclusao(deps: DepsExclusao, token: string): Prom
     // Daqui em diante, como o próprio usuário: as políticas do lar valem como em qualquer rota dele (G-03).
     const sessao: Sessao = { usuarioId, email: usuario.email };
     const vinculo = await assumirIdentidade(trx, sessao);
+    // Todas as inscrições de push do usuário, de qualquer vínculo (G-49, CA-27.6): nenhum aviso sai depois daqui.
+    await removerInscricoesDoUsuario(trx);
     if (!vinculo) return null;
 
     if (vinculo.papel === 'membro') {

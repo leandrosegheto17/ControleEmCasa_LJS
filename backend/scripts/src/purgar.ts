@@ -19,7 +19,8 @@ import { criarClienteAsaas } from '../../api/src/infraestrutura/asaas/cliente';
  * 2. Ex-membros (saída ou remoção) há 30 dias ou mais com individual ainda no lar (CA-23.12, E-2): contas, formas,
  *    movimentos de conta (inclusive os ligados a movimentos de meta conjunta: pendência da etapa 10), a parte privada
  *    das conjuntas que pagou (pendência da etapa 8: removidos pelo titular), lançamentos, orçamentos e metas
- *    individuais e as categorias individuais. As conjuntas, as metas conjuntas e os movimentos delas ficam.
+ *    individuais, as categorias individuais e o push do vínculo (aparelhos, preferências e avisos; etapa 15). As
+ *    conjuntas, as metas conjuntas e os movimentos delas ficam.
  * 3. Contas nunca confirmadas há 7 dias ou mais (CA-19.8).
  * 4. Poda (RN-26): tentativas de login com mais de 30 dias, tokens de e-mail vencidos há mais de 30 dias, sessões
  *    expiradas há mais de 30 dias e eventos do webhook com mais de 12 meses.
@@ -41,7 +42,7 @@ export const LIMITE_PADRAO = 50;
 
 /**
  * Ordem de exclusão das tabelas de um lar (filhas antes das mães, pelas FKs). Toda tabela com `lar_id` precisa estar
- * aqui: o teste de catálogo falha se uma tabela nova (ex.: `push_subscription`, etapa 15) ficar de fora.
+ * aqui: o teste de catálogo falha se uma tabela nova ficar de fora (as de push entraram na etapa 15).
  */
 export const TABELAS_DO_LAR = [
   'movimento_conta',
@@ -58,6 +59,10 @@ export const TABELAS_DO_LAR = [
   'categoria',
   'convite',
   'assinatura',
+  // Push (etapa 15): avisos, inscrições e preferências apontam o membro (FK composta), então saem antes dele.
+  'aviso_push',
+  'push_subscription',
+  'preferencia_notificacao',
   'membro',
 ] as const;
 
@@ -212,6 +217,16 @@ async function apagarIndividual(c: pg.Client, contagem: Record<string, number>, 
   n += await apagar(c, contagem, 'forma_pagamento', `delete from app.forma_pagamento where dono_id = $1`, m);
   n += await apagar(c, contagem, 'conta', `delete from app.conta where dono_id = $1`, m);
   n += await apagar(c, contagem, 'categoria', `delete from app.categoria where dono_id = $1`, m);
+  // Push do vínculo (etapa 15; G-49): aparelhos, preferências e avisos do ex-membro naquele lar.
+  n += await apagar(c, contagem, 'aviso_push', `delete from app.aviso_push where membro_id = $1`, m);
+  n += await apagar(c, contagem, 'push_subscription', `delete from app.push_subscription where membro_id = $1`, m);
+  n += await apagar(
+    c,
+    contagem,
+    'preferencia_notificacao',
+    `delete from app.preferencia_notificacao where membro_id = $1`,
+    m,
+  );
   return n;
 }
 
@@ -334,7 +349,10 @@ export async function purgar(c: pg.Client, opcoes: OpcoesPurga): Promise<Relator
             or exists (select 1 from app.lancamento x where x.dono_id = m.id and x.escopo = 'individual')
             or exists (select 1 from app.orcamento x where x.dono_id = m.id)
             or exists (select 1 from app.meta x where x.dono_id = m.id and x.escopo = 'individual')
-            or exists (select 1 from app.categoria x where x.dono_id = m.id))
+            or exists (select 1 from app.categoria x where x.dono_id = m.id)
+            or exists (select 1 from app.push_subscription x where x.membro_id = m.id)
+            or exists (select 1 from app.preferencia_notificacao x where x.membro_id = m.id)
+            or exists (select 1 from app.aviso_push x where x.membro_id = m.id))
         order by m.saiu_em, m.id limit $2`,
       [iso(agora - PRAZO_EX_MEMBRO_MS), limite],
     ),

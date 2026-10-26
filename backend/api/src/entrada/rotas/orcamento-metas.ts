@@ -15,6 +15,7 @@ import { exigePlano } from '../../middleware/exigir-plano';
 import { emTransacao, exigirLar } from '../../middleware/transacao';
 import { lerCorpo } from '../corpo';
 import { depsDe, idDaRota } from './comum';
+import { agendarMetaAtingida, type OpcoesPush } from './push';
 
 /**
  * Rotas do orçamento e das metas (SDD 6.1 #34 a #41; RN-08, RN-09, RN-16, RN-25). Todas "A": autenticado com lar
@@ -40,7 +41,7 @@ function mesDaRota(valor: string | undefined): string {
   return r.data;
 }
 
-export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
+export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>, opcoes: OpcoesPush = {}): void {
   app.get('/api/orcamento', emTransacao, exigirLar, async (c) => {
     const filtro = entrada.FiltroOrcamento.safeParse(c.req.query());
     if (!filtro.success) throw new ErroApi(400, 'valor_invalido', 'Dados inválidos.');
@@ -74,6 +75,7 @@ export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
     const id = idDaRota(c);
     const dados = await lerCorpo(c, entrada.SalvarMeta);
     const r = await salvarMeta(depsDe(c), id, dados);
+    if (r.metaAtingida) agendarMetaAtingida(c, opcoes, r.metaAtingida);
     return c.json({ id: r.id }, r.criado ? 201 : 200);
   });
 
@@ -81,6 +83,7 @@ export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
     const id = idDaRota(c);
     const dados = await lerCorpo(c, entrada.MovimentarMeta);
     const r = await movimentarMeta(depsDe(c), id, dados);
+    if (r.metaAtingida) agendarMetaAtingida(c, opcoes, r.metaAtingida);
     return c.json({ id: r.id }, r.criado ? 201 : 200);
   });
 

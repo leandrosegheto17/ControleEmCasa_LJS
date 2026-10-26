@@ -9,6 +9,8 @@ import { registrarRotasDeLancamentos } from './entrada/rotas/lancamentos';
 import { registrarRotasDeLar } from './entrada/rotas/lar';
 import { registrarRotasDeOrcamentoEMetas } from './entrada/rotas/orcamento-metas';
 import { registrarRotasDePlano } from './entrada/rotas/plano';
+import { registrarRotasDePush } from './entrada/rotas/push';
+import type { EnviadorPush } from './aplicacao/agendadas/push';
 import type { AppEnv, Sessao } from './env';
 import { ErroApi, ehErroDeConexao } from './erros';
 import { ErroAsaas, type ClienteAsaas } from './infraestrutura/asaas';
@@ -52,6 +54,8 @@ export interface OpcoesDoApp {
   versoes?: Versoes;
   /** Cliente do Asaas injetado (testes: um falso). Sem ele, o REST real com `ASAAS_*` (etapa 13). */
   asaas?: ClienteAsaas;
+  /** Envio de push injetado (testes: um falso). Sem ele, o módulo `infraestrutura/push` (etapa 15). */
+  push?: EnviadorPush;
 }
 
 export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
@@ -90,7 +94,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   registrarRotasDeCadastros(app);
   registrarRotasDeLancamentos(app);
   registrarRotasDeFixas(app);
-  registrarRotasDeOrcamentoEMetas(app);
+  registrarRotasDeOrcamentoEMetas(app, { push: opcoes.push });
+  registrarRotasDePush(app);
   opcoes.rotas?.(app);
   // Depois das rotas injetadas: um teste que troca o handler do webhook (ex.: o de CSRF, que só olha a exceção do
   // `/api/webhooks/*`) continua valendo. Em produção não há rota injetada e a ordem não muda nada.

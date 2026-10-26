@@ -2,6 +2,7 @@ import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../env';
 import { ErroApi } from '../erros';
 import { emTransacaoComo } from '../infraestrutura/db/transacao';
+import { logar } from '../log';
 
 class ReverterTransacao extends Error {}
 
@@ -14,6 +15,8 @@ class ReverterTransacao extends Error {}
 export const emTransacao = createMiddleware<AppEnv>(async (c, next) => {
   const sessao = c.get('sessao');
   if (!sessao) throw new ErroApi(401, 'sessao_expirada', 'Sessão expirada. Entre novamente.');
+  const aposCommit: Array<() => Promise<unknown>> = [];
+  c.set('aposCommit', aposCommit);
   try {
     await emTransacaoComo(c.get('db'), sessao, async (trx, vinculo) => {
       c.set('tx', trx);
@@ -23,6 +26,21 @@ export const emTransacao = createMiddleware<AppEnv>(async (c, next) => {
     });
   } catch (erro) {
     if (!(erro instanceof ReverterTransacao)) throw erro;
+    return;
+  }
+  // Só depois do COMMIT (SDD 8.6: o push "meta atingida"), fora do caminho da resposta. Falha não chega ao usuário.
+  for (const trabalho of aposCommit) {
+    const seguro = Promise.resolve()
+      .then(trabalho)
+      .catch((erro: unknown) => {
+        // Só o nome do erro (G-46); a resposta já foi.
+        logar('warn', 'apos_commit_falhou', { erro: erro instanceof Error ? erro.name : 'desconhecido' });
+      });
+    try {
+      c.executionCtx.waitUntil(seguro);
+    } catch {
+      // sem ExecutionContext (chamada direta): a promessa segue sozinha
+    }
   }
 });
 

@@ -26,10 +26,20 @@ import {
   movimentosDaMeta,
   type MetaGravada,
 } from '../../infraestrutura/db/repositorios/metas';
+import { listarAtivosDoLar } from '../../infraestrutura/db/repositorios/membros';
 import type { ResultadoSalvar } from '../cadastros/comum';
 import { erroRegistroInvalido, erroValorInvalido, vinculoDe, type DepsLar } from '../lancamentos/comum';
 
 const colacao = new Intl.Collator('pt-BR');
+
+/** A meta acabou de ser atingida nesta escrita: o push sai depois do COMMIT para estes membros (RN-27). */
+export interface MetaAtingida {
+  larId: string;
+  metaId: string;
+  destinatarios: string[];
+}
+
+export type ResultadoMeta = ResultadoSalvar & { metaAtingida?: MetaAtingida };
 
 export const erroRetiradaMaiorQueGuardado = () =>
   new ErroApi(422, 'retirada_maior_que_guardado', 'A retirada é maior que o valor guardado neste local.');
@@ -78,7 +88,7 @@ export async function detalheDaMeta(deps: DepsLar, id: string): Promise<SaidaLin
  * Reavalia `atingida_em` a partir do guardado atual (CA-08.3, CA-08.4): marca com hoje quando a meta passa a estar
  * atingida (mantém a data original), desmarca quando deixa de estar. Só grava quando muda.
  */
-async function sincronizarAtingida(deps: DepsLar, meta: MetaGravada): Promise<void> {
+async function sincronizarAtingida(deps: DepsLar, meta: MetaGravada): Promise<MetaAtingida | undefined> {
   const v = vinculoDe(deps);
   const hoje = hojeEmSaoPaulo(deps.agora);
   const novo = atingidaEm({
@@ -89,6 +99,12 @@ async function sincronizarAtingida(deps: DepsLar, meta: MetaGravada): Promise<vo
   if (novo !== meta.atingida_em) {
     await gravarAtingidaEm(deps.tx, { larId: v.larId, membroId: v.membroId, id: meta.id, atingidaEm: novo });
   }
+  // Transição de não atingida para atingida (RN-27): quem recebe segue a visibilidade da meta (CA-27.3; TM-PUSH-05):
+  // a conjunta, os membros ativos do lar; a individual, só o dono (que é quem está mexendo nela).
+  if (novo === null || meta.atingida_em !== null) return undefined;
+  const destinatarios =
+    meta.escopo === 'individual' ? [v.membroId] : (await listarAtivosDoLar(deps.tx)).map((m) => m.id);
+  return { larId: v.larId, metaId: meta.id, destinatarios };
 }
 
 /**
@@ -99,7 +115,7 @@ async function sincronizarAtingida(deps: DepsLar, meta: MetaGravada): Promise<vo
  * `valor_invalido` de escopo trocado → (meta nova) `valor_invalido` de escopo ausente → `registro_invalido` (id de
  * meta que a RLS esconde: individual do outro membro ou de outro lar). Origem: A salvar_meta.sql.
  */
-export async function salvarMeta(deps: DepsLar, id: string, entrada: EntradaSalvarMeta): Promise<ResultadoSalvar> {
+export async function salvarMeta(deps: DepsLar, id: string, entrada: EntradaSalvarMeta): Promise<ResultadoMeta> {
   const v = vinculoDe(deps);
   const visao = { larId: v.larId, membroId: v.membroId };
   const dados = normalizarMeta({ nome: entrada.nome, alvoCentavos: entrada.alvo_centavos, prazo: entrada.prazo });
@@ -113,8 +129,8 @@ export async function salvarMeta(deps: DepsLar, id: string, entrada: EntradaSalv
   if (atual) {
     if (entrada.escopo !== undefined && entrada.escopo !== atual.escopo) throw erroValorInvalido();
     await atualizarMeta(deps.tx, { ...visao, id, nome: m.nome, alvoCentavos: m.alvoCentavos, prazo: m.prazo });
-    await sincronizarAtingida(deps, { ...atual, alvo_centavos: m.alvoCentavos, prazo: m.prazo });
-    return { id, criado: false };
+    const metaAtingida = await sincronizarAtingida(deps, { ...atual, alvo_centavos: m.alvoCentavos, prazo: m.prazo });
+    return { id, criado: false, ...(metaAtingida ? { metaAtingida } : {}) };
   }
   if (entrada.escopo === undefined) throw erroValorInvalido();
   const criou = await inserirMetaSeLivre(deps.tx, {
@@ -145,7 +161,7 @@ export async function movimentarMeta(
   deps: DepsLar,
   metaId: string,
   entrada: EntradaMovimentarMeta,
-): Promise<ResultadoSalvar> {
+): Promise<ResultadoMeta> {
   const v = vinculoDe(deps);
   const visao = { larId: v.larId, membroId: v.membroId };
   const dados = normalizarMovimentoMeta({
@@ -205,8 +221,8 @@ export async function movimentarMeta(
 
   const depois = await buscarMetaVisivel(deps.tx, { ...visao, id: metaId });
   if (!depois) throw new Error('meta_sumiu');
-  await sincronizarAtingida(deps, depois);
-  return { id: entrada.id, criado: true };
+  const metaAtingida = await sincronizarAtingida(deps, depois);
+  return { id: entrada.id, criado: true, ...(metaAtingida ? { metaAtingida } : {}) };
 }
 
 /**

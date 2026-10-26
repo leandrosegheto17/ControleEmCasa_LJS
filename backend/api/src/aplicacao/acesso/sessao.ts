@@ -1,16 +1,18 @@
 import type { SaidaSessaoAtual } from '@controle/contrato';
 import { planoEfetivo } from '@controle/dominio';
 import type { Kysely } from 'kysely';
-import type { Vinculo } from '../../env';
+import type { Sessao, Vinculo } from '../../env';
 import { ErroApi } from '../../erros';
 import { aceitouVersoes, registrarAceite, type Versoes } from '../../infraestrutura/db/repositorios/aceites';
 import { buscarAssinaturaAtual } from '../../infraestrutura/db/repositorios/assinaturas';
 import { encerramentoDoLarAtual } from '../../infraestrutura/db/repositorios/exclusoes';
 import { buscarLarAtual } from '../../infraestrutura/db/repositorios/lares';
 import { buscarMembroAtual } from '../../infraestrutura/db/repositorios/membros';
+import { removerInscricoesDoUsuario } from '../../infraestrutura/db/repositorios/push';
 import { apagarDoUsuario, apagarPorToken } from '../../infraestrutura/db/repositorios/sessoes';
 import { buscarPorId } from '../../infraestrutura/db/repositorios/usuarios';
 import type { DB } from '../../infraestrutura/db/tipos';
+import { emTransacaoComo } from '../../infraestrutura/db/transacao';
 import { hashToken } from '../../infraestrutura/seguranca/token';
 import { estadoDe } from '../plano/comum';
 
@@ -57,9 +59,16 @@ export async function sair(db: Kysely<DB>, token: string | null): Promise<void> 
   if (token) await apagarPorToken(db, await hashToken(token));
 }
 
-/** Sair de todos (CA-20.5): todas as sessões do usuário, inclusive a atual. Repetir é sucesso sem efeito. */
-export async function sairDeTodos(db: Kysely<DB>, usuarioId: string): Promise<void> {
-  await apagarDoUsuario(db, usuarioId);
+/**
+ * Sair de todos (CA-20.5): todas as sessões do usuário, inclusive a atual, e todas as inscrições de push dele (CA-27.6;
+ * TM-PUSH-02), numa transação com a identidade em GUC local (a RLS da inscrição é por usuário). Repetir é sucesso sem
+ * efeito.
+ */
+export async function sairDeTodos(db: Kysely<DB>, sessao: Sessao): Promise<void> {
+  await emTransacaoComo(db, sessao, async (trx) => {
+    await removerInscricoesDoUsuario(trx);
+    await apagarDoUsuario(trx, sessao.usuarioId);
+  });
 }
 
 /** Reaceite (CA-19.7, G-48): só as versões vigentes são aceitas; registrar de novo não duplica. */

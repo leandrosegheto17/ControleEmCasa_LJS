@@ -100,10 +100,11 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // lancamento_pagamento e parcela (migration 20261025120000); a etapa 9, despesa_fixa e ocorrencia_fixa
       // (migration 20261026120000); a etapa 10, orcamento, meta e movimento_meta (migration 20261027120000); a etapa
       // 13, assinatura e webhook_evento (migration 20261028120000); a etapa 14, exclusao_conta (migration
-      // 20261029120000).
+      // 20261029120000); a etapa 15, aviso_push, preferencia_notificacao e push_subscription (migration 20261030120000).
       expect(r.rows.map((x) => x.tablename)).toEqual([
         'aceite_termos',
         'assinatura',
+        'aviso_push',
         'categoria',
         'conta',
         'convite',
@@ -120,6 +121,8 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
         'ocorrencia_fixa',
         'orcamento',
         'parcela',
+        'preferencia_notificacao',
+        'push_subscription',
         'sessao',
         'tentativa_login',
         'token_email',
@@ -263,8 +266,10 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // Motivo da mudança (etapa 10): a migration de orçamento e metas acrescenta 3 tabelas (orcamento, meta,
       // movimento_meta), com as mesmas checagens. Motivo da mudança (etapa 13): a migration da cobrança acrescenta 2
       // tabelas (assinatura, webhook_evento), com as mesmas checagens. Motivo da mudança (etapa 14): a migration da
-      // exclusão de conta acrescenta 1 tabela (exclusao_conta), com as mesmas checagens.
-      expect(r.tabelas.rows.length).toBe(23); // 22 até a etapa 13 + exclusao_conta (etapa 14)
+      // exclusão de conta acrescenta 1 tabela (exclusao_conta), com as mesmas checagens. Motivo da mudança (etapa 15): a
+      // migration do push acrescenta 3 tabelas (push_subscription, preferencia_notificacao, aviso_push), com as mesmas
+      // checagens.
+      expect(r.tabelas.rows.length).toBe(26); // 23 até a etapa 14 + 3 do push (etapa 15)
       for (const t of r.tabelas.rows) {
         expect(t.proibido, `app com privilégio proibido em ${t.relname}`).toBe(false);
         expect(t.ro_escreve, `backup_ro escreve em ${t.relname}`).toBe(false);

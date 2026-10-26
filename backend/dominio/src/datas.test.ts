@@ -3,6 +3,7 @@ import {
   diaNoMes,
   ehDataCalendario,
   hojeEmSaoPaulo,
+  horaEmSaoPaulo,
   inicioMes,
   mesFechado,
   mesNaJanela,
@@ -11,6 +12,23 @@ import {
   somarMeses,
   ultimoDiaDoMes,
 } from './datas';
+
+// RN-27: os avisos de push usam a hora civil de São Paulo (lembrete às 20h por padrão, fixas às 9h).
+describe('horaEmSaoPaulo (RN-27)', () => {
+  it.each([
+    ['2026-10-26T23:00:00Z', 20, '23h UTC = 20h em São Paulo'],
+    ['2026-10-26T12:00:00Z', 9, '12h UTC = 9h em São Paulo'],
+    ['2026-10-27T03:00:00Z', 0, '03h UTC = meia-noite em São Paulo (hora 0, não 24)'],
+    ['2026-10-27T02:59:59Z', 23, '02h59 UTC = 23h em São Paulo do dia anterior'],
+    ['2018-11-04T03:00:00Z', 1, 'horário de verão histórico: 03h UTC = 01h (-02:00)'],
+  ])('%s → %i (%s)', (instante, esperado) => {
+    expect(horaEmSaoPaulo(new Date(instante))).toBe(esperado);
+  });
+
+  it('instante inválido lança', () => {
+    expect(() => horaEmSaoPaulo(new Date('x'))).toThrow(RangeError);
+  });
+});
 
 // Casos portados de MyMoney/backend/supabase/tests/datas/hoje.sql (RT-04, CA-T4.1).
 describe('hojeEmSaoPaulo (RT-04)', () => {

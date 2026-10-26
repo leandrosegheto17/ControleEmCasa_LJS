@@ -709,6 +709,87 @@ describe.skipIf(!temBanco)('purgar.ts (Postgres 17 real, role owner sem BYPASSRL
     });
   });
 
+  describe('push (etapa 15; G-49, CA-27.6)', () => {
+    /** Aparelho, preferência e aviso do membro no lar, como a API grava. */
+    async function pushDe(larId: string, membro: string, usuarioId: string): Promise<string> {
+      const endpoint = `https://fcm.googleapis.com/fcm/send/${randomBytes(12).toString('hex')}`;
+      await su.query(
+        `insert into app.push_subscription (usuario_id, lar_id, membro_id, endpoint, p256dh, auth)
+         values ($1, $2, $3, $4, $5, $6)`,
+        [usuarioId, larId, membro, endpoint, 'B' + 'A'.repeat(86), 'a'.repeat(22)],
+      );
+      await su.query(
+        `insert into app.preferencia_notificacao (membro_id, lar_id, lembrete_diario) values ($1, $2, true)`,
+        [membro, larId],
+      );
+      await su.query(
+        `insert into app.aviso_push (membro_id, lar_id, tipo, referencia, dia) values ($1, $2, 'fixa_vencendo', '', '2026-11-30')`,
+        [membro, larId],
+      );
+      return endpoint;
+    }
+    const contarPush = async (membro: string) => ({
+      inscricoes: await n(`select count(*)::int as n from app.push_subscription where membro_id = $1`, [membro]),
+      preferencias: await n(`select count(*)::int as n from app.preferencia_notificacao where membro_id = $1`, [
+        membro,
+      ]),
+      avisos: await n(`select count(*)::int as n from app.aviso_push where membro_id = $1`, [membro]),
+    });
+    const NADA = { inscricoes: 0, preferencias: 0, avisos: 0 };
+
+    it('titular excluído com convidado: o push dos dois some com o lar (CA-26.3, CA-26.8)', async () => {
+      const l = await montarLar('push.lar', { comConvidado: true });
+      await pushDe(l.id, l.t.membro, l.titular.id);
+      await pushDe(l.id, l.m!.membro, l.convidado!.id);
+      await excluir(l.titular, 31);
+      const r = await rodarPurga();
+      expect(r.falhas).toEqual([]);
+      expect(await contarPush(l.t.membro)).toEqual(NADA);
+      expect(await contarPush(l.m!.membro)).toEqual(NADA);
+      expect(r.linhas['push_subscription']).toBeGreaterThanOrEqual(2);
+    });
+
+    it('convidado excluído: o push dele some; o do titular fica', async () => {
+      const l = await montarLar('push.conv', { comConvidado: true });
+      await pushDe(l.id, l.t.membro, l.titular.id);
+      await pushDe(l.id, l.m!.membro, l.convidado!.id);
+      await sair(l.m!.membro, 31, true);
+      await excluir(l.convidado!, 31);
+      const r = await rodarPurga();
+      expect(r.falhas).toEqual([]);
+      expect(await contarPush(l.m!.membro)).toEqual(NADA);
+      expect(await contarPush(l.t.membro)).toEqual({ inscricoes: 1, preferencias: 1, avisos: 1 });
+    });
+
+    it('ex-membro há 30 dias só com push no lar: é purgado (a conta de usuário fica); há 29 dias, não', async () => {
+      const l = await montarLar('push.ex', { comConvidado: true });
+      const velho = await pushDe(l.id, l.m!.membro, l.convidado!.id);
+      // Só o push sobrou do individual (o resto já foi apagado): ainda assim entra na purga do ex-membro.
+      await su.query(`delete from app.movimento_conta where dono_id = $1`, [l.m!.membro]);
+      await su.query(`delete from app.lancamento_pagamento where dono_id = $1`, [l.m!.membro]);
+      await su.query(`delete from app.lancamento where dono_id = $1 and escopo = 'individual'`, [l.m!.membro]);
+      await su.query(`delete from app.orcamento where dono_id = $1`, [l.m!.membro]);
+      await su.query(
+        `delete from app.movimento_meta where meta_id in (select id from app.meta where dono_id = $1 and escopo = 'individual')`,
+        [l.m!.membro],
+      );
+      await su.query(`delete from app.meta where dono_id = $1 and escopo = 'individual'`, [l.m!.membro]);
+      await su.query(`delete from app.forma_pagamento where dono_id = $1`, [l.m!.membro]);
+      await su.query(`delete from app.conta where dono_id = $1`, [l.m!.membro]);
+      await su.query(`delete from app.categoria where dono_id = $1`, [l.m!.membro]);
+      const recente = await montarLar('push.ex.recente', { comConvidado: true });
+      await pushDe(recente.id, recente.m!.membro, recente.convidado!.id);
+      await sair(l.m!.membro, 30, false);
+      await sair(recente.m!.membro, 29, true);
+      const r = await rodarPurga();
+      expect(r.falhas).toEqual([]);
+      expect(await contarPush(l.m!.membro)).toEqual(NADA);
+      expect(await n(`select count(*)::int as n from app.push_subscription where endpoint = $1`, [velho])).toBe(0);
+      expect(await usuarioExiste(l.convidado!)).toBe(true);
+      expect(await contarPush(recente.m!.membro)).toEqual({ inscricoes: 1, preferencias: 1, avisos: 1 });
+    });
+  });
+
   describe('relatório e log sem dado pessoal (G-46, G-50)', () => {
     it('o log leva só contagens e ids técnicos: nenhum e-mail, nome ou descrição', async () => {
       const asaas = asaasFalso();

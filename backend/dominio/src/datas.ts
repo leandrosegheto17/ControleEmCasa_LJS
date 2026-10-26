@@ -75,6 +75,22 @@ export function hojeEmSaoPaulo(instante: Date): DataCalendario {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+const formatadorHoraSaoPaulo = new Intl.DateTimeFormat('en-US', {
+  timeZone: FUSO_NEGOCIO,
+  hour: '2-digit',
+  hourCycle: 'h23',
+});
+
+/**
+ * Hora civil (0 a 23) em America/Sao_Paulo do instante (RN-27: os avisos de push saem em horários de São Paulo, como o
+ * lembrete às 20h e as fixas às 9h). Usa a base de fusos do runtime, como `hojeEmSaoPaulo`.
+ */
+export function horaEmSaoPaulo(instante: Date): number {
+  if (Number.isNaN(instante.getTime())) throw new RangeError('instante inválido');
+  const hora = formatadorHoraSaoPaulo.formatToParts(instante).find((x) => x.type === 'hour')?.value;
+  return Number(hora) % 24;
+}
+
 /**
  * Instante em que a data começa em São Paulo (a primeira hora cheia cuja data civil em SP é `data`). Procura de hora
  * em hora a partir da meia-noite UTC: cobre UTC−3, o horário de verão histórico (UTC−2) e o dia que começa à 01:00.

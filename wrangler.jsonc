@@ -1,5 +1,5 @@
 // Configuração do Worker único (SDD 11.1). Sem segredo aqui (G-32): segredos vão por `wrangler secret`
-// (no local, em `.dev.vars`; CHAVE_HMAC e RESEND_API_KEY, ver .env.example).
+// (no local, em `.dev.vars`; CHAVE_HMAC, RESEND_API_KEY, ASAAS_* e VAPID_*, ver .env.example).
 // O deploy só sai do deploy.yml (G-42), que injeta URL_PUBLICA e AMBIENTE com --var.
 {
   "name": "controle-em-casa",
@@ -24,6 +24,8 @@
     { "name": "LIMITE_PUBLICO", "namespace_id": "2002", "simple": { "limit": 30, "period": 60 } },
     { "name": "LIMITE_WEBHOOK", "namespace_id": "2003", "simple": { "limit": 60, "period": 60 } },
   ],
+  // Crons (SDD 8.6 e 11.1): avisos de push de hora em hora; limpeza diária às 06:30 UTC (03:30 de Brasília).
+  "triggers": { "crons": ["0 * * * *", "30 6 * * *"] },
   "vars": {
     "URL_PUBLICA": "http://localhost:8787",
     "MAIL_FROM": "Controle em Casa <nao-responda@ljssoftware.com.br>",
@@ -31,6 +33,9 @@
     // Sandbox do Asaas; o deploy de produção troca por https://api.asaas.com/v3 (SDD 11.1). Chave e token do webhook
     // são segredos (ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN): `wrangler secret` e, no local, `.dev.vars`.
     "ASAAS_API_URL": "https://api-sandbox.asaas.com/v3",
+    // Web Push (etapa 15): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT NÃO ficam aqui até existir o par de
+    // produção (etapa 17): `wrangler secret` e, no local, `.dev.vars` (gere com `pnpm --filter @controle/scripts
+    // gerar-vapid`). Sem elas, a chave pública responde `indisponivel` e o cron não envia nada.
   },
   "observability": { "enabled": true },
 }
