@@ -11,6 +11,12 @@ export interface DadosPorModelo {
   conta_existente: { linkEntrar: string; linkRecuperar: string };
   /** Convite para o lar (`/convite#t=<token>`), válido por 7 dias. Só o nome do titular e o link (RN-23). */
   convite: { nomeTitular: string; link: string };
+  /** Cobrança nova do plano Pro (RN-24): valor, vencimento e o link da tela Meu plano (o Pix fica no app). */
+  cobranca_gerada: { nome: string; valorCentavos: number; vencimento: string; link: string };
+  /** Pagamento confirmado (RN-24). */
+  pagamento_confirmado: { nome: string; valorCentavos: number; link: string };
+  /** Cobrança vencida sem pagamento (RN-24, CA-24.9): o Pro continua durante a carência. */
+  atraso: { nome: string; vencimento: string; diasCarencia: number; link: string };
 }
 
 export type ModeloEmail = keyof DadosPorModelo;
@@ -52,6 +58,18 @@ function htmlSeguro(texto: string): string {
 function pagina(paragrafos: string[], link: { href: string; rotulo: string }): string {
   const corpo = paragrafos.map((p) => `<p>${p}</p>`).join('');
   return `<!doctype html><html lang="pt-BR"><body>${corpo}<p><a href="${escaparHtml(link.href)}">${escaparHtml(link.rotulo)}</a></p><p>${APP}</p></body></html>`;
+}
+
+/** Centavos em reais no formato brasileiro (990 → "R$ 9,90"). */
+function reais(centavos: number): string {
+  const [inteiro, fracao] = (Math.round(centavos) / 100).toFixed(2).split('.');
+  return `R$ ${(inteiro ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${fracao ?? '00'}`;
+}
+
+/** Data AAAA-MM-DD em DD/MM/AAAA. */
+function dataBr(data: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : data;
 }
 
 export function montarConteudo<M extends ModeloEmail>(modelo: M, dados: DadosPorModelo[M]): ConteudoEmail {
@@ -110,6 +128,58 @@ Se não conhece quem convidou, ignore este e-mail.`,
           ],
           { href: d.link, rotulo: 'Ver o convite' },
         ),
+      };
+    }
+    case 'cobranca_gerada': {
+      const d = dados as DadosPorModelo['cobranca_gerada'];
+      const valor = reais(d.valorCentavos);
+      const vencimento = dataBr(d.vencimento);
+      return {
+        assunto: `Sua cobrança do ${APP} Pro`,
+        texto: `Olá, ${textoSeguro(d.nome)}.
+
+A cobrança do plano Pro de ${valor}, com vencimento em ${vencimento}, já está disponível. Para pagar por Pix, abra a tela Meu plano:
+${d.link}`,
+        html: pagina(
+          [
+            `Olá, ${htmlSeguro(d.nome)}.`,
+            `A cobrança do plano Pro de ${valor}, com vencimento em ${vencimento}, já está disponível. Para pagar por Pix, abra a tela Meu plano.`,
+          ],
+          { href: d.link, rotulo: 'Ver meu plano' },
+        ),
+      };
+    }
+    case 'pagamento_confirmado': {
+      const d = dados as DadosPorModelo['pagamento_confirmado'];
+      const valor = reais(d.valorCentavos);
+      return {
+        assunto: `Pagamento confirmado no ${APP}`,
+        texto: `Olá, ${textoSeguro(d.nome)}.
+
+Recebemos o pagamento de ${valor}. O plano Pro do seu lar está ativo.
+${d.link}`,
+        html: pagina(
+          [`Olá, ${htmlSeguro(d.nome)}.`, `Recebemos o pagamento de ${valor}. O plano Pro do seu lar está ativo.`],
+          { href: d.link, rotulo: 'Ver meu plano' },
+        ),
+      };
+    }
+    case 'atraso': {
+      const d = dados as DadosPorModelo['atraso'];
+      const vencimento = dataBr(d.vencimento);
+      const aviso = `A cobrança do plano Pro com vencimento em ${vencimento} ainda não foi paga. O Pro continua por ${d.diasCarencia} dias depois do vencimento; depois disso, orçamento e metas ficam somente leitura (nada é apagado).`;
+      return {
+        assunto: `Cobrança em atraso no ${APP}`,
+        texto: `Olá, ${textoSeguro(d.nome)}.
+
+${aviso}
+
+Para pagar por Pix, abra a tela Meu plano:
+${d.link}`,
+        html: pagina([`Olá, ${htmlSeguro(d.nome)}.`, aviso, 'Para pagar por Pix, abra a tela Meu plano.'], {
+          href: d.link,
+          rotulo: 'Pagar agora',
+        }),
       };
     }
     default: {

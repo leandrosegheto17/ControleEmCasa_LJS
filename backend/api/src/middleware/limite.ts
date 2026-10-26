@@ -17,7 +17,7 @@ export function ipDoCliente(c: Context<AppEnv>): string | null {
  * Limite de taxa por IP com os bindings `LIMITE_*` (SDD 5.1 passo 3; G-20): 429 `muitas_requisicoes`.
  * Fica por cima do bloqueio por tentativas (RN-21), que é a fonte de verdade do login.
  */
-export function limitarPor(nome: 'LIMITE_ENTRAR' | 'LIMITE_PUBLICO') {
+export function limitarPor(nome: 'LIMITE_ENTRAR' | 'LIMITE_PUBLICO' | 'LIMITE_WEBHOOK') {
   return createMiddleware<AppEnv>(async (c, next) => {
     const limite = c.env[nome];
     if (!limite) {

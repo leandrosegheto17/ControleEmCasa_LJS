@@ -197,4 +197,22 @@ export default tseslint.config(
       ],
     },
   },
+  // Módulo isolado do Asaas (SDD 2.2; decisão 4 do PLANO): mesma fronteira do e-mail.
+  {
+    files: ['backend/api/src/infraestrutura/asaas/**/*.ts'],
+    ignores: ['backend/api/src/infraestrutura/asaas/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', '@controle/*', 'hono', 'hono/*', 'kysely', 'pg', 'cloudflare:*'],
+              message: 'O módulo do Asaas é isolado: importe só da própria pasta (SDD 2.2).',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

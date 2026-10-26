@@ -49,3 +49,27 @@ export async function derivarVinculo(trx: Transaction<DB>, usuarioId: string): P
   if (!v || !v.lar || !v.membro || (v.papel !== 'titular' && v.papel !== 'membro')) return null;
   return { larId: v.lar, membroId: v.membro, papel: v.papel };
 }
+
+/**
+ * Transação de SISTEMA (SDD 5.1 "o webhook pula os passos 4, 6, 7, 8 e 9"; SDD 5.3): o primeiro comando grava
+ * `app.sistema` LOCAL à transação, sem usuário, lar nem membro. Só o webhook, o cron e a purga usam isto; nenhuma
+ * rota de usuário o chama (a varredura dos testes confere).
+ */
+export async function emTransacaoDeSistema<T>(
+  db: Kysely<DB>,
+  sistema: 'webhook' | 'cron' | 'purga',
+  fn: (trx: Transaction<DB>) => Promise<T>,
+): Promise<T> {
+  return db.transaction().execute(async (trx) => {
+    await sql`select set_config('app.sistema', ${sistema}, true)`.execute(trx);
+    return fn(trx);
+  });
+}
+
+/**
+ * Dentro de uma transação de sistema, passa a enxergar um lar (THREAT-MODEL E-07: iterar por lar com `set_config`
+ * local, sem role ampla). O lar vem de uma linha já lida no banco, nunca do corpo do evento.
+ */
+export async function enxergarLarNoSistema(trx: Transaction<DB>, larId: string): Promise<void> {
+  await sql`select set_config('app.lar_id', ${larId}, true)`.execute(trx);
+}

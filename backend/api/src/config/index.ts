@@ -62,3 +62,39 @@ export function lerConfig(env: Record<string, unknown>): Config {
     resendApiKey: r.data.RESEND_API_KEY,
   };
 }
+
+const EsquemaAsaas = z
+  .object({
+    AMBIENTE: z.enum(['local', 'teste', 'producao']),
+    ASAAS_API_URL: z.url().refine((u) => !u.endsWith('/')),
+    ASAAS_API_KEY: z.string().min(1).max(500),
+    ASAAS_WEBHOOK_TOKEN: z.string().min(32).max(255),
+  })
+  .superRefine((c, ctx) => {
+    if (c.AMBIENTE === 'producao' && !c.ASAAS_API_URL.startsWith('https://')) {
+      ctx.addIssue({ code: 'custom', path: ['ASAAS_API_URL'], message: 'https' });
+    }
+  });
+
+export interface ConfigAsaas {
+  apiUrl: string;
+  apiKey: string;
+  webhookToken: string;
+}
+
+/**
+ * Configuração do Asaas (SDD 11.2; etapa 13), lida só pelas rotas de plano e pelo webhook: falha fechada sem os
+ * segredos (o webhook nunca aceita token com o segredo ausente). Só os NOMES das variáveis vão para o erro.
+ */
+export function lerConfigAsaas(env: Record<string, unknown>): ConfigAsaas {
+  const r = EsquemaAsaas.safeParse({
+    AMBIENTE: env['AMBIENTE'],
+    ASAAS_API_URL: env['ASAAS_API_URL'],
+    ASAAS_API_KEY: env['ASAAS_API_KEY'],
+    ASAAS_WEBHOOK_TOKEN: env['ASAAS_WEBHOOK_TOKEN'],
+  });
+  if (!r.success) {
+    throw new ConfigInvalida([...new Set(r.error.issues.map((i) => String(i.path[0] ?? '?')))]);
+  }
+  return { apiUrl: r.data.ASAAS_API_URL, apiKey: r.data.ASAAS_API_KEY, webhookToken: r.data.ASAAS_WEBHOOK_TOKEN };
+}

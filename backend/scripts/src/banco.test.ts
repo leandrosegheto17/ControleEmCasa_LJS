@@ -98,9 +98,11 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // Etapa 6 acrescentou lar, membro, convite e categoria (migration 20261024130000); a etapa 7,
       // conta, forma_pagamento e movimento_conta (migration 20261024140000); a etapa 8, lancamento,
       // lancamento_pagamento e parcela (migration 20261025120000); a etapa 9, despesa_fixa e ocorrencia_fixa
-      // (migration 20261026120000); a etapa 10, orcamento, meta e movimento_meta (migration 20261027120000).
+      // (migration 20261026120000); a etapa 10, orcamento, meta e movimento_meta (migration 20261027120000); a etapa
+      // 13, assinatura e webhook_evento (migration 20261028120000).
       expect(r.rows.map((x) => x.tablename)).toEqual([
         'aceite_termos',
+        'assinatura',
         'categoria',
         'conta',
         'convite',
@@ -120,6 +122,7 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
         'tentativa_login',
         'token_email',
         'usuario',
+        'webhook_evento',
       ]);
     });
 
@@ -256,8 +259,9 @@ describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', 
       // parcela); as mesmas checagens de privilégio valem para elas. Motivo da mudança (etapa 9): a migration de
       // fixas acrescenta 2 tabelas (despesa_fixa, ocorrencia_fixa), com as mesmas checagens.
       // Motivo da mudança (etapa 10): a migration de orçamento e metas acrescenta 3 tabelas (orcamento, meta,
-      // movimento_meta), com as mesmas checagens.
-      expect(r.tabelas.rows.length).toBe(20); // 17 até a etapa 9 + 3 de orçamento e metas (etapa 10)
+      // movimento_meta), com as mesmas checagens. Motivo da mudança (etapa 13): a migration da cobrança acrescenta 2
+      // tabelas (assinatura, webhook_evento), com as mesmas checagens.
+      expect(r.tabelas.rows.length).toBe(22); // 20 até a etapa 10 + 2 da cobrança (etapa 13)
       for (const t of r.tabelas.rows) {
         expect(t.proibido, `app com privilégio proibido em ${t.relname}`).toBe(false);
         expect(t.ro_escreve, `backup_ro escreve em ${t.relname}`).toBe(false);

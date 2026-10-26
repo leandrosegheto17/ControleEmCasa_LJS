@@ -28,6 +28,9 @@
     "URL_PUBLICA": "http://localhost:8787",
     "MAIL_FROM": "Controle em Casa <nao-responda@ljssoftware.com.br>",
     "AMBIENTE": "local",
+    // Sandbox do Asaas; o deploy de produção troca por https://api.asaas.com/v3 (SDD 11.1). Chave e token do webhook
+    // são segredos (ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN): `wrangler secret` e, no local, `.dev.vars`.
+    "ASAAS_API_URL": "https://api-sandbox.asaas.com/v3",
   },
   "observability": { "enabled": true },
 }

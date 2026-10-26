@@ -16,6 +16,12 @@ export interface Bindings {
   LIMITE_ENTRAR?: RateLimit;
   LIMITE_PUBLICO?: RateLimit;
   LIMITE_WEBHOOK?: RateLimit;
+  /** URL da API do Asaas (sandbox ou produção), com o `/v3` e sem barra no fim (SDD 11.2). */
+  ASAAS_API_URL?: string;
+  /** Segredo: chave da API do Asaas (`$aact_…`). */
+  ASAAS_API_KEY?: string;
+  /** Segredo: token que o Asaas manda no cabeçalho `asaas-access-token` do webhook (32 a 255 caracteres). */
+  ASAAS_WEBHOOK_TOKEN?: string;
 }
 
 /** Identidade que a sessão entrega ao middleware de transação. O lar NUNCA vem daqui (G-03). */

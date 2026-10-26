@@ -1,11 +1,13 @@
 import type { EntradaCriarLar, SaidaLar, SaidaLarDetalhe } from '@controle/contrato';
 import {
+  assinaturaInicial,
   CATEGORIAS_INICIAIS_CONJUNTAS,
   CATEGORIAS_INICIAIS_INDIVIDUAIS,
   NOME_EX_MEMBRO,
   nomeLarPadrao,
 } from '@controle/dominio';
 import { ErroApi } from '../../erros';
+import { inserirAssinatura, marcarTrialUsado, trialJaUsado } from '../../infraestrutura/db/repositorios/assinaturas';
 import { inserirCategorias } from '../../infraestrutura/db/repositorios/categorias';
 import { buscarPendenteDoLar } from '../../infraestrutura/db/repositorios/convites';
 import {
@@ -22,10 +24,9 @@ import { erroRegistroInvalido, erroTitularObrigatorio, vinculoDe, type DepsLar }
 
 /**
  * Primeiro acesso (RN-22; SDD 6.1 #3 `POST /api/lar`). Idempotente: quem já tem lar recebe o lar atual (200).
- * Cria o lar, o titular e as categorias iniciais (6 conjuntas + 7 individuais; RN-17). A trava por usuário
- * garante um único lar mesmo com dois primeiros acessos simultâneos (CA-22.3).
- * SPEC_DEVIATION: o SDD (§6.1 #3) e o CA-22.1 também criam a assinatura `trial`; a tabela `assinatura` é da
- * etapa 13 (PLANO), que acrescenta o trial a este mesmo caso de uso.
+ * Cria o lar, o titular, as categorias iniciais (6 conjuntas + 7 individuais; RN-17) e a assinatura (RN-24): `trial`
+ * de 14 dias (CA-22.1, CA-24.1), ou `free` para quem já foi titular com trial (CA-24.10; o trial fica marcado no
+ * usuário). A trava por usuário garante um único lar mesmo com dois primeiros acessos simultâneos (CA-22.3).
  */
 export async function criarLar(deps: DepsLar, entrada: EntradaCriarLar): Promise<{ criado: boolean; lar: SaidaLar }> {
   const { tx, sessao, agora } = deps;
@@ -46,6 +47,9 @@ export async function criarLar(deps: DepsLar, entrada: EntradaCriarLar): Promise
   if (!vinculo) throw new Error('vinculo_nao_derivado');
   await inserirCategorias(tx, { larId, donoId: null, categorias: CATEGORIAS_INICIAIS_CONJUNTAS });
   await inserirCategorias(tx, { larId, donoId: vinculo.membroId, categorias: CATEGORIAS_INICIAIS_INDIVIDUAIS });
+  const assinatura = assinaturaInicial(agora, await trialJaUsado(tx, sessao.usuarioId));
+  await inserirAssinatura(tx, { larId, ...assinatura, agora });
+  if (assinatura.situacao === 'trial') await marcarTrialUsado(tx, sessao.usuarioId, agora);
   return { criado: true, lar: { id: larId, nome } };
 }
 

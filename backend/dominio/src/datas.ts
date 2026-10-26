@@ -75,6 +75,20 @@ export function hojeEmSaoPaulo(instante: Date): DataCalendario {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+/**
+ * Instante em que a data começa em São Paulo (a primeira hora cheia cuja data civil em SP é `data`). Procura de hora
+ * em hora a partir da meia-noite UTC: cobre UTC−3, o horário de verão histórico (UTC−2) e o dia que começa à 01:00.
+ */
+export function inicioDoDiaEmSaoPaulo(data: DataCalendario): Date {
+  const p = partesOuErro(data);
+  const base = Date.UTC(p.ano, p.mes - 1, p.dia);
+  for (let hora = 0; hora <= 6; hora += 1) {
+    const candidato = new Date(base + hora * 60 * 60 * 1000);
+    if (hojeEmSaoPaulo(candidato) === data) return candidato;
+  }
+  throw new RangeError('início do dia não encontrado');
+}
+
 /** Dia 1 do mês da data (CA-T4.2). Origem: F inicio_mes.sql. */
 export function inicioMes(data: DataCalendario): DataCalendario {
   const p = partesOuErro(data);

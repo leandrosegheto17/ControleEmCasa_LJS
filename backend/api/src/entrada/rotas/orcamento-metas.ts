@@ -11,16 +11,27 @@ import {
 import { copiarOrcamento, definirOrcamento, obterOrcamentoMes } from '../../aplicacao/orcamento/orcamento';
 import type { AppEnv } from '../../env';
 import { ErroApi } from '../../erros';
+import { exigePlano } from '../../middleware/exigir-plano';
 import { emTransacao, exigirLar } from '../../middleware/transacao';
 import { lerCorpo } from '../corpo';
 import { depsDe, idDaRota } from './comum';
 
 /**
- * Rotas do orçamento e das metas (SDD 6.1 #34 a #41; RN-08, RN-09, RN-16; RN-25 entra na etapa 13). Todas "A":
- * autenticado com lar (`exigirLar`, senão 409 `sem_lar`). O lar e o autor vêm do vínculo derivado no banco (G-03).
- * O id da rota malformado vale como inexistente (RT-01), antes do mês e do corpo (RT-02). Tudo aberto por enquanto:
- * o `exigePlano('pro')` nas escritas (`PUT`/`POST`) entra na etapa 13.
+ * Rotas do orçamento e das metas (SDD 6.1 #34 a #41; RN-08, RN-09, RN-16, RN-25). Todas "A": autenticado com lar
+ * (`exigirLar`, senão 409 `sem_lar`). O lar e o autor vêm do vínculo derivado no banco (G-03).
+ * As ESCRITAS (`PUT`/`POST`) exigem o Pro (`exigePlano('pro')`, 403 `plano_necessario`; G-30) antes de tudo o mais
+ * (RT-02, CA-T2.3); as leituras ficam abertas no Free (RN-25: somente leitura, nada apagado). Depois do plano, o id da
+ * rota malformado vale como inexistente (RT-01), antes do mês e do corpo (RT-02).
  */
+
+/** As rotas de escrita de orçamento e metas, todas com `exigePlano('pro')` (meta-teste do G-30). */
+export const ESCRITAS_PRO = [
+  ['PUT', '/api/orcamento/:mes/:categoria_id'],
+  ['POST', '/api/orcamento/:mes/copiar'],
+  ['PUT', '/api/metas/:id'],
+  ['POST', '/api/metas/:id/movimentos'],
+] as const;
+const pro = exigePlano('pro');
 
 /** O mês da rota: data de calendário real (qualquer dia); fora disso, `valor_invalido`. */
 function mesDaRota(valor: string | undefined): string {
@@ -36,7 +47,7 @@ export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
     return c.json(await obterOrcamentoMes(depsDe(c), filtro.data.mes, filtro.data.escopo), 200);
   });
 
-  app.put('/api/orcamento/:mes/:categoria_id', emTransacao, exigirLar, async (c) => {
+  app.put('/api/orcamento/:mes/:categoria_id', emTransacao, exigirLar, pro, async (c) => {
     const categoriaId = idDaRota(c, 'categoria_id');
     const mes = mesDaRota(c.req.param('mes'));
     const dados = await lerCorpo(c, entrada.DefinirOrcamento);
@@ -44,7 +55,7 @@ export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
     return c.body(null, 204);
   });
 
-  app.post('/api/orcamento/:mes/copiar', emTransacao, exigirLar, async (c) => {
+  app.post('/api/orcamento/:mes/copiar', emTransacao, exigirLar, pro, async (c) => {
     const mes = mesDaRota(c.req.param('mes'));
     const dados = await lerCorpo(c, entrada.CopiarOrcamento);
     return c.json(await copiarOrcamento(depsDe(c), { mes, escopo: dados.escopo }), 200);
@@ -59,14 +70,14 @@ export function registrarRotasDeOrcamentoEMetas(app: Hono<AppEnv>): void {
     c.json(await detalheDaMeta(depsDe(c), idDaRota(c)), 200),
   );
 
-  app.put('/api/metas/:id', emTransacao, exigirLar, async (c) => {
+  app.put('/api/metas/:id', emTransacao, exigirLar, pro, async (c) => {
     const id = idDaRota(c);
     const dados = await lerCorpo(c, entrada.SalvarMeta);
     const r = await salvarMeta(depsDe(c), id, dados);
     return c.json({ id: r.id }, r.criado ? 201 : 200);
   });
 
-  app.post('/api/metas/:id/movimentos', emTransacao, exigirLar, async (c) => {
+  app.post('/api/metas/:id/movimentos', emTransacao, exigirLar, pro, async (c) => {
     const id = idDaRota(c);
     const dados = await lerCorpo(c, entrada.MovimentarMeta);
     const r = await movimentarMeta(depsDe(c), id, dados);

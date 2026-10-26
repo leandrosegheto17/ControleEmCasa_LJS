@@ -12,6 +12,10 @@ process.env['CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV'] = 'false';
 
 // CHAVE_HMAC dos testes: aleatória a cada execução (nunca um valor fixo no repositório).
 const CHAVE_HMAC_TESTE = randomBytes(32).toString('base64url');
+// Asaas dos testes (etapa 13): URL que não resolve, chave e token aleatórios. Os testes injetam um cliente Asaas falso;
+// nenhuma chamada sai para o Asaas e nenhum segredo real é lido.
+const ASAAS_API_KEY_TESTE = `teste_${randomBytes(16).toString('hex')}`;
+const ASAAS_WEBHOOK_TOKEN_TESTE = randomBytes(32).toString('base64url');
 
 /**
  * Testes da API rodam dentro do runtime do Workers (workerd), com Postgres real.
@@ -40,6 +44,9 @@ export default defineConfig({
           CHAVE_HMAC: CHAVE_HMAC_TESTE,
           // Mesmo que um `.dev.vars` local traga a chave real, os testes nunca falam com o Resend.
           RESEND_API_KEY: '',
+          ASAAS_API_URL: 'https://asaas.teste.invalid/v3',
+          ASAAS_API_KEY: ASAAS_API_KEY_TESTE,
+          ASAAS_WEBHOOK_TOKEN: ASAAS_WEBHOOK_TOKEN_TESTE,
         },
       },
     })),

@@ -7,8 +7,10 @@ import { registrarRotasDeFixas } from './entrada/rotas/fixas';
 import { registrarRotasDeLancamentos } from './entrada/rotas/lancamentos';
 import { registrarRotasDeLar } from './entrada/rotas/lar';
 import { registrarRotasDeOrcamentoEMetas } from './entrada/rotas/orcamento-metas';
+import { registrarRotasDePlano } from './entrada/rotas/plano';
 import type { AppEnv, Sessao } from './env';
 import { ErroApi, ehErroDeConexao } from './erros';
+import { ErroAsaas, type ClienteAsaas } from './infraestrutura/asaas';
 import { traduzirErroDoBanco } from './infraestrutura/db/codigo-erro';
 import type { Versoes } from './infraestrutura/db/repositorios/aceites';
 import type { TransporteEmail } from './infraestrutura/email';
@@ -46,6 +48,8 @@ export interface OpcoesDoApp {
   transporteEmail?: TransporteEmail;
   /** Versões vigentes dos termos e da privacidade (testes de reaceite, CA-19.7). */
   versoes?: Versoes;
+  /** Cliente do Asaas injetado (testes: um falso). Sem ele, o REST real com `ASAAS_*` (etapa 13). */
+  asaas?: ClienteAsaas;
 }
 
 export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
@@ -69,6 +73,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   // Rate limit por IP (SDD 5.1 passo 3), antes do CSRF e do banco.
   app.use('/api/sessao/entrar', limitarPor('LIMITE_ENTRAR'));
   for (const rota of ROTAS_LIMITE_PUBLICO) app.use(rota, limitarPor('LIMITE_PUBLICO'));
+  app.use('/api/webhooks/*', limitarPor('LIMITE_WEBHOOK'));
   app.use('/api/*', protecaoCsrf);
   app.use('/api/*', conexaoDaRequisicao);
   app.use('/api/*', async (c, next) => {
@@ -84,6 +89,9 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   registrarRotasDeFixas(app);
   registrarRotasDeOrcamentoEMetas(app);
   opcoes.rotas?.(app);
+  // Depois das rotas injetadas: um teste que troca o handler do webhook (ex.: o de CSRF, que só olha a exceção do
+  // `/api/webhooks/*`) continua valendo. Em produção não há rota injetada e a ordem não muda nada.
+  registrarRotasDePlano(app, { transporteEmail: opcoes.transporteEmail, asaas: opcoes.asaas });
 
   app.notFound((c) => c.json({ code: 'rota_inexistente', message: 'Rota inexistente.' }, 404));
 
@@ -99,6 +107,14 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
     const traduzido = traduzirErroDoBanco(erro);
     if (traduzido) return c.json({ code: traduzido.code, message: traduzido.message }, traduzido.status);
     const id = c.get('idRequisicao') ?? 'sem-id';
+    // Asaas fora do ar ou recusando (SDD 7): 503 `indisponivel`. O log leva só o motivo e o status, nunca o corpo.
+    if (erro instanceof ErroAsaas) {
+      logar('warn', 'asaas_indisponivel', { id, motivo: erro.motivo, status: erro.status ?? 0 });
+      return c.json(
+        { code: 'indisponivel', message: 'Serviço de pagamento indisponível. Tente novamente em instantes.' },
+        503,
+      );
+    }
     if (ehErroDeConexao(erro)) {
       logar('warn', 'banco_indisponivel', { id, erro: erro.name });
       return c.json({ code: 'indisponivel', message: 'Serviço indisponível. Tente novamente em instantes.' }, 503);
