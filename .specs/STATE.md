@@ -24,4 +24,5 @@
   - A porta 5432 do host está ocupada por outro container (`gestaodapelada-db-1`); localmente use `PORTA_POSTGRES=55432` no `.env` (ignorado pelo git).
   - Construção feita por subagente `implementador` (Sonnet), conferida pela sessão principal antes de cada aprovação.
   - Não pedir ao usuário segredo nenhum pela conversa; segredos vão para `wrangler secret` e GitHub Secrets.
+- **Etapa 12 aprovada em 2026-10-26** (commits `da7acd8` e `4d10d9f`; workers limitados: Vitest 4, Playwright 2; suíte verde registrada no `4d10d9f`: web 1.872, API 511, 39 e2e; push não feito). O usuário escolheu **seguir na mesma sessão**. **Próxima: etapa 13 (Cobrança Asaas)**, conforme `.md/PLANO.md` linha 44 e ADR 012.
 - **Gravada em**: 2026-10-26
