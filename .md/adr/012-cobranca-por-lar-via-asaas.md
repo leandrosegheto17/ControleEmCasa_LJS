@@ -1,6 +1,6 @@
 # ADR-012: Cobrança por lar via Asaas
 
-- **Status:** Proposto em 2026-10-26 (etapa 13, lote 1: backend). A aceitar no fechamento da etapa 13, depois da validação no sandbox.
+- **Status:** Aceito em 2026-10-26 (fechamento do código da etapa 13, lotes 1 e 2), com a ressalva de que a validação no sandbox do Asaas ainda está pendente; se ela contradisser alguma premissa, este ADR é revisto.
 - **Data:** 2026-10-26
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** RN-24 e RN-25 do `PRD-TECNICO.md` (CA-24.1 a CA-24.11, CA-25.1 a CA-25.5, CA-T2.3, CA-T3.4); SDD §2.2 (módulo isolado `infraestrutura/asaas`), §3.3 e §3.4 (`webhook_evento`, `assinatura`), §4 (grants), §5.1 passo 9 e §5.4 (`exigePlano`), §6.2 (rotas de plano e webhook), §7 (erros), §8.5 (fluxo do webhook), §11.2 (`ASAAS_*`), E-4; GUARDRAILS G-28 a G-31, G-34, G-50; THREAT-MODEL TM-ASA-01 a TM-ASA-05, TM-API-09; ADR-005 e ADR-010
