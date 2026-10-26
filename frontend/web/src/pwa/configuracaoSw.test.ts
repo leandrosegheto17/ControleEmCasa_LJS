@@ -27,6 +27,14 @@ describe('roteamento do service worker (G-39, SDD 9.1)', () => {
     },
   );
 
+  // Etapa 14: a landing e as páginas públicas nunca são atendidas pelo fallback do app (a atualização não pode quebrar).
+  it.each(['/termos', '/privacidade', '/confirmar-exclusao', '/cadastro'])(
+    'a página pública %s não usa o fallback do app',
+    (caminho) => {
+      expect(ehNavegacaoDoApp(caminho)).toBe(false);
+    },
+  );
+
   it.each(['/', '/entrar', '/application', '/api/sessao', '/api/app'])(
     'navegar para %s não usa o fallback do app',
     (caminho) => {

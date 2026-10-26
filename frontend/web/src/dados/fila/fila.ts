@@ -134,6 +134,18 @@ async function reativarFalhas(): Promise<void> {
   if (falhas.length > 0) emitir({ tipo: 'mudou' });
 }
 
+/**
+ * Exclusão de conta confirmada (RN-26): apaga os itens que ainda esperam envio do usuário lembrado neste aparelho, pois
+ * a conta deixou de existir e o envio seria recusado. Só os itens do próprio dono; os de outro usuário seguem retidos (G-38).
+ */
+async function apagarDoDono(): Promise<void> {
+  const dono = donoAtual();
+  if (!dono) return;
+  const doDono = (await lerTodos()).filter((i) => i.dono === dono);
+  for (const item of doDono) await removerItem(item.id);
+  if (doDono.length > 0) emitir({ tipo: 'mudou' });
+}
+
 function assinar(ouvinte: (evento: EventoFila) => void): () => void {
   ouvintes.add(ouvinte);
   return () => {
@@ -141,4 +153,4 @@ function assinar(ouvinte: (evento: EventoFila) => void): () => void {
   };
 }
 
-export const fila = { enfileirar, esvaziar, listar, descartar, reativarFalhas, assinar };
+export const fila = { enfileirar, esvaziar, listar, descartar, reativarFalhas, apagarDoDono, assinar };

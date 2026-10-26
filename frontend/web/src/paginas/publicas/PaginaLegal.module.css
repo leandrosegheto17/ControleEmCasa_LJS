@@ -1,0 +1,47 @@
+.pagina {
+  max-width: 44em;
+  margin: 0 auto;
+  padding: var(--espaco-4) var(--espaco-4) var(--espaco-6);
+  display: grid;
+  gap: var(--espaco-4);
+}
+.titulo {
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-semi);
+}
+.aviso {
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+  font-size: var(--tam-pequeno);
+}
+.secao {
+  display: grid;
+  gap: var(--espaco-2);
+}
+.secao h2 {
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-semi);
+}
+.secao ul {
+  display: grid;
+  gap: var(--espaco-2);
+  padding-left: var(--espaco-5);
+  list-style: disc;
+}
+.rodape {
+  display: flex;
+  gap: var(--espaco-4);
+  flex-wrap: wrap;
+}
+.rodape a {
+  color: var(--cor-acao);
+  min-height: var(--alvo-minimo);
+  display: inline-flex;
+  align-items: center;
+}
+.versao {
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}

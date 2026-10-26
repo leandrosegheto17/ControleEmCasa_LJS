@@ -104,4 +104,14 @@ describe('Faixa', () => {
     expect(iconeDe(faixa)).toBe('#i-alerta');
     expect(screen.getByRole('link', { name: 'Ver meu plano' })).toBeInTheDocument();
   });
+
+  it('encerramento: role=status, tom de erro e ícone de alerta (RN-26)', () => {
+    const { container } = render(<Faixa variante="encerramento">O titular excluiu a conta.</Faixa>);
+    const faixa = faixaDe(container);
+    expect(faixa).toHaveAttribute('role', 'status');
+    expect(faixa.className).toMatch(/faixa-erro/);
+    expect(faixa.className).not.toMatch(/faixa-aviso/);
+    expect(iconeDe(faixa)).toBe('#i-alerta');
+    expect(faixa).toHaveTextContent('O titular excluiu a conta.');
+  });
 });

@@ -14,6 +14,7 @@ import { useEnvioAutomatico } from '../ganchos/useEnvioAutomatico';
 import { useSessao } from '../ganchos/useSessao';
 import type { ItemFila } from '../ganchos/usePendentes';
 import { useHandleDaRota, useTituloDaPagina } from '../ganchos/useTituloDaPagina';
+import { EncerramentoConectado } from './EncerramentoConectado';
 import { EnviosConectado } from './envios/EnviosConectado';
 import { LancarConectado } from './lancar/LancarConectado';
 import { useAberturaLancar } from './lancar/useAberturaLancar';
@@ -58,6 +59,7 @@ function Moldura() {
   return (
     <>
       <EstruturaApp aoLancar={lancar} mes={mesDaUrl ?? undefined} estreito={handle?.estreito}>
+        <EncerramentoConectado />
         <Outlet />
       </EstruturaApp>
       <LancarConectado

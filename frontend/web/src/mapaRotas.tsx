@@ -1,4 +1,4 @@
-import { Navigate, type RouteObject } from 'react-router';
+import { type RouteObject } from 'react-router';
 import type { HandleRota } from './ganchos/useTituloDaPagina';
 import { AreaAutenticada } from './paginas/AreaAutenticada';
 import { AreaPublica } from './paginas/AreaPublica';
@@ -34,11 +34,15 @@ const comMes = { comMes: true };
 /**
  * Rotas do front (SDD 9.3). Acesso em `/entrar` e `/redefinir-senha`; o app inteiro sob `/app`.
  * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2), fixas e orçamento (lote 3), metas e convite de membro (lote 4).
- * Rotas de `/app/...` ficam antes do coringa `/app/*`. Para a etapa 14, a landing em `/`.
+ * Rotas de `/app/...` ficam antes do coringa `/app/*`. Etapa 14: landing em `/`, `/confirmar-exclusao` e `/app/ajustes/conta`.
  */
 export const mapaRotas: RouteObject[] = [
-  // SPEC_DEVIATION: a landing (`/`) é da etapa 14; até lá a raiz leva ao app, e a guarda a leva a /entrar sem sessão.
-  { path: '/', element: <Navigate to="/app" replace /> },
+  // Landing pública, sem guarda e sem redirecionar quem já entrou: ele vê "Abrir o app" (etapa 14).
+  {
+    path: '/',
+    lazy: () => import('./paginas/publicas/Landing').then((m) => ({ Component: m.Landing })),
+    handle: { titulo: 'As finanças da casa, em dois' } satisfies HandleRota,
+  },
   {
     // Quem já entrou vai para o app (ou para o `volta`).
     element: <AreaPublica redirecionaComSessao />,
@@ -73,6 +77,11 @@ export const mapaRotas: RouteObject[] = [
         path: '/convite',
         lazy: () => import('./paginas/Convite').then((m) => ({ Component: m.Convite })),
         handle: { titulo: 'Convite' } satisfies HandleRota,
+      },
+      {
+        path: '/confirmar-exclusao',
+        lazy: () => import('./paginas/ConfirmarExclusao').then((m) => ({ Component: m.ConfirmarExclusao })),
+        handle: { titulo: 'Excluir conta' } satisfies HandleRota,
       },
       {
         path: '/termos',
@@ -157,6 +166,11 @@ export const mapaRotas: RouteObject[] = [
         lazy: () =>
           import('./paginas/Ajustes').then((m) => ({ Component: () => <AjustesInstalavel Ajustes={m.Ajustes} /> })),
         handle: { titulo: 'Ajustes', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/conta',
+        lazy: () => import('./paginas/ExcluirConta').then((m) => ({ Component: m.ExcluirConta })),
+        handle: { titulo: 'Conta', ...estreito } satisfies HandleRota,
       },
       {
         path: '/app/ajustes/lar',

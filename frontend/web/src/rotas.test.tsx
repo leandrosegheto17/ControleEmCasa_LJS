@@ -195,11 +195,13 @@ describe('telas de acesso', () => {
     expect(local(roteador)).toBe('/redefinir-senha');
   });
 
-  it('a raiz leva ao app', async () => {
+  // Etapa 14: a raiz é a landing pública; quem já entrou não é levado ao app à força (vê "Abrir o app").
+  it('a raiz abre a landing e não redireciona quem já entrou', async () => {
     servidor.sessao = { termos_pendentes: false, lar: LAR };
     const { roteador } = montar('/');
 
-    await waitFor(() => expect(local(roteador)).toBe('/app'));
+    expect(await screen.findAllByRole('link', { name: 'Abrir o app' })).not.toHaveLength(0);
+    expect(local(roteador)).toBe('/');
   });
 
   it('endereço desconhecido mostra "Página não encontrada"', async () => {

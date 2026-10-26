@@ -35,3 +35,5 @@ export const linkMetaEditar = (id: string) => noApp(`/metas/${id}/editar`);
 export const LINK_PLANO = noApp('/ajustes/plano');
 /** Membros e convite do lar (SDD 9.3). */
 export const LINK_LAR = noApp('/ajustes/lar');
+/** Conta: exclusão da própria conta (SDD 9.3; RN-26). Exige sessão, não exige lar. */
+export const LINK_CONTA = noApp('/ajustes/conta');

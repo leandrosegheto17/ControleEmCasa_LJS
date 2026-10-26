@@ -22,4 +22,13 @@ describe('index.html', () => {
     expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>/);
     expect(html).not.toMatch(/<style/);
   });
+
+  it('tem descrição e Open Graph básico em português (SEO da landing)', () => {
+    expect(html).toMatch(/<meta\s+name="description"\s+content="[^"]{50,}"/);
+    expect(html).toMatch(/<meta property="og:type" content="website"/);
+    expect(html).toMatch(/<meta property="og:site_name" content="Controle em Casa"/);
+    expect(html).toMatch(/<meta property="og:title" content="[^"]+"/);
+    expect(html).toMatch(/<meta\s+property="og:description"\s+content="[^"]{20,}"/);
+    expect(html).toMatch(/<meta property="og:locale" content="pt_BR"/);
+  });
 });
