@@ -1,6 +1,6 @@
 # ADR-013: Exclusão de conta e purga
 
-- **Status:** Proposto (etapa 14, lote 1: backend)
+- **Status:** Aceito em 2026-10-26 (fechamento do código da etapa 14, lotes 1 e 2; ligar a purga em produção só na etapa 17)
 - **Data:** 2026-10-26
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** RN-26 do `PRD-TECNICO.md` (CA-26.1 a CA-26.10), CA-19.8, CA-23.12 e CA-24 (cancelamento no Asaas); decisões D1, D5 e D8 de 2026-10-24; SDD §3.3 (`exclusao_conta`), §4 (grants), §5.3 (`app.sistema`), §6.2 (rotas "Conta"), D-05, E-1, E-2; GUARDRAILS G-04, G-46, G-49; THREAT-MODEL TM-PUSH-01, TM-DB-05, E-01, E-02, E-08, E-17; ADR-005, ADR-009 e ADR-012
