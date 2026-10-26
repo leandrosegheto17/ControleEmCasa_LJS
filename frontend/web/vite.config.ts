@@ -60,6 +60,8 @@ export default defineConfig({
   build: { outDir: 'dist', target: ['es2022', 'safari18'] },
   server: { port: porta, strictPort: true },
   test: {
+    // Teto de workers: sem ele, a máquina inteira fica ocupada e testes com tempo (5 s) estouram sob carga.
+    maxWorkers: 4,
     projects: [
       {
         extends: true,
