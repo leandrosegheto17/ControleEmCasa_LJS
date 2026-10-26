@@ -25,3 +25,11 @@ export const linkEnvios = com(base.linkEnvios);
 export const linkMeta = com(base.linkMeta);
 export const linkConta = com(base.linkConta);
 export const linkForma = com(base.linkForma);
+
+/** Lista de metas e o formulário de meta (SDD 9.3): `/app/metas`, `/app/metas/nova`, `/app/metas/:id/editar`. */
+export const LINK_METAS = noApp('/metas');
+export const linkMetaNova = (escopo?: 'casa' | 'eu') =>
+  escopo === undefined ? noApp('/metas/nova') : noApp(`/metas/nova?escopo=${escopo}`);
+export const linkMetaEditar = (id: string) => noApp(`/metas/${id}/editar`);
+/** Membros e convite do lar (SDD 9.3). */
+export const LINK_LAR = noApp('/ajustes/lar');

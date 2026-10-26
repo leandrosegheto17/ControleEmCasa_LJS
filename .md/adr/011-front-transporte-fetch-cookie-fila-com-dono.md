@@ -1,10 +1,24 @@
 # ADR-011: Front: transporte fetch + cookie, fila offline com o dono da sessão
 
-- **Status:** Proposto em 2026-10-25 (etapa 11, lote 1)
+- **Status:** Aceito em 2026-10-26 (etapa 12, lote 4). Proposto em 2026-10-25 (etapa 11, lote 1)
 - **Data:** 2026-10-25
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** RN-20 do `PRD-TECNICO.md`; SDD 5.2, 7, 9.1, 9.2 e 9.3; GUARDRAILS G-18, G-21, G-35, G-36, G-37, G-38 e G-39; THREAT-MODEL TM-NAV-03 e TM-NAV-04; ADR-006 e ADR-010; decisão P5 de `ANALISE-MYMONEY.md`
 - **Substitui (no legado):** a camada `dados/` sobre o `supabase-js` (cliente, sessão do Auth e RPC) e o dono da fila vindo de `user.id` do Supabase
+
+## Aceite (2026-10-26, etapa 12, lote 4)
+
+A decisão foi construída nas etapas 11 e 12 e vale como está acima. O que ficou decidido **na prática**, com os pontos em que o uso real afinou o texto:
+
+- **Transporte único.** Todas as telas do app (Início, Lançamentos, Fixas, Orçamento, Metas, Ajustes e Casa e membros) falam com a API só por `dados/transporte.ts`; nenhum `fetch` fora de `dados/`. As respostas são conferidas com o contrato Zod apenas em desenvolvimento e teste, e os mocks Vitest e Playwright seguem os mesmos formatos de `/api/*`.
+- **Escrita idempotente pelo id do cliente.** Criar conta, forma, categoria, fixa e meta usa `PUT /api/<recurso>/:id`, com o id gerado uma vez por tela e mantido em todas as tentativas (ADR-010). O mesmo vale para o id do pagamento de ocorrência e do movimento de meta. Reenviar depois de uma falha de rede não duplica nada.
+- **Sessão presumida offline.** Sem rede, com usuário lembrado neste aparelho, o app abre para lançar; a fila só envia depois que o servidor confirmar a sessão e o dono (item 5 e item 6 da decisão).
+- **Erros 429 conhecidos** (`muitas_tentativas`, `muitas_requisicoes`) viram erro de regra com texto próprio, em vez de `indisponivel` (afinou o item 2).
+- **Rotas e guardas.** `/redefinir-senha` e `/confirmar` abrem mesmo com sessão ativa; só `/entrar` e `/cadastro` redirecionam quem já entrou. O token do convite chega em `#t=`, sai do endereço e fica só na `sessionStorage` da aba até o aceite ou a recusa (item 9).
+- **Convite pendente.** A tela de membros lê o convite pendente do `GET /api/lar` (visível só ao titular); não há rota de listagem de convites. O envio e o cancelamento usam `POST /api/lar/convites` e `DELETE /api/lar/convites/:id`, e o token nunca chega ao front.
+- **Sair de todos** (`POST /api/sessao/sair-de-todos`) limpa o cache e o aparelho como a saída local; sem sessão, a API responde 204, e o front trata 401 como "já sem sessão" (item 7).
+
+Nada disto muda a decisão nem as consequências; a lista só registra o que a implementação consolidou.
 
 ## Contexto
 

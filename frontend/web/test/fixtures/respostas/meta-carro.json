@@ -1,0 +1,13 @@
+{
+  "id": "00000000-0000-4000-8000-000000000905",
+  "nome": "Carro novo",
+  "escopo": "individual",
+  "alvo_centavos": 2000000,
+  "guardado_centavos": 0,
+  "falta_centavos": 2000000,
+  "percentual": 0,
+  "prazo": "2028-12",
+  "mensal_necessario_centavos": 76924,
+  "atingida": false,
+  "por_local": []
+}

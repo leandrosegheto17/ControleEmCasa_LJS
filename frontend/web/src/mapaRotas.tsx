@@ -33,7 +33,7 @@ const comMes = { comMes: true };
 
 /**
  * Rotas do front (SDD 9.3). Acesso em `/entrar` e `/redefinir-senha`; o app inteiro sob `/app`.
- * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2), fixas e orçamento (lote 3); metas vêm no lote seguinte.
+ * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2), fixas e orçamento (lote 3), metas e convite de membro (lote 4).
  * Rotas de `/app/...` ficam antes do coringa `/app/*`. Para a etapa 14, a landing em `/`.
  */
 export const mapaRotas: RouteObject[] = [
@@ -123,6 +123,26 @@ export const mapaRotas: RouteObject[] = [
         handle: { titulo: 'Orçamento', ...comMes } satisfies HandleRota,
       },
       {
+        path: '/app/metas',
+        lazy: () => import('./paginas/Metas').then((m) => ({ Component: m.Metas })),
+        handle: { titulo: 'Metas' } satisfies HandleRota,
+      },
+      {
+        path: '/app/metas/nova',
+        lazy: () => import('./paginas/MetaFormulario').then((m) => ({ Component: m.MetaFormulario })),
+        handle: { titulo: 'Nova meta', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/metas/:id',
+        lazy: () => import('./paginas/Meta').then((m) => ({ Component: m.Meta })),
+        handle: { titulo: 'Meta' } satisfies HandleRota,
+      },
+      {
+        path: '/app/metas/:id/editar',
+        lazy: () => import('./paginas/MetaFormulario').then((m) => ({ Component: m.MetaFormulario })),
+        handle: { titulo: 'Editar meta', ...estreito } satisfies HandleRota,
+      },
+      {
         path: '/app/bem-vindo',
         lazy: () => import('./paginas/app/BemVindo').then((m) => ({ Component: m.BemVindo })),
         handle: { titulo: 'Bem-vindo' } satisfies HandleRota,
@@ -137,6 +157,11 @@ export const mapaRotas: RouteObject[] = [
         lazy: () =>
           import('./paginas/Ajustes').then((m) => ({ Component: () => <AjustesInstalavel Ajustes={m.Ajustes} /> })),
         handle: { titulo: 'Ajustes', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/lar',
+        lazy: () => import('./paginas/Lar').then((m) => ({ Component: m.Lar })),
+        handle: { titulo: 'Casa e membros', ...estreito } satisfies HandleRota,
       },
       {
         path: '/app/ajustes/contas',

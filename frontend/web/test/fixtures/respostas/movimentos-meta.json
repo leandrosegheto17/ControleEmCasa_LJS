@@ -1,0 +1,91 @@
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000b07",
+    "tipo": "aporte",
+    "valor_centavos": 50000,
+    "data": "2026-10-05",
+    "local": "Caixinha Nubank",
+    "autor": {
+      "nome": "Ana",
+      "sou_eu": true
+    },
+    "conta": {
+      "nome": "Nubank"
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b06",
+    "tipo": "aporte",
+    "valor_centavos": 70000,
+    "data": "2026-09-20",
+    "local": "CDB Banco Inter",
+    "autor": {
+      "nome": "Beatriz",
+      "sou_eu": false
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b05",
+    "tipo": "aporte",
+    "valor_centavos": 50000,
+    "data": "2026-09-05",
+    "local": "Caixinha Nubank",
+    "autor": {
+      "nome": "Ana",
+      "sou_eu": true
+    },
+    "conta": {
+      "nome": "Nubank"
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b04",
+    "tipo": "aporte",
+    "valor_centavos": 130000,
+    "data": "2026-08-15",
+    "local": "CDB Banco Inter",
+    "autor": {
+      "nome": "Beatriz",
+      "sou_eu": false
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b03",
+    "tipo": "aporte",
+    "valor_centavos": 50000,
+    "data": "2026-08-05",
+    "local": "Caixinha Nubank",
+    "autor": {
+      "nome": "Ana",
+      "sou_eu": true
+    },
+    "conta": {
+      "nome": "Nubank"
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b02",
+    "tipo": "retirada",
+    "valor_centavos": 30000,
+    "data": "2026-07-12",
+    "local": "Caixinha Nubank",
+    "autor": {
+      "nome": "Beatriz",
+      "sou_eu": false
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000b01",
+    "tipo": "aporte",
+    "valor_centavos": 300000,
+    "data": "2026-07-05",
+    "local": "Caixinha Nubank",
+    "autor": {
+      "nome": "Ana",
+      "sou_eu": true
+    },
+    "conta": {
+      "nome": "Nubank"
+    }
+  }
+]

@@ -6,6 +6,7 @@ import { ItemLink } from '../componentes/base/ItemLink';
 import { ItemValor } from '../componentes/base/ItemValor';
 import { useAviso } from '../componentes/base/useAviso';
 import { GrupoMenu } from '../componentes/GrupoMenu';
+import { LINK_LAR, LINK_METAS } from '../formatacao/linksApp';
 import { useContexto } from '../ganchos/useContexto';
 import { useSair } from '../ganchos/useSair';
 import { mensagemErro } from '../rotulos/mensagensErro';
@@ -52,6 +53,8 @@ export function Ajustes({ instalado, aoInstalar }: Props) {
           <ItemLink icone="cartao" rotulo="Formas de pagamento" para="/app/ajustes/formas" />
           <ItemLink icone="lista" rotulo="Categorias" para="/app/ajustes/categorias" />
           <ItemLink icone="relogio" rotulo="Despesas fixas" para="/app/fixas" />
+          <ItemLink icone="alvo" rotulo="Metas" para={LINK_METAS} />
+          <ItemLink icone="casa" rotulo="Casa e membros" para={LINK_LAR} />
         </GrupoMenu>
         <GrupoMenu titulo="Aplicativo">
           {instalado ? null : <ItemLink icone="adicionar" rotulo="Instalar o app" seta aoClicar={aoInstalar} />}

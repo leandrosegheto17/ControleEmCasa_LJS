@@ -1,0 +1,22 @@
+{
+  "id": "00000000-0000-4000-8000-000000000902",
+  "nome": "Viagem Nordeste",
+  "escopo": "conjunto",
+  "alvo_centavos": 1200000,
+  "guardado_centavos": 620000,
+  "falta_centavos": 580000,
+  "percentual": 52,
+  "prazo": "2027-07",
+  "mensal_necessario_centavos": 64445,
+  "atingida": false,
+  "por_local": [
+    {
+      "local": "Caixinha Nubank",
+      "guardado_centavos": 420000
+    },
+    {
+      "local": "CDB Banco Inter",
+      "guardado_centavos": 200000
+    }
+  ]
+}

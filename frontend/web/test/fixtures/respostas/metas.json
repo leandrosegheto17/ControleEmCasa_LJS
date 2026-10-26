@@ -1,0 +1,50 @@
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000903",
+    "nome": "Notebook novo",
+    "escopo": "individual",
+    "alvo_centavos": 600000,
+    "guardado_centavos": 240000,
+    "falta_centavos": 360000,
+    "percentual": 40,
+    "prazo": null,
+    "mensal_necessario_centavos": null,
+    "atingida": false
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000901",
+    "nome": "Reserva de emergência",
+    "escopo": "conjunto",
+    "alvo_centavos": 3000000,
+    "guardado_centavos": 1850000,
+    "falta_centavos": 1150000,
+    "percentual": 62,
+    "prazo": null,
+    "mensal_necessario_centavos": null,
+    "atingida": false
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000902",
+    "nome": "Viagem Nordeste",
+    "escopo": "conjunto",
+    "alvo_centavos": 1200000,
+    "guardado_centavos": 620000,
+    "falta_centavos": 580000,
+    "percentual": 52,
+    "prazo": "2027-07",
+    "mensal_necessario_centavos": 64445,
+    "atingida": false
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000904",
+    "nome": "Curso de inglês",
+    "escopo": "individual",
+    "alvo_centavos": 180000,
+    "guardado_centavos": 180000,
+    "falta_centavos": 0,
+    "percentual": 100,
+    "prazo": null,
+    "mensal_necessario_centavos": null,
+    "atingida": true
+  }
+]

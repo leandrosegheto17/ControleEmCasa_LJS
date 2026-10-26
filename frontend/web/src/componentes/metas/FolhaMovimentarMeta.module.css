@@ -1,0 +1,14 @@
+.formulario {
+  display: contents;
+}
+
+.opcao {
+  font-weight: var(--peso-normal);
+}
+
+.valor {
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

@@ -1,0 +1,48 @@
+.selo-linha {
+  composes: sub from '../base/Lista.module.css';
+  margin-bottom: var(--espaco-3);
+}
+
+.grade {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.secao {
+  composes: cartao from '../base/CartaoResumo.module.css';
+}
+
+.apos {
+  margin-top: var(--espaco-3);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.acoes > :first-child {
+  flex: 1;
+}
+
+.ajuda {
+  margin-top: var(--espaco-2);
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
+
+.valor-receita {
+  composes: valor-receita from '../LinhaLancamento.module.css';
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grade.grade-cheia {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

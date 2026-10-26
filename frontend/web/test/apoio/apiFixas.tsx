@@ -356,7 +356,7 @@ function copiarOrcamento(s: ServidorFixas, mes: string, escopo: Escopo): Respons
   return json({ copiadas });
 }
 
-async function atenderFixas(s: ServidorFixas, metodo: string, url: string, corpo: Corpo) {
+export async function atenderFixas(s: ServidorFixas, metodo: string, url: string, corpo: Corpo) {
   const alvo = new URL(url, 'http://x');
   const caminho = alvo.pathname;
   const chave = `${metodo} ${caminho

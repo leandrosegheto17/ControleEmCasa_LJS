@@ -1,0 +1,12 @@
+.cabecalho {
+  composes: cabecalho from '../CabecalhoMes.module.css';
+}
+
+.acoes {
+  composes: acoes from '../CabecalhoMes.module.css';
+}
+
+.titulo {
+  font-size: var(--tam-titulo-pagina);
+  font-weight: var(--peso-semi);
+}
