@@ -8,8 +8,9 @@ import {
   type DepsConvite,
 } from '../../aplicacao/lar/comum';
 import { criarLar, detalheLar, removerMembro, renomearLar, sairDoLar } from '../../aplicacao/lar/lar';
-import { lerConfig } from '../../config';
+import { lerConfig, lerConfigAsaas } from '../../config';
 import type { AppEnv } from '../../env';
+import { criarClienteAsaas, type ClienteAsaas } from '../../infraestrutura/asaas';
 import { criarEnviadorDeEmail, type TransporteEmail } from '../../infraestrutura/email';
 import { transporteDoAmbiente } from '../../infraestrutura/transporte-email-ambiente';
 import { emTransacao, exigirLar } from '../../middleware/transacao';
@@ -19,6 +20,8 @@ import { agendarDe, depsDe, idDaRota } from './comum';
 export interface OpcoesLar {
   /** Transporte de e-mail injetado (testes); sem ele, vale o do ambiente (Resend, console em local). */
   transporteEmail?: TransporteEmail;
+  /** Cliente do Asaas injetado (testes). Sem ele, o REST real, criado só se o lar descartado tiver assinatura. */
+  asaas?: ClienteAsaas;
 }
 
 /**
@@ -88,7 +91,12 @@ export function registrarRotasDeLar(app: Hono<AppEnv>, opcoes: OpcoesLar = {}): 
 
   app.post('/api/convites/aceitar', emTransacao, async (c) => {
     const { token } = await lerCorpo(c, entrada.TokenConvite);
-    await aceitarConvite(depsDe(c), token);
+    const asaas = () => {
+      if (opcoes.asaas) return opcoes.asaas;
+      const config = lerConfigAsaas(c.env as unknown as Record<string, unknown>);
+      return criarClienteAsaas({ urlBase: config.apiUrl, chaveApi: config.apiKey });
+    };
+    await aceitarConvite({ ...depsDe(c), asaas }, token);
     return c.body(null, 204);
   });
 

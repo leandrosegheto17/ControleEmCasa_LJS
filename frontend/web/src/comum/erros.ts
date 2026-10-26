@@ -5,6 +5,7 @@ import type {
   CodigoErroLancamento,
   CodigoErroLar,
   CodigoErroOrcamentoMetas,
+  CodigoErroPlano,
 } from '@controle/contrato';
 
 /** Códigos de erro estáveis da API (SDD 7): a união dos códigos de cada área do contrato. */
@@ -14,7 +15,8 @@ export type CodigoErro =
   | CodigoErroLancamento
   | CodigoErroLar
   | CodigoErroFixas
-  | CodigoErroOrcamentoMetas;
+  | CodigoErroOrcamentoMetas
+  | CodigoErroPlano;
 
 /**
  * Lista de execução dos códigos, para reconhecer o `code` de uma resposta sem levar o Zod do contrato para o bundle
@@ -48,6 +50,12 @@ export const CODIGOS_ERRO = [
   'ja_tem_lar',
   'ocorrencia_paga',
   'retirada_maior_que_guardado',
+  // Plano (etapa 13)
+  'plano_necessario',
+  'assinatura_ativa',
+  'sem_assinatura',
+  'token_invalido',
+  'indisponivel',
 ] as const satisfies readonly CodigoErro[];
 
 export type ErroDados =

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { AvisoPlanoFree } from '../componentes/plano/AvisoPlanoFree';
 import { CabecalhoMes } from '../componentes/CabecalhoMes';
 import { Segmentado } from '../componentes/base/Segmentado';
 import { useAviso } from '../componentes/base/useAviso';
@@ -16,6 +17,7 @@ import { useCopiarOrcamento } from '../ganchos/useCopiarOrcamento';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { useMesDaUrl } from '../ganchos/useMesDaUrl';
 import { useOrcamentoMes } from '../ganchos/useOrcamentoMes';
+import { useSomenteLeitura } from '../ganchos/usePlano';
 import { usePendentes } from '../ganchos/usePendentes';
 import { ROTULO_ESCOPO } from '../rotulos/escopo';
 import { mensagemErro } from '../rotulos/mensagensErro';
@@ -36,6 +38,7 @@ export function Orcamento() {
   const leitura = useLeituraComCache(consulta);
   const { total: pendentes } = usePendentes();
   const [definindoDoZero, setDefinindoDoZero] = useState(false);
+  const somenteLeitura = useSomenteLeitura();
   const anterior = consulta.data?.anterior;
   const { mostrar } = useAviso();
   const { copiar, copiando } = useCopiarOrcamento(mes, escopoApi);
@@ -59,6 +62,7 @@ export function Orcamento() {
     <>
       <CabecalhoMes mes={mes} aoMudarMes={definirMes} pendentes={pendentes} prefixoOculto="Orçamento de " />
       <main aria-busy={carregando}>
+        {somenteLeitura ? <AvisoPlanoFree recurso="orcamento" /> : null}
         {leitura.situacao === 'erro' ? null : (
           <div className={estilos.escopo}>
             <Segmentado
@@ -81,6 +85,7 @@ export function Orcamento() {
             if (dados.total === null && !definindoDoZero) {
               return (
                 <OrcamentoVazio
+                  somenteLeitura={somenteLeitura}
                   escopo={escopo}
                   nomeMes={nomeMes}
                   anterior={
@@ -112,7 +117,13 @@ export function Orcamento() {
                 {dados.total ? (
                   <GradeOrcamento>
                     <CartaoTotalOrcamento escopo={escopo} total={dados.total} />
-                    <ListaOrcamento mes={mes} escopo={escopo} linhas={dados.linhas} refTitulo={tituloCartao} />
+                    <ListaOrcamento
+                      mes={mes}
+                      escopo={escopo}
+                      linhas={dados.linhas}
+                      refTitulo={tituloCartao}
+                      somenteLeitura={somenteLeitura}
+                    />
                   </GradeOrcamento>
                 ) : null}
                 <SemOrcamento
@@ -121,12 +132,13 @@ export function Orcamento() {
                   escopo={escopo}
                   categorias={dados.sem_orcamento}
                   aberta={dados.total === null}
+                  somenteLeitura={somenteLeitura}
                 />
               </>
             );
           }}
         </EstadosDeLeitura>
-        {consulta.data ? (
+        {consulta.data && !somenteLeitura ? (
           <ValorOrcamentoConectado
             mes={mes}
             escopo={escopo}

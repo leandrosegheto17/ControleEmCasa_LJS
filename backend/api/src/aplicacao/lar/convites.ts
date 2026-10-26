@@ -1,6 +1,8 @@
 import type { SaidaConviteAtual, SaidaConviteCriado } from '@controle/contrato';
 import { avaliarConvite, CATEGORIAS_INICIAIS_INDIVIDUAIS, decidirAceite, NOME_EX_MEMBRO } from '@controle/dominio';
 import { ErroApi } from '../../erros';
+import type { ClienteAsaas } from '../../infraestrutura/asaas';
+import { cancelarAssinaturaDoLarDescartado } from '../plano/plano';
 import { apagarDoLarAtual, inserirCategorias, listarDoLarAtual } from '../../infraestrutura/db/repositorios/categorias';
 import {
   buscarPorTokenDoEmailDaSessao,
@@ -123,7 +125,7 @@ export async function conviteAtual(deps: DepsLar, token: string): Promise<SaidaC
  *    com o lar novo e cria as 7 categorias individuais iniciais.
  * Qualquer recusa desfaz tudo (a transação da requisição volta inteira).
  */
-export async function aceitarConvite(deps: DepsLar, token: string): Promise<void> {
+export async function aceitarConvite(deps: DepsLar & { asaas?: () => ClienteAsaas }, token: string): Promise<void> {
   const { tx, sessao, agora } = deps;
   const tokenHash = await hashDoTokenValido(token);
   await travarVinculoDoUsuario(tx, sessao.usuarioId);
@@ -139,6 +141,8 @@ export async function aceitarConvite(deps: DepsLar, token: string): Promise<void
       registrosDeNegocio: await contarRegistrosDeNegocio(tx),
     });
     if (!decisao.ok) throw erroDoDominio(decisao.erro);
+    // A assinatura do lar descartado, se houver, é cancelada no Asaas (falha do Asaas não impede o aceite).
+    if (deps.asaas) await cancelarAssinaturaDoLarDescartado({ ...deps, asaas: deps.asaas() });
     // Descarte do lar que só tem as categorias iniciais (CA-23.9): nada dele vai para o lar novo (CA-23.15).
     await apagarDoLarAtual(tx);
     await cancelarPendentesDoLar(tx, agora);

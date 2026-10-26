@@ -5,6 +5,7 @@ import {
   CODIGOS_ERRO_LANCAMENTO,
   CODIGOS_ERRO_LAR,
   CODIGOS_ERRO_ORCAMENTO_METAS,
+  CODIGOS_ERRO_PLANO,
 } from '@controle/contrato';
 import { describe, expect, it } from 'vitest';
 import { CODIGOS_ERRO } from './erros';
@@ -18,6 +19,7 @@ describe('comum/erros', () => {
       ...CODIGOS_ERRO_LANCAMENTO,
       ...CODIGOS_ERRO_LAR,
       ...CODIGOS_ERRO_ORCAMENTO_METAS,
+      ...CODIGOS_ERRO_PLANO,
     ]);
     expect([...CODIGOS_ERRO].sort()).toEqual([...doContrato].sort());
   });

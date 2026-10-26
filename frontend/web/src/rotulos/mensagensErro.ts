@@ -10,6 +10,7 @@ const REGRA: Partial<Record<CodigoErro, string>> = {
   categoria_arquivada: 'Esta categoria está arquivada',
   forma_arquivada: 'Esta forma de pagamento está arquivada',
   conta_arquivada: 'Esta conta está arquivada',
+  plano_necessario: 'Orçamento e metas ficam só para consulta no plano Free. Assine o Pro para editar',
 };
 
 /** Texto pt-BR para o erro; nunca repassa código ou mensagem do servidor. */

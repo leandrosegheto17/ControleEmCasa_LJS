@@ -37,6 +37,12 @@ export const ROTULO_ERRO = {
   conta_arquivada: { texto: 'Esta conta foi arquivada. Escolha outra.' },
   ocorrencia_paga: { texto: 'Esta ocorrência já foi paga.' },
   retirada_maior_que_guardado: { texto: 'A retirada é maior que o valor guardado.' },
+  // Plano (etapa 13)
+  plano_necessario: { texto: 'Orçamento e metas ficam só para consulta no plano Free. Assine o Pro para editar.' },
+  assinatura_ativa: { texto: 'A casa já tem uma assinatura ativa.' },
+  sem_assinatura: { texto: 'A casa não tem assinatura para cancelar.' },
+  token_invalido: { texto: 'Não foi possível validar o pedido.' },
+  indisponivel: { texto: 'Serviço indisponível no momento. Tente de novo em instantes.' },
 } as const satisfies Record<CodigoErro, { texto: string }>;
 
 /** Texto para quando o código não é reconhecido ou o envio falhou sem código. */

@@ -12,11 +12,17 @@ interface Props {
   copiando: boolean;
   aoCopiar: () => void;
   aoDefinir: () => void;
+  /** Plano Free (RN-25): explica e não oferece copiar nem definir. */
+  somenteLeitura?: boolean;
 }
 
 /** Mês sem orçamento: oferece copiar do mês anterior ou definir do zero. */
-export function OrcamentoVazio({ escopo, nomeMes, anterior, copiando, aoCopiar, aoDefinir }: Props) {
+export function OrcamentoVazio({ escopo, nomeMes, anterior, copiando, aoCopiar, aoDefinir, somenteLeitura }: Props) {
   const titulo = `Sem orçamento ${escopo === 'eu' ? 'seu' : 'da casa'} em ${nomeMes}`;
+
+  if (somenteLeitura) {
+    return <EstadoVazio icone="grafico" titulo={titulo} texto="No plano Free não é possível definir orçamento." />;
+  }
 
   if (!anterior) {
     return (

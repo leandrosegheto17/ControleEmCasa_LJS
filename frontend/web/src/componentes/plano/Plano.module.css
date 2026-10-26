@@ -1,0 +1,41 @@
+.formulario {
+  display: grid;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-3);
+}
+
+.codigo {
+  margin: 0;
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-neutro-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-numero);
+  font-size: var(--tam-pequeno);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.qr {
+  display: block;
+  width: 192px;
+  height: 192px;
+  margin: var(--espaco-3) 0;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-texto);
+  padding: var(--espaco-2);
+  image-rendering: pixelated;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.secao {
+  display: grid;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-4);
+}

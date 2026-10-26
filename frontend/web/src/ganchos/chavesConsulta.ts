@@ -29,6 +29,8 @@ export const CHAVES = {
   locaisGuardados: ['locais_guardados'],
   /** Membros e convite pendente do lar (`GET /api/lar`). */
   lar: ['lar'],
+  /** Plano do lar e a cobrança em aberto (`GET /api/plano`). */
+  plano: ['plano'],
 } as const;
 
 /** O que muda de total quando um lançamento é criado, editado ou excluído: o resumo e o realizado do orçamento. */

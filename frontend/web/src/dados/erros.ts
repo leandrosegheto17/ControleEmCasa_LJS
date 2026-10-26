@@ -20,6 +20,8 @@ function codigoDoCorpo(corpo: unknown): unknown {
 export function traduzirResposta(status: number, corpo: unknown): ErroDados {
   const codigo = codigoDoCorpo(corpo);
   if (status === 401 || codigo === 'sessao_expirada') return { tipo: 'autenticacao' };
+  // 503 do servidor (Asaas ou banco fora do ar): o mesmo `indisponivel` de sempre, não uma regra.
+  if (codigo === 'indisponivel' && status >= 500) return { tipo: 'indisponivel' };
   if (ehCodigo(codigo)) return { tipo: 'regra', codigo };
   if (status === 429 || status >= 500) return { tipo: 'indisponivel' };
   return { tipo: 'desconhecido' };

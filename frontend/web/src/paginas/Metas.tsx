@@ -1,19 +1,23 @@
+import { AvisoPlanoFree } from '../componentes/plano/AvisoPlanoFree';
 import { CabecalhoMetas } from '../componentes/metas/CabecalhoMetas';
 import { EsqueletoMetas } from '../componentes/metas/EsqueletoMetas';
 import { SecaoMetas } from '../componentes/metas/SecaoMetas';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { linkMetaNova } from '../formatacao/linksApp';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
+import { useSomenteLeitura } from '../ganchos/usePlano';
 import { useMetas } from '../ganchos/useMetas';
 
 export function Metas() {
   const consulta = useMetas();
   const leitura = useLeituraComCache(consulta);
+  const somenteLeitura = useSomenteLeitura();
 
   return (
     <>
-      <CabecalhoMetas />
+      <CabecalhoMetas somenteLeitura={somenteLeitura} />
       <main aria-busy={leitura.situacao === 'carregando'}>
+        {somenteLeitura ? <AvisoPlanoFree recurso="metas" /> : null}
         <EstadosDeLeitura
           leitura={leitura}
           esqueleto={<EsqueletoMetas />}
@@ -29,6 +33,7 @@ export function Metas() {
                 textoVazio="Nenhuma meta da casa ainda. Uma meta da casa mostra aos dois quanto falta e quem guardou."
                 rotuloNova="Nova meta da casa"
                 destinoNova={linkMetaNova('casa')}
+                somenteLeitura={somenteLeitura}
               />
               <SecaoMetas
                 bloco="eu"
@@ -37,6 +42,7 @@ export function Metas() {
                 textoVazio="Nenhuma meta sua ainda. Só você vê as suas metas."
                 rotuloNova="Nova meta minha"
                 destinoNova={linkMetaNova('eu')}
+                somenteLeitura={somenteLeitura}
               />
             </>
           )}

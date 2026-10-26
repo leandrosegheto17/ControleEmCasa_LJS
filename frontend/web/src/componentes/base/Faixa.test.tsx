@@ -91,4 +91,17 @@ describe('Faixa', () => {
     );
     expect(container.querySelector('[style]')).toBeNull();
   });
+
+  it('plano: role=status, classe de aviso, ícone alerta e a ação de quem chama', () => {
+    const { container } = render(
+      <Faixa variante="plano" acoes={<a href="/app/ajustes/plano">Ver meu plano</a>}>
+        No plano Free o orçamento fica só para consulta.
+      </Faixa>,
+    );
+    const faixa = faixaDe(container);
+    expect(faixa).toHaveAttribute('role', 'status');
+    expect(faixa.className).toMatch(/faixa-aviso/);
+    expect(iconeDe(faixa)).toBe('#i-alerta');
+    expect(screen.getByRole('link', { name: 'Ver meu plano' })).toBeInTheDocument();
+  });
 });

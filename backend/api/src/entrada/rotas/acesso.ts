@@ -82,7 +82,10 @@ export function registrarRotasDeAcesso(app: Hono<AppEnv>, opcoes: OpcoesAcesso):
   });
   app.get('/api/sessao', emTransacao, async (c) => {
     const sessao = exigirSessao(c);
-    return c.json(await sessaoAtual(c.get('tx'), sessao.usuarioId, opcoes.versoes, c.get('vinculo')), 200);
+    return c.json(
+      await sessaoAtual(c.get('tx'), sessao.usuarioId, opcoes.versoes, c.get('vinculo'), c.get('agora')),
+      200,
+    );
   });
   // Sair é idempotente: revoga a sessão do cookie (se houver) e limpa o cookie (CA-20.4).
   app.post('/api/sessao/sair', async (c) => {

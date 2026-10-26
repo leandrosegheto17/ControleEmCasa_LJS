@@ -1,14 +1,17 @@
 import type { Escopo } from '../comum/enums';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
+import { BotaoLink } from '../componentes/base/BotaoLink';
 import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
+import { EstadoVazio } from '../componentes/base/EstadoVazio';
 import { EsqueletoLista } from '../componentes/base/EsqueletoLista';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { FormularioMeta } from '../componentes/metas/FormularioMeta';
 import { MetaNaoExiste } from '../componentes/metas/MetaNaoExiste';
 import { ehUuid } from '../comum/uuid';
-import { LINK_METAS, linkMeta } from '../formatacao/linksApp';
+import { LINK_METAS, LINK_PLANO, linkMeta } from '../formatacao/linksApp';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
+import { useSomenteLeitura } from '../ganchos/usePlano';
 import { useMeta } from '../ganchos/useMetas';
 import { useSalvarMeta } from './metas/useSalvarMeta';
 
@@ -48,8 +51,25 @@ function MetaExistente({ id }: { id: string }) {
   );
 }
 
+/** Plano Free (RN-25): criar e editar meta ficam bloqueados; a tela explica e leva a Meu plano. */
+function MetaBloqueada() {
+  return (
+    <EstadoVazio
+      icone="alvo"
+      titulo="Metas só para consulta no plano Free"
+      texto="Assine o Pro para criar e editar metas. As metas que a casa já tem continuam visíveis."
+      acao={
+        <BotaoLink para={LINK_PLANO} variante="principal">
+          Ver meu plano
+        </BotaoLink>
+      }
+    />
+  );
+}
+
 export function MetaFormulario() {
   const { id } = useParams();
+  const somenteLeitura = useSomenteLeitura();
   return (
     <>
       <CabecalhoPagina
@@ -57,7 +77,17 @@ export function MetaFormulario() {
         voltarPara={id ? linkMeta(id) : LINK_METAS}
         rotuloVoltar={id ? 'Voltar para a meta' : 'Voltar para Metas'}
       />
-      <main>{id === undefined ? <MetaNova /> : ehUuid(id) ? <MetaExistente id={id} /> : <MetaNaoExiste />}</main>
+      <main>
+        {somenteLeitura ? (
+          <MetaBloqueada />
+        ) : id === undefined ? (
+          <MetaNova />
+        ) : ehUuid(id) ? (
+          <MetaExistente id={id} />
+        ) : (
+          <MetaNaoExiste />
+        )}
+      </main>
     </>
   );
 }

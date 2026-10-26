@@ -83,7 +83,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
   });
 
   registrarRotasDeAcesso(app, { transporteEmail: opcoes.transporteEmail, versoes });
-  registrarRotasDeLar(app, { transporteEmail: opcoes.transporteEmail });
+  registrarRotasDeLar(app, { transporteEmail: opcoes.transporteEmail, asaas: opcoes.asaas });
   registrarRotasDeCadastros(app);
   registrarRotasDeLancamentos(app);
   registrarRotasDeFixas(app);

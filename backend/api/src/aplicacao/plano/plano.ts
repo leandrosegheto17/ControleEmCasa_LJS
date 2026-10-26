@@ -182,3 +182,39 @@ export async function cancelar(deps: DepsPlano): Promise<void> {
     deps.agora,
   );
 }
+
+/**
+ * Descarte do lar do titular que aceita convite de outro lar (CA-23.9; ADR 012): a assinatura do Asaas do lar
+ * descartado não pode seguir cobrando. Cancela no Asaas (que apaga as cobranças em aberto) e marca `cancelada`.
+ * Falha do Asaas NÃO impede o aceite: registra a pendência no log (ids do lar e da assinatura, sem dado pessoal) e
+ * deixa a linha como está, com o id da assinatura, para um cancelamento manual ou reprocessado depois.
+ * Roda ainda com o vínculo do lar antigo (a política da assinatura é do titular).
+ */
+export async function cancelarAssinaturaDoLarDescartado(deps: DepsPlano): Promise<void> {
+  const linha = await buscarAssinaturaAtual(deps.tx, true);
+  if (!linha?.asaasAssinaturaId || linha.situacao === 'cancelada') return;
+  try {
+    await deps.asaas.cancelarAssinatura(linha.asaasAssinaturaId);
+  } catch (erro) {
+    if (!(erro instanceof ErroAsaas)) throw erro;
+    logar('warn', 'asaas_cancelamento_pendente', {
+      motivo: erro.motivo,
+      status: erro.status ?? 0,
+      lar: linha.larId,
+      assinatura: linha.asaasAssinaturaId,
+    });
+    return;
+  }
+  await gravarAssinatura(
+    deps.tx,
+    {
+      ...linha,
+      situacao: 'cancelada',
+      cobrancaId: null,
+      cobrancaVencimento: null,
+      cobrancaValorCentavos: null,
+      cobrancaSituacao: null,
+    },
+    deps.agora,
+  );
+}

@@ -12,6 +12,8 @@ interface Props {
   escopo: EscopoUrl;
   linhas: readonly DadosLinha[];
   refTitulo?: Ref<HTMLHeadingElement>;
+  /** Plano Free (RN-25): as linhas só mostram, sem abrir a edição. */
+  somenteLeitura?: boolean;
 }
 
 const rotuloDoLink = (l: DadosLinha) =>
@@ -19,7 +21,7 @@ const rotuloDoLink = (l: DadosLinha) =>
   `${l.percentual}%, ${ROTULO_SITUACAO_ORCAMENTO[l.situacao].texto.toLowerCase()}`;
 
 /** Categorias com orçamento na ordem da API; cada uma abre a edição do valor. */
-export function ListaOrcamento({ mes, escopo, linhas, refTitulo }: Props) {
+export function ListaOrcamento({ mes, escopo, linhas, refTitulo, somenteLeitura }: Props) {
   return (
     <CartaoResumo secao estado="dado" titulo="Por categoria" textoVazio="" refTitulo={refTitulo}>
       {linhas.map((l, i) => (
@@ -31,8 +33,10 @@ export function ListaOrcamento({ mes, escopo, linhas, refTitulo }: Props) {
           percentual={l.percentual}
           situacao={l.situacao}
           primeira={i === 0}
-          href={linkOrcamento({ mes, escopo: paraEscopoApi(escopo), editar: l.categoria_id })}
-          rotuloLink={rotuloDoLink(l)}
+          href={
+            somenteLeitura ? undefined : linkOrcamento({ mes, escopo: paraEscopoApi(escopo), editar: l.categoria_id })
+          }
+          rotuloLink={somenteLeitura ? undefined : rotuloDoLink(l)}
         />
       ))}
     </CartaoResumo>

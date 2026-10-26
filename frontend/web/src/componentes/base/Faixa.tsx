@@ -3,7 +3,7 @@ import { TEXTO_FAIXA_OFFLINE } from '../../rotulos/textosConexao';
 import { Icone, type NomeIcone } from './Icone';
 import estilos from './Faixa.module.css';
 
-type Variante = 'offline' | 'pendentes' | 'instalar' | 'cache';
+type Variante = 'offline' | 'pendentes' | 'instalar' | 'cache' | 'plano';
 
 interface Props {
   variante: Variante;
@@ -20,13 +20,15 @@ const ICONE: Record<Variante, NomeIcone> = {
   pendentes: 'envio',
   instalar: 'adicionar',
   cache: 'relogio',
+  plano: 'alerta',
 };
 
 const padrao = (variante: Variante) => (variante === 'offline' ? TEXTO_FAIXA_OFFLINE : null);
 
 /** Faixa de instalar tem controles: região comum, não região viva. As demais só informam. */
 export function Faixa({ variante, children, acoes, hora }: Props) {
-  const destaque = variante === 'offline' || variante === 'pendentes' ? ` ${estilos['faixa-aviso']}` : '';
+  const destaque =
+    variante === 'offline' || variante === 'pendentes' || variante === 'plano' ? ` ${estilos['faixa-aviso']}` : '';
   const papel = variante === 'instalar' ? { role: 'region', 'aria-label': 'Instalar o app' } : { role: 'status' };
   return (
     <div className={`${estilos.faixa}${destaque}`} {...papel}>

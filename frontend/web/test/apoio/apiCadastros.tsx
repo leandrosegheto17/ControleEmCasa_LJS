@@ -60,6 +60,8 @@ export interface Servidor {
   chamadas: Chamada[];
   /** Resposta de erro forçada para "METODO /api/recurso/:id/acao" (o id vira `:id`). */
   erros: Map<string, { status: number; code: string }>;
+  /** Plano efetivo que `GET /api/sessao` devolve (etapa 13); sem valor, `null` como antes. */
+  plano?: 'free' | 'pro' | null;
 }
 
 export const conta = (parcial: Partial<SaidaLinhaContas> = {}): SaidaLinhaContas => ({
@@ -129,12 +131,12 @@ export const json = (corpo: unknown, status = 200) =>
   new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } });
 export const semCorpo = () => new Response(null, { status: 204 });
 
-export function sessao() {
+export function sessao(plano: 'free' | 'pro' | null = null) {
   return {
     usuario: { id: ID_USUARIO, nome: 'Ana', email: 'ana@exemplo.com' },
     membro: { id: ID_USUARIO, nome: 'Ana', papel: 'titular' },
     lar: { id: ID_LAR, nome: 'Casa' },
-    plano: null,
+    plano,
     termos_pendentes: false,
   };
 }
@@ -185,7 +187,7 @@ function atualizacao(recurso: Recurso, c: Record<string, unknown>) {
 
 export function responder(s: Servidor, metodo: string, url: string, corpo: Corpo): Response {
   if (url === '/api/sessao' && metodo === 'GET') {
-    return s.logado ? json(sessao()) : json({ code: 'sessao_expirada', message: 'x' }, 401);
+    return s.logado ? json(sessao(s.plano ?? null)) : json({ code: 'sessao_expirada', message: 'x' }, 401);
   }
   if (url === '/api/sessao/sair' || url === '/api/sessao/sair-de-todos') {
     s.logado = false;

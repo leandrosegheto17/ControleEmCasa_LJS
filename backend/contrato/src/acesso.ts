@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PlanoEfetivo } from './plano';
 import { saidaLar } from './lar';
 
 /**
@@ -54,14 +55,14 @@ export const entradaAcesso = {
 export const saidaAcesso = {
   /**
    * `GET /api/sessao` (SDD 5.2). `membro` e `lar` vêm do vínculo ativo (nulos sem lar, etapa 6);
-   * `plano` fica nulo até a etapa 13. Nunca leva o token da sessão (CA-20.8).
+   * `plano` é o efetivo do lar (`free` ou `pro`), nulo sem lar (etapa 13). Nunca leva o token da sessão (CA-20.8).
    */
   SessaoAtual: z
     .object({
       usuario: z.object({ id: z.uuid(), nome: z.string(), email: z.string() }).strict(),
       membro: saidaLar.MembroDaSessao.nullable(),
       lar: saidaLar.Lar.nullable(),
-      plano: z.null(),
+      plano: PlanoEfetivo.nullable(),
       termos_pendentes: z.boolean(),
     })
     .strict(),

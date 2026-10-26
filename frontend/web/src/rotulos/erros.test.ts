@@ -5,6 +5,7 @@ import {
   CODIGOS_ERRO_LANCAMENTO,
   CODIGOS_ERRO_LAR,
   CODIGOS_ERRO_ORCAMENTO_METAS,
+  CODIGOS_ERRO_PLANO,
 } from '@controle/contrato';
 import { describe, expect, it } from 'vitest';
 import type { CodigoErro } from '../comum/erros';
@@ -18,6 +19,7 @@ const TODOS = [
     ...CODIGOS_ERRO_LANCAMENTO,
     ...CODIGOS_ERRO_LAR,
     ...CODIGOS_ERRO_ORCAMENTO_METAS,
+    ...CODIGOS_ERRO_PLANO,
   ]),
 ];
 

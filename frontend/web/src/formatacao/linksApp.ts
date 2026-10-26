@@ -31,5 +31,7 @@ export const LINK_METAS = noApp('/metas');
 export const linkMetaNova = (escopo?: 'casa' | 'eu') =>
   escopo === undefined ? noApp('/metas/nova') : noApp(`/metas/nova?escopo=${escopo}`);
 export const linkMetaEditar = (id: string) => noApp(`/metas/${id}/editar`);
+/** Meu plano (SDD 9.3): destino dos links dos e-mails de cobrança. */
+export const LINK_PLANO = noApp('/ajustes/plano');
 /** Membros e convite do lar (SDD 9.3). */
 export const LINK_LAR = noApp('/ajustes/lar');

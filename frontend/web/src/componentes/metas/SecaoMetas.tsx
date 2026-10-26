@@ -12,10 +12,12 @@ interface Props {
   rotuloNova: string;
   /** Destino do botão do estado vazio, já com o escopo. */
   destinoNova: string;
+  /** Plano Free (RN-25): sem o botão de criar meta. */
+  somenteLeitura?: boolean;
 }
 
 /** Uma seção da lista de metas; sem metas mostra o próprio estado vazio. */
-export function SecaoMetas({ bloco, titulo, metas, textoVazio, rotuloNova, destinoNova }: Props) {
+export function SecaoMetas({ bloco, titulo, metas, textoVazio, rotuloNova, destinoNova, somenteLeitura }: Props) {
   const idTitulo = `t-${bloco}`;
   if (metas.length === 0) {
     return (
@@ -25,9 +27,11 @@ export function SecaoMetas({ bloco, titulo, metas, textoVazio, rotuloNova, desti
           texto={textoVazio}
           semMargem
           acao={
-            <BotaoLink para={destinoNova} variante={bloco === 'casa' ? 'principal' : 'secundario'}>
-              {rotuloNova}
-            </BotaoLink>
+            somenteLeitura ? undefined : (
+              <BotaoLink para={destinoNova} variante={bloco === 'casa' ? 'principal' : 'secundario'}>
+                {rotuloNova}
+              </BotaoLink>
+            )
           }
         />
       </Bloco>
