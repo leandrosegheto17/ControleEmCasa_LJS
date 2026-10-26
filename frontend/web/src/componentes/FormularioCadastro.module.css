@@ -1,0 +1,13 @@
+.aceite {
+  font-size: 0.875rem;
+  color: var(--cor-texto-2);
+}
+
+.aceite input {
+  margin-right: var(--espaco-2);
+}
+
+.erro {
+  margin: var(--espaco-1) 0 0;
+  color: var(--cor-estourado);
+}

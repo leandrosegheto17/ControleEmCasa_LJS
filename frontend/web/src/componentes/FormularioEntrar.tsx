@@ -71,6 +71,9 @@ export function FormularioEntrar({ aoEntrar, aoEsqueci, ocupado, erro }: Props) 
       <LinkMais centralizado aoClicar={esqueci}>
         Esqueci minha senha
       </LinkMais>
+      <LinkMais centralizado para="/cadastro">
+        Cadastre-se
+      </LinkMais>
     </CartaoAcesso>
   );
 }

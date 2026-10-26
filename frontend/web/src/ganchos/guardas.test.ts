@@ -107,9 +107,12 @@ describe('telas de acesso', () => {
 });
 
 describe('destinoDeVolta: nunca um redirecionamento aberto', () => {
-  it.each(['/app', '/app/lancamentos', '/app/lancamentos?mes=2026-10-01', '/app/metas#topo'])('aceita %s', (v) => {
-    expect(destinoDeVolta(v)).toBe(v);
-  });
+  it.each(['/convite', '/app', '/app/lancamentos', '/app/lancamentos?mes=2026-10-01', '/app/metas#topo'])(
+    'aceita %s',
+    (v) => {
+      expect(destinoDeVolta(v)).toBe(v);
+    },
+  );
 
   it.each([
     'https://mau.exemplo/app',
@@ -118,6 +121,8 @@ describe('destinoDeVolta: nunca um redirecionamento aberto', () => {
     '/\\mau.exemplo',
     '/apple',
     '/entrar',
+    '/convite/x',
+    '/convite?a=1',
     '/api/sessao',
     'app/metas',
     '/app/\nx',

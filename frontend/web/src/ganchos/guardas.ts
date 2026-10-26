@@ -26,12 +26,12 @@ const seguir: Decisao = { tipo: 'seguir' };
 const ir = (para: string): Decisao => ({ tipo: 'ir', para });
 
 /**
- * Destino de volta depois do login (`/entrar?volta=`): só caminhos do app (`/app` e abaixo). Qualquer outra coisa
+ * Destino de volta depois do login (`/entrar?volta=`): só caminhos do app (`/app` e abaixo) e `/convite`. Qualquer outra coisa
  * (outro site, `//host`, barra invertida, caractere de controle) vira o início, para não haver redirecionamento aberto.
  */
 export function destinoDeVolta(volta: string | null | undefined): string {
   if (!volta || volta.length > 500) return ROTA_INICIO;
-  if (!/^\/app(?:[/?#]|$)/.test(volta)) return ROTA_INICIO;
+  if (!/^\/(?:app(?:[/?#]|$)|convite$)/.test(volta)) return ROTA_INICIO;
   const proibido = [...volta].some((c) => c === '\\' || c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127);
   if (proibido || volta.includes('//')) return ROTA_INICIO;
   return volta;
