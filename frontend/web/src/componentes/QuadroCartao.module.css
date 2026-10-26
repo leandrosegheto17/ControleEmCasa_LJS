@@ -1,0 +1,18 @@
+.linhas {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.linhas div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.linhas dt {
+  color: var(--cor-texto-2);
+}
+
+.linhas dd {
+  font-weight: var(--peso-semi);
+}

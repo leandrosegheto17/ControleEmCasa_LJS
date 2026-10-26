@@ -1,0 +1,7 @@
+.formulario {
+  composes: formulario from './FormularioConta.module.css';
+}
+
+.acoes {
+  composes: acoes from './FormularioConta.module.css';
+}

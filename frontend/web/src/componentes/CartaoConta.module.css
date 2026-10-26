@@ -1,0 +1,11 @@
+.cartao {
+  composes: cartao from './base/CartaoResumo.module.css';
+}
+
+.cartao + .cartao {
+  margin-top: var(--espaco-3);
+}
+
+.total {
+  composes: cartao-total from './base/CartaoResumo.module.css';
+}

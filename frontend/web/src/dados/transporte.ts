@@ -16,6 +16,8 @@ export interface OpcoesChamada {
    * nem é carregado (import com literal, descartado pelo build), só os tipos.
    */
   saida?: keyof (typeof import('@controle/contrato'))['saida'];
+  /** Igual a `saida`, para respostas que são uma lista: o schema confere cada item (só em desenvolvimento e teste). */
+  saidaLista?: keyof (typeof import('@controle/contrato'))['saida'];
   /** Uma resposta 401 esperada (ex.: `GET /api/sessao`) não aciona o aviso global de sessão perdida. */
   semAvisoDeSessao?: boolean;
 }
@@ -81,6 +83,11 @@ export async function chamar<T = void>(
   if (opcoes.saida && import.meta.env.MODE !== 'production') {
     const { saida } = await import('@controle/contrato');
     saida[opcoes.saida].parse(json);
+  }
+  if (opcoes.saidaLista && import.meta.env.MODE !== 'production') {
+    const { saida } = await import('@controle/contrato');
+    if (!Array.isArray(json)) throw new Error('resposta_fora_do_contrato');
+    for (const item of json) saida[opcoes.saidaLista].parse(item);
   }
   return json as T;
 }

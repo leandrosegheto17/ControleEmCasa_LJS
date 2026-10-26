@@ -4,6 +4,31 @@ import { AreaAutenticada } from './paginas/AreaAutenticada';
 import { AreaPublica } from './paginas/AreaPublica';
 import { NaoEncontrada } from './paginas/NaoEncontrada';
 import { Inicio } from './paginas/app/Inicio';
+import { useInstalar } from './componentes/instalar/ContextoInstalar';
+import { dispensar, pedirInstalacao } from './pwa/instalacao';
+import { useInstalacao } from './pwa/useInstalacao';
+
+/** `paginas/` não importa `pwa/`: a raiz liga o estado de instalação à área autenticada. */
+function AreaComInstalacao() {
+  const { plataforma, instalado, temPrompt, mostrarFaixa } = useInstalacao();
+  return (
+    <AreaAutenticada
+      plataforma={plataforma}
+      instalado={instalado}
+      temPrompt={temPrompt}
+      mostrarFaixa={mostrarFaixa}
+      aoPedirPrompt={() => void pedirInstalacao().catch(() => {})}
+      aoDispensar={dispensar}
+    />
+  );
+}
+
+function AjustesInstalavel({ Ajustes }: { Ajustes: typeof import('./paginas/Ajustes').Ajustes }) {
+  const { instalado, instalar } = useInstalar();
+  return <Ajustes instalado={instalado} aoInstalar={instalar} />;
+}
+
+const estreito = { estreito: true };
 
 /**
  * Rotas do front (SDD 9.3). Acesso em `/entrar` e `/redefinir-senha`; o app inteiro sob `/app`.
@@ -60,7 +85,7 @@ export const mapaRotas: RouteObject[] = [
     ],
   },
   {
-    element: <AreaAutenticada />,
+    element: <AreaComInstalacao />,
     children: [
       { path: '/app', element: <Inicio />, handle: { titulo: 'Início' } satisfies HandleRota },
       {
@@ -72,6 +97,57 @@ export const mapaRotas: RouteObject[] = [
         path: '/app/aceitar-termos',
         lazy: () => import('./paginas/app/AceitarTermos').then((m) => ({ Component: m.AceitarTermos })),
         handle: { titulo: 'Termos atualizados' } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes',
+        lazy: () =>
+          import('./paginas/Ajustes').then((m) => ({ Component: () => <AjustesInstalavel Ajustes={m.Ajustes} /> })),
+        handle: { titulo: 'Ajustes', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/contas',
+        lazy: () => import('./paginas/Contas').then((m) => ({ Component: m.Contas })),
+        handle: { titulo: 'Contas', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/contas/nova',
+        lazy: () => import('./paginas/Conta').then((m) => ({ Component: m.Conta })),
+        handle: { titulo: 'Nova conta', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/contas/:id',
+        lazy: () => import('./paginas/Conta').then((m) => ({ Component: m.Conta })),
+        handle: { titulo: 'Conta', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/formas',
+        lazy: () => import('./paginas/FormasPagamento').then((m) => ({ Component: m.FormasPagamento })),
+        handle: { titulo: 'Formas de pagamento', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/formas/nova',
+        lazy: () => import('./paginas/FormaPagamento').then((m) => ({ Component: m.FormaPagamento })),
+        handle: { titulo: 'Nova forma', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/formas/:id',
+        lazy: () => import('./paginas/FormaPagamento').then((m) => ({ Component: m.FormaPagamento })),
+        handle: { titulo: 'Forma de pagamento', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/categorias',
+        lazy: () => import('./paginas/Categorias').then((m) => ({ Component: m.Categorias })),
+        handle: { titulo: 'Categorias', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/categorias/nova',
+        lazy: () => import('./paginas/Categoria').then((m) => ({ Component: m.Categoria })),
+        handle: { titulo: 'Nova categoria', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/categorias/:id',
+        lazy: () => import('./paginas/Categoria').then((m) => ({ Component: m.Categoria })),
+        handle: { titulo: 'Categoria', ...estreito } satisfies HandleRota,
       },
       { path: '/app/*', Component: NaoEncontrada, handle: { titulo: 'Página não encontrada' } satisfies HandleRota },
     ],

@@ -5,6 +5,9 @@ import { defineConfig } from 'vitest/config';
 import { lerToken } from './scripts/lerToken.mjs';
 
 const porta = Number(process.env.PORTA ?? 5173);
+const versaoApp =
+  (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version?: string }).version ??
+  '0.0.0';
 const corFundo = lerToken(readFileSync(new URL('./src/estilo/tokens.css', import.meta.url), 'utf8'), '--cor-fundo');
 
 // No ambiente jsdom (consumidor "client") o Vite reescreve `new URL('x', import.meta.url)`
@@ -19,6 +22,7 @@ const manterImportMetaUrlDosTestes = {
 };
 
 export default defineConfig({
+  define: { __VERSAO_APP__: JSON.stringify(versaoApp) },
   plugins: [
     react(),
     {

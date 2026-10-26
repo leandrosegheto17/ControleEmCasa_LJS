@@ -1,0 +1,16 @@
+.formulario {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.nota {
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-neutro-fundo);
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}
+
+.acao {
+  justify-self: start;
+}

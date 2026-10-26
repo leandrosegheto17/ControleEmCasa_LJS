@@ -1,0 +1,16 @@
+.formulario {
+  display: grid;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-3);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.acoes > :first-child {
+  flex: 1;
+}

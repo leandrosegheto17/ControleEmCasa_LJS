@@ -1,4 +1,5 @@
 import { Botao } from '../../componentes/base/Botao';
+import { BotaoLink } from '../../componentes/base/BotaoLink';
 import { useSair } from '../../ganchos/useSair';
 import { useSessao } from '../../ganchos/useSessao';
 
@@ -14,6 +15,9 @@ export function Inicio() {
     <main>
       <h1>Controle em Casa</h1>
       {nome ? <p>Olá, {nome}.</p> : null}
+      <BotaoLink para="/app/ajustes" variante="secundario">
+        Ajustes
+      </BotaoLink>
       <Botao variante="secundario" onClick={() => sair.mutate('local')}>
         Sair
       </Botao>

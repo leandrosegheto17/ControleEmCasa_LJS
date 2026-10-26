@@ -1,0 +1,28 @@
+.app {
+  min-height: 100vh;
+}
+.conteudo {
+  padding: 0 var(--espaco-4) calc(var(--altura-barra-inferior) + var(--espaco-6) + var(--espaco-4));
+}
+
+@media (min-width: 600px) {
+  .conteudo {
+    max-width: var(--largura-conteudo-tablet);
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    grid-template-columns: var(--largura-trilho) 1fr;
+  }
+  .conteudo {
+    max-width: var(--largura-conteudo-pc);
+    margin: 0;
+    padding: 0 var(--espaco-6) var(--espaco-6);
+  }
+  .conteudo-estreito {
+    max-width: calc(var(--largura-dialogo) * 1.5);
+  }
+}

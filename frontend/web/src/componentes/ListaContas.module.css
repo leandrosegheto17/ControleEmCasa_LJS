@@ -1,0 +1,4 @@
+.lista {
+  composes: lista from './GrupoMenu.module.css';
+  margin-top: var(--espaco-3);
+}
