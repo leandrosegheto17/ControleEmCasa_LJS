@@ -1,0 +1,37 @@
+{
+  "mes": "2026-11-01",
+  "escopo": "conjunto",
+  "pode_copiar_anterior": {
+    "conjunto": true,
+    "individual": true
+  },
+  "anterior": {
+    "mes": "2026-10-01",
+    "orcado_centavos": 430000,
+    "categorias": 5
+  },
+  "total": null,
+  "linhas": [],
+  "sem_orcamento": [
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000401",
+      "nome": "Mercado"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000402",
+      "nome": "Delivery/iFood do casal"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000403",
+      "nome": "Moradia"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000404",
+      "nome": "Contas da casa"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000405",
+      "nome": "Outros da casa"
+    }
+  ]
+}

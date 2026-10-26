@@ -1,0 +1,10 @@
+.grade {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

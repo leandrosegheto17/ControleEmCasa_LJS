@@ -1,0 +1,97 @@
+{
+  "mes": "2026-10-01",
+  "pagas": 4,
+  "total": 7,
+  "previsto_a_pagar_centavos": 154000,
+  "ocorrencias": [
+    {
+      "id": "00000000-0000-4000-8000-000000000804",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000704",
+      "descricao": "Internet",
+      "categoria": "Contas da casa",
+      "vencimento": "2026-10-05",
+      "valor_previsto_centavos": 11990,
+      "valor_pago_centavos": null,
+      "situacao": "atrasada",
+      "pagador": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000801",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000701",
+      "descricao": "Aluguel",
+      "categoria": "Moradia",
+      "vencimento": "2026-10-10",
+      "valor_previsto_centavos": 120000,
+      "valor_pago_centavos": null,
+      "situacao": "pendente",
+      "pagador": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000802",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000702",
+      "descricao": "Condomínio",
+      "categoria": "Moradia",
+      "vencimento": "2026-10-15",
+      "valor_previsto_centavos": 22010,
+      "valor_pago_centavos": null,
+      "situacao": "pendente",
+      "pagador": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000803",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000703",
+      "descricao": "Luz",
+      "categoria": "Contas da casa",
+      "vencimento": "2026-10-08",
+      "valor_previsto_centavos": 18000,
+      "valor_pago_centavos": 18740,
+      "situacao": "paga",
+      "pagador": {
+        "nome": "Beatriz",
+        "sou_eu": false
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000806",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000706",
+      "descricao": "Água",
+      "categoria": "Contas da casa",
+      "vencimento": "2026-10-07",
+      "valor_previsto_centavos": 9000,
+      "valor_pago_centavos": 9510,
+      "situacao": "paga",
+      "pagador": {
+        "nome": "Ana",
+        "sou_eu": true
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000807",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000707",
+      "descricao": "Gás",
+      "categoria": "Contas da casa",
+      "vencimento": "2026-10-06",
+      "valor_previsto_centavos": 5000,
+      "valor_pago_centavos": 5000,
+      "situacao": "paga",
+      "pagador": {
+        "nome": "Beatriz",
+        "sou_eu": false
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000805",
+      "despesa_fixa_id": "00000000-0000-4000-8000-000000000705",
+      "descricao": "Diarista",
+      "categoria": "Outros da casa",
+      "vencimento": "2026-10-04",
+      "valor_previsto_centavos": 10000,
+      "valor_pago_centavos": 10000,
+      "situacao": "paga",
+      "pagador": {
+        "nome": "Beatriz",
+        "sou_eu": false
+      }
+    }
+  ]
+}

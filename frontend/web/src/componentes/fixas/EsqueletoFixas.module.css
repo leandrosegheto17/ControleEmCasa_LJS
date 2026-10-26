@@ -1,0 +1,25 @@
+.cartao {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  padding: var(--espaco-4);
+  box-shadow: var(--sombra-cartao);
+}
+.titulo,
+.linha {
+  background: var(--cor-esqueleto);
+  border-radius: var(--raio-controle);
+}
+.titulo {
+  height: 14px;
+  width: 40%;
+  margin-bottom: var(--espaco-3);
+}
+.linha {
+  height: 52px;
+  width: 100%;
+  margin-top: var(--espaco-3);
+}
+.curta {
+  width: 70%;
+}

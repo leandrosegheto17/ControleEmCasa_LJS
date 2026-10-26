@@ -1,0 +1,65 @@
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000701",
+    "descricao": "Aluguel",
+    "categoria_id": "00000000-0000-4000-8000-000000000403",
+    "categoria": "Moradia",
+    "valor_previsto_centavos": 120000,
+    "dia_vencimento": 10,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000702",
+    "descricao": "Condomínio",
+    "categoria_id": "00000000-0000-4000-8000-000000000403",
+    "categoria": "Moradia",
+    "valor_previsto_centavos": 22010,
+    "dia_vencimento": 15,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000703",
+    "descricao": "Luz",
+    "categoria_id": "00000000-0000-4000-8000-000000000404",
+    "categoria": "Contas da casa",
+    "valor_previsto_centavos": 18000,
+    "dia_vencimento": 8,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000704",
+    "descricao": "Internet",
+    "categoria_id": "00000000-0000-4000-8000-000000000404",
+    "categoria": "Contas da casa",
+    "valor_previsto_centavos": 11990,
+    "dia_vencimento": 5,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000705",
+    "descricao": "Diarista",
+    "categoria_id": "00000000-0000-4000-8000-000000000405",
+    "categoria": "Outros da casa",
+    "valor_previsto_centavos": 10000,
+    "dia_vencimento": 4,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000706",
+    "descricao": "Água",
+    "categoria_id": "00000000-0000-4000-8000-000000000404",
+    "categoria": "Contas da casa",
+    "valor_previsto_centavos": 9000,
+    "dia_vencimento": 7,
+    "encerrada_em": null
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000707",
+    "descricao": "Gás",
+    "categoria_id": "00000000-0000-4000-8000-000000000404",
+    "categoria": "Contas da casa",
+    "valor_previsto_centavos": 5000,
+    "dia_vencimento": 6,
+    "encerrada_em": null
+  }
+]

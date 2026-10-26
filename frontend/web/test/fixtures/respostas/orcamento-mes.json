@@ -1,0 +1,59 @@
+{
+  "mes": "2026-10-01",
+  "escopo": "conjunto",
+  "pode_copiar_anterior": {
+    "conjunto": false,
+    "individual": false
+  },
+  "total": {
+    "orcado_centavos": 430000,
+    "realizado_centavos": 241870,
+    "percentual": 56,
+    "situacao": "dentro",
+    "resultado_centavos": 188130,
+    "parcial": true
+  },
+  "linhas": [
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000404",
+      "nome": "Contas da casa",
+      "orcado_centavos": 30000,
+      "realizado_centavos": 33250,
+      "percentual": 111,
+      "situacao": "estourado"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000402",
+      "nome": "Delivery/iFood do casal",
+      "orcado_centavos": 40000,
+      "realizado_centavos": 36800,
+      "percentual": 92,
+      "situacao": "atencao"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000401",
+      "nome": "Mercado",
+      "orcado_centavos": 100000,
+      "realizado_centavos": 76820,
+      "percentual": 77,
+      "situacao": "dentro"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000405",
+      "nome": "Outros da casa",
+      "orcado_centavos": 20000,
+      "realizado_centavos": 10000,
+      "percentual": 50,
+      "situacao": "dentro"
+    },
+    {
+      "categoria_id": "00000000-0000-4000-8000-000000000403",
+      "nome": "Moradia",
+      "orcado_centavos": 240000,
+      "realizado_centavos": 85000,
+      "percentual": 35,
+      "situacao": "dentro"
+    }
+  ],
+  "sem_orcamento": []
+}

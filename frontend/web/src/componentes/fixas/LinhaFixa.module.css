@@ -1,0 +1,17 @@
+ul > li.linha {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: var(--espaco-1);
+}
+.item-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.item-titulo {
+  font-weight: var(--peso-medio);
+}
+.item-sub {
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}

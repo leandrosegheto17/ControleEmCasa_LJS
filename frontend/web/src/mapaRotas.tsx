@@ -33,7 +33,7 @@ const comMes = { comMes: true };
 
 /**
  * Rotas do front (SDD 9.3). Acesso em `/entrar` e `/redefinir-senha`; o app inteiro sob `/app`.
- * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2); fixas, orçamento e metas vêm nos lotes seguintes.
+ * Etapa 12: Início, Lançar, Lançamentos e Ajustes (lotes 1 e 2), fixas e orçamento (lote 3); metas vêm no lote seguinte.
  * Rotas de `/app/...` ficam antes do coringa `/app/*`. Para a etapa 14, a landing em `/`.
  */
 export const mapaRotas: RouteObject[] = [
@@ -101,6 +101,26 @@ export const mapaRotas: RouteObject[] = [
         path: '/app/lancamentos/:id',
         lazy: () => import('./paginas/Lancamento').then((m) => ({ Component: m.Lancamento })),
         handle: { titulo: 'Lançamento', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/fixas',
+        lazy: () => import('./paginas/DespesasFixas').then((m) => ({ Component: m.DespesasFixas })),
+        handle: { titulo: 'Despesas fixas', ...comMes, ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/fixas/nova',
+        lazy: () => import('./paginas/DespesaFixa').then((m) => ({ Component: m.DespesaFixa })),
+        handle: { titulo: 'Nova despesa fixa', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/fixas/:id',
+        lazy: () => import('./paginas/DespesaFixa').then((m) => ({ Component: m.DespesaFixa })),
+        handle: { titulo: 'Despesa fixa', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/orcamento',
+        lazy: () => import('./paginas/Orcamento').then((m) => ({ Component: m.Orcamento })),
+        handle: { titulo: 'Orçamento', ...comMes } satisfies HandleRota,
       },
       {
         path: '/app/bem-vindo',

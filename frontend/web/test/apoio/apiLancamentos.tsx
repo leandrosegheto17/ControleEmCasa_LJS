@@ -213,7 +213,7 @@ function alterarParcela(s: ServidorLancamentos, id: string, corpo: Corpo): Respo
   return json({ code: 'registro_invalido', message: 'x' }, 404);
 }
 
-async function atender(s: ServidorLancamentos, metodo: string, url: string, corpo: Corpo): Promise<Response> {
+export async function atender(s: ServidorLancamentos, metodo: string, url: string, corpo: Corpo): Promise<Response> {
   const alvo = new URL(url, 'http://x');
   const caminho = alvo.pathname;
   const chave = `${metodo} ${caminho.replace(/\/[0-9a-f-]{36}(?=\/|$)/g, '/:id')}`;

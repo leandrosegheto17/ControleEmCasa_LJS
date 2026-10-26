@@ -8,7 +8,8 @@ export { ehConfirmarDescarte } from '../dados/comandos/lancamentos';
 
 type ArgsData = Parameters<typeof alterarDataParcela>[0] & { lancamentoId: string };
 
-const LISTAS = [CHAVES.lancamentosMes, ...TOTAIS_DO_MES] as const;
+/** Excluir (ou editar) o lançamento de pagamento de uma fixa devolve a ocorrência a pendente (RN-15). */
+const LISTAS = [CHAVES.lancamentosMes, CHAVES.ocorrenciasMes, ...TOTAIS_DO_MES] as const;
 
 export function useComandosLancamento() {
   const cliente = useQueryClient();
