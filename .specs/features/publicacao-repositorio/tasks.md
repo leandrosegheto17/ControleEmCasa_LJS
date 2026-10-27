@@ -41,7 +41,7 @@ Escopo: só o que dá para fazer **no repositório, antes de existir produção*
 
 ## Execution Plan
 
-As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 11 tarefas, cerca de 15 h de trabalho humano: as 7 do primeiro lote (T1 a T7, entregues e verificadas em `validation.md`, FAIL por lacunas de teste) e 4 do lote de correção (T8 a T11, Phase 4), decidido em 2026-10-27 depois da verificação.
+As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 14 tarefas, cerca de 17 h de trabalho humano: as 7 do primeiro lote (T1 a T7), 4 do lote de correção (T8 a T11, Phase 4) e 3 do lote seguinte à reverificação (T12 a T14, Phase 5), todos decididos em 2026-10-27 a partir do `validation.md`.
 
 ### Phase 1: Configuração do Worker
 
@@ -78,6 +78,15 @@ A verificação (`validation.md`) achou que a CSP que o navegador aplica ao app 
 T8 → T9
 T10
 T11
+```
+
+### Phase 5: Correções da reverificação
+
+A reverificação achou o comentário do `_headers` gravado em Latin-1 (o arquivo deixou de ser UTF-8 e o `dist/_headers` sem DSN não sai idêntico), a linha de comando do gerador sem teste e 3 casos de host sem teste.
+
+```
+T12 → T13
+T14
 ```
 
 ---
@@ -332,10 +341,78 @@ T11
 
 ---
 
+### Phase 5: Correções da reverificação
+
+#### T12: `_headers` em UTF-8 e teste byte a byte
+
+**What**: Regravar o comentário da linha 3 de `frontend/web/public/_headers` em UTF-8 (hoje há bytes Latin-1 soltos) e provar com teste que, sem DSN, o arquivo gerado é idêntico ao original byte a byte.
+**Estimativa**: 30 min
+**Where**: `frontend/web/public/_headers`
+**Depends on**: None
+**Reuses**: `frontend/web/scripts/gerar-headers.test.mjs`
+**Requirement**: RNF-06; `validation.md` (reverificação, lacuna 1)
+
+**Done when**:
+
+- [ ] `public/_headers` é UTF-8 válido (o teste lê os bytes e decodifica com `TextDecoder` em modo fatal)
+- [ ] Teste novo compara o `Buffer` do original com o do gerado sem DSN e falha com o arquivo em Latin-1 (provado na cópia)
+- [ ] Gate quick verde (pacote web)
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(web): _headers volta a UTF-8 e o teste compara bytes`
+
+---
+
+#### T13: Teste da linha de comando do gerador de `_headers`
+
+**What**: Teste que executa `node scripts/gerar-headers.mjs` em pasta temporária com DSN válido, DSN com `;` e sem DSN, e afirma o arquivo gravado e o aviso no `stderr`.
+**Estimativa**: 1h
+**Where**: `frontend/web/scripts/gerar-headers-cli.test.mjs`
+**Depends on**: T12
+**Reuses**: `frontend/web/scripts/gerar-headers.mjs`
+**Requirement**: RNF-06, RNF-08; `validation.md` (reverificação, lacuna 2: mutantes C01 a C06)
+
+**Done when**:
+
+- [ ] DSN válido: arquivo gravado com `https://<host>` no `connect-src`, sem aviso
+- [ ] DSN com `;`: arquivo idêntico ao original e aviso `[gerar-headers] VITE_SENTRY_DSN ignorado` no `stderr`
+- [ ] Sem DSN: arquivo idêntico ao original, sem aviso; lê `VITE_SENTRY_DSN` e não `SENTRY_DSN`
+- [ ] Os 6 estragos C01 a C06 do `validation.md` fazem o teste falhar (provado na cópia)
+- [ ] Gate quick verde (pacote web)
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(web): linha de comando do gerador de _headers`
+
+---
+
+#### T14: Host do DSN: âncora inicial e casos com aspas e vírgula
+
+**What**: Ancorar o início da regex de host em `gerar-headers.mjs` e acrescentar, em bloco novo de testes, os DSNs `https://x@a;b.com/1`, `https://x@a".com/1` e `https://x@a,b.com/1` como recusados.
+**Estimativa**: 30 min
+**Where**: `frontend/web/scripts/gerar-headers.mjs`
+**Depends on**: None
+**Reuses**: `frontend/web/scripts/gerar-headers.test.mjs` (sem editar os testes existentes: bloco novo)
+**Requirement**: RNF-06; `validation.md` (reverificação, lacuna 3: mutantes G15, G19, G22)
+
+**Done when**:
+
+- [ ] Os 3 DSNs são recusados com aviso e o `connect-src` fica `'self'`
+- [ ] Cada teste falha com o estrago correspondente (regex sem âncora; aceitar aspas; aceitar vírgula), provado na cópia
+- [ ] Nenhum teste existente alterado
+- [ ] Gate quick verde (pacote web)
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(web): gerar-headers recusa host com aspas, vírgula e sem âncora`
+
+---
+
 ## Phase Execution Map
 
 ```
-Phase 1 → Phase 2 → Phase 3 → Phase 4
+Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 
 Phase 1:  T1   T2
 Phase 2:  T3   T5   T6
@@ -343,6 +420,8 @@ Phase 3:  T4 ------→ T7
 Phase 4:  T8 ------→ T9
           T10
           T11
+Phase 5:  T12 -----→ T13
+          T14
 ```
 
-Lote 1 (T1 a T7): entregue. Lote 2 (T8 a T11, 4 tarefas): cabe num trabalhador só. Ao fim, a reverificação dos mutantes M2c, M3g, M3j e M3k pelo agente `verificador` e a aprovação seguir / ajustar / parar.
+Lote 1 (T1 a T7): entregue. Lote 2 (T8 a T11): entregue. Lote 3 (T12 a T14, 3 tarefas): cabe num trabalhador só. Ao fim, reverificação só de T12 a T14 pelo agente `verificador` e a aprovação seguir / ajustar / parar.

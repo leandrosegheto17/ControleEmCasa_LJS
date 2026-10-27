@@ -246,3 +246,151 @@ Sem `spec.md` com IDs; requisitos citados nas tarefas: RNF-04 (T5, medir CPU), R
 
 **O que funciona**: domínio custom, CSP com host do Sentry, `conferir-banco` (detecta `BYPASSRLS`, `FORCE` faltando e migration pendente num Postgres 18 real), medição de CPU e de retomada a frio com recusa de `/api/health`, fumaça ampliada com rollback, runbook sem comando inventado.
 **Próximos passos**: Fix 1 a 3, depois nova verificação (rápida: só os três mutantes). A trava de testes do commit final fica para quem integrar.
+
+---
+
+# Reverificação (lote de correção T8 a T11)
+
+**Data**: 2026-10-27
+**Intervalo**: `393e388..8ad9164` (c8a3016, e2764b3, 6c7c52a, 8ad9164, cf49eb0, dbdc2de)
+**Verificador**: subagente independente (não escreveu o código)
+
+## Validation: publicacao-repositorio (reverificação) — FAIL ❌
+
+Os 4 mutantes da primeira rodada (M3g, M3k, M3j e o equivalente de M2c) estão **mortos**, e o gate está verde (3905 testes, 0 falhas). O veredito continua FAIL por dois motivos novos, ambos na T9:
+
+1. **O `public/_headers` ficou com bytes inválidos em UTF-8** (comentário da linha 3, introduzido em e2764b3), então o `dist/_headers` gerado **não é idêntico** ao original, que é o critério da T9 ("sem DSN o arquivo gerado é idêntico ao de `public/_headers`"). Verificado no build real. O teste não pega porque lê os dois lados como texto UTF-8.
+2. **A entrada de linha de comando do gerador (ler `VITE_SENTRY_DSN`, imprimir o aviso, gravar `dist/_headers`) não tem nenhum teste.** 6 mutantes sobrevivem, entre eles "DSN inválido sem avisar" e "ignora a variável do DSN". Só a função pura e a string do script `build` são testadas.
+
+## Tarefas T8 a T11: `Done when` → evidência
+
+| Tarefa | Critério | Evidência | Resultado |
+| ------ | -------- | --------- | --------- |
+| T8 | `cabecalhos.ts` e `saude-e-cabecalhos.test.ts` voltam ao estado anterior à T2 | `git diff 5ad1f0f -- backend/api/src/middleware/cabecalhos.ts backend/api/src/saude-e-cabecalhos.test.ts` vazio (rodado por mim) | ✅ |
+| T8 | Nenhum teste de antes da T2 alterado | o mesmo diff vazio; `git diff d17534b..HEAD -- '*.test.*'` não lista mais `saude-e-cabecalhos.test.ts` | ✅ |
+| T8 | Linha da T2 no Log do GUARDRAILS sai junto, motivo no corpo do commit | `git show c8a3016`: `.md/GUARDRAILS.md | 1 -`; o corpo explica "A CSP da API só vale para respostas JSON" | ✅ |
+| T8 | Gate quick verde | pacote `api` no gate: 54 arquivos, 680 testes (686 menos os 6 do revert), 0 falhas | ✅ |
+| T9 | DSN válido põe `https://<host>` no `connect-src` e mais nada; sem DSN o arquivo é idêntico | `frontend/web/scripts/gerar-headers.test.mjs:10-14` `expect(conteudo).toBe(original.replace("connect-src 'self'", "connect-src 'self' https://o1.ingest.us.sentry.io"))`; `:16-18` `expect(gerarHeaders(original, dsn)).toEqual({ conteudo: original, aviso: undefined })`. **No build real o `dist/_headers` sem DSN difere do `public/_headers` em bytes** (char 239, linha 3) | ⚠️ função ✅; arquivo real ❌ (achado 1) |
+| T9 | Injeção: `;`, `*`, `'`, espaço, quebra de linha, `http:` recusados, aviso, CSP sem diretiva extra | `gerar-headers.test.mjs:32-50`, `it.each` de 12 casos: `expect(aviso).toMatch(/VITE_SENTRY_DSN ignorado/)`, `expect(conteudo).toBe(original)`, `expect(cspDe(conteudo)).toBe(cspDe(original))`. Nos mutantes abaixo: `;`, `*`, `'`, `http:`, `wss:`, localhost, DSN inteiro e "sem aviso" mortos; `"`, `,` e lixo antes do host sobrevivem | ⚠️ parcial (achado 3) |
+| T9 | `build` usa o script; `_headers` final mantém HSTS, nosniff e demais linhas | `gerar-headers.test.mjs:54-57` `expect(pkg.scripts.build).toBe('vite build && node scripts/gerar-headers.mjs')`; `:20-30` `toContain` de HSTS, nosniff, Referrer-Policy e Permissions-Policy. B01, B02, B03 e H01 a H03 mortos. Build real: `exit=0`, `dist/_headers` com todas as linhas | ✅ |
+| T9 | Linha no Log do GUARDRAILS | `.md/GUARDRAILS.md:275` (G-35: o `connect-src` do `dist/_headers` ganha o host exato de `VITE_SENTRY_DSN`) | ✅ |
+| T9 | Gate quick (pacote web) | `pnpm --filter @controle/web exec vitest run scripts/gerar-headers.test.mjs`: 18 passaram; o arquivo entra pelo `frontend/web/vite.config.ts:89` (`scripts/**/*.test.mjs`, já existente) | ✅ |
+| T10 | Teste novo passa e falha com `like '%'` e sem o escape do `_` | `backend/scripts/src/operacao/conferir-banco.test.ts:112-138` (`controleXfoo` com `bypassrls createrole`, `outra_fora` com `bypassrls createdb`): `expect(await main(...)).toBe(0)`, `not.toContain(quaseCasa)`, `not.toContain(fora)`, `expect(contagem()).toBe(antes + 1)`. M3g e M3k: `AssertionError: expected 1 to be +0`, só esse teste falha | ✅ |
+| T10 | Roles temporárias sempre derrubadas | `finally` com `drop role if exists` (`:133-137`); depois dos mutantes (que fazem o teste falhar), `pg_roles` do banco local só tem `controle_owner`, `controle_app`, `controle_backup_ro` | ✅ |
+| T10 | Nenhum teste existente alterado | `git diff 393e388..HEAD -- backend/scripts/src/operacao/conferir-banco.test.ts`: `+28 / -0` | ✅ |
+| T11 | Falha quando uma das três entradas some ou aponta para outro arquivo; o arquivo existe | `backend/scripts/src/operacao/scripts-package.test.ts:13-22` `expect(partes[0]).toBe('tsx')`, `expect(partes.at(-1)).toBe(arquivo)`, `expect(existsSync(...)).toBe(true)`. M3j1 a M3j7 mortos | ✅ |
+| T1 a T7 | Continuam entregues | Pacotes `scripts` (491) e `api` (680) verdes no gate, incluindo `wrangler-dominio`, `deploy-workflow`, `medir-*` e `conferir-banco`; o diff da CSP da API contra `5ad1f0f` vazio (a T2 sai de propósito, o resto não é tocado) | ✅ |
+
+## Mutantes da reverificação
+
+Cópia isolada: `git worktree` em pasta fora do projeto (`core.autocrlf=false`; o `pnpm exec` criou ali o próprio `node_modules`), `EXIGIR_BANCO=1` contra o Postgres 18 local. Linha de base na cópia: 19 testes verdes em `conferir-banco` e `scripts-package`, 18 em `gerar-headers`. Cópia apagada e `git worktree prune` feito; `git status --porcelain` da árvore real vazio antes e depois.
+
+### Primeira rodada (M3g, M3k, M3j)
+
+| # | Falha injetada | Teste que mata | Resultado |
+| - | -------------- | -------------- | --------- |
+| M3g | `like 'controle\\_%'` → `like '%'` | `conferir-banco.test.ts:112` ("só confere roles controle_*...") | ✅ Morto |
+| M3k | `like 'controle\\_%'` → `like 'controle_%'` | o mesmo | ✅ Morto |
+| M3j1 | remove a entrada `conferir-banco` | `scripts-package.test.ts` | ✅ Morto |
+| M3j2 | remove `medir-cpu-publicado` | idem | ✅ Morto |
+| M3j3 | remove `medir-retomada-a-frio` | idem | ✅ Morto |
+| M3j4 | `conferir-banco` aponta para `cache-hyperdrive.ts` | idem | ✅ Morto |
+| M3j5 | `medir-cpu-publicado` aponta para `src/medir-cpu.ts` | idem | ✅ Morto |
+| M3j6 | `medir-retomada-a-frio` aponta para arquivo inexistente | idem | ✅ Morto |
+| M3j7 | `medir-retomada-a-frio` troca `tsx` por `node` | idem | ✅ Morto |
+
+### Validação do host na T9 (o equivalente de M2c)
+
+| # | Falha injetada (`gerar-headers.mjs`) | Resultado |
+| - | ------------------------------------ | --------- |
+| G01, G02, G03 (rótulo todo) | as classes de caractere do host aceitam `;`, `*`, `'` (troca `a-z0-9` por `a-z0-9;` etc. em todas as classes) | ✅ Mortos (3). As versões que mexem só no primeiro rótulo eram mal formadas (o `;` cai no segundo rótulo) e foram descartadas |
+| G04 | regex do host vira `/.*/` | ✅ Morto (5 testes) |
+| G05 | aceita `http:` | ✅ Morto |
+| G06 | remove a checagem de protocolo | ✅ Morto (http e wss) |
+| G07 | aceita host sem ponto (`localhost`) | ✅ Morto |
+| G08, G09 | `https://` fixo vira `http://` ou `wss://` | ✅ Mortos |
+| G10 | escreve o DSN inteiro no `_headers` | ✅ Morto |
+| G11 | recusa sem aviso (a função devolve `aviso: undefined`) | ✅ Morto (12 testes) |
+| G16 | regex sem âncora final | ✅ Morto |
+| G17 | `new URL` falha e o texto cru vira host | ✅ Morto |
+| **G15** | regex sem âncora inicial (`a;b.com` passa) | ❌ **Sobreviveu**. Nenhum caso tem lixo antes de um sufixo de host válido. Deixaria entrar um nome de diretiva com ponto na CSP (inócuo no navegador, mas é a defesa que o teste promete cobrir) |
+| **G19** | aceita `"` no host (`new URL('https://x@a".com/1').host` devolve `a".com`) | ❌ **Sobreviveu**. Só há caso com `'`, não com `"` |
+| **G22** | aceita `,` no host (`new URL(...).host` devolve `a.com,b.com`) | ❌ **Sobreviveu**. Vírgula separa políticas no cabeçalho CSP |
+| G12, G13 | remove a checagem de espaço e controle do DSN cru | Sobreviveu, **equivalente**: `new URL` descarta tab e `\n`, e o host que sobra tem de passar na regex; a saída só leva host validado. Defesa em profundidade |
+| G14 | porta aceita lixo | Sobreviveu, **equivalente**: `new URL` já lança em porta não numérica |
+| G18 | tira o `toLowerCase` do host | Sobreviveu, **equivalente**: `URL` já devolve o host em minúsculas |
+| G20 | aceita espaço no host | Sobreviveu, **equivalente**: `new URL` lança com espaço no host |
+| G21 | aceita `_` no host | Sobreviveu, **irrelevante** para a CSP; sem critério |
+
+### Novos mutantes da T9 (comportamento e build)
+
+| # | Falha injetada | Resultado |
+| - | -------------- | --------- |
+| H01, H02, H03 | perde HSTS e nosniff / só nosniff / só HSTS ao gerar | ✅ Mortos |
+| H04, H05, H06 | sem DSN o arquivo deixa de ser idêntico (`+ '\n'`, `trim()`, vazio) | ✅ Mortos (15 testes cada) |
+| H07, H08, H09, H10 | o host vem com `script-src` extra, no `default-src`, com `'unsafe-inline'`, ou o `'self'` some | ✅ Mortos |
+| H11 | DSN em branco passa a ser recusado com aviso | ✅ Morto |
+| B01 | `build` deixa de chamar o gerador | ✅ Morto |
+| B02 | gerador roda antes do `vite build` (o vite sobrescreveria) | ✅ Morto |
+| B03 | `vite build ; node ...` | ✅ Morto |
+| **C01** | a linha de comando não imprime o aviso (silencioso no build) | ❌ **Sobreviveu** |
+| **C02** | a linha de comando ignora `VITE_SENTRY_DSN` | ❌ **Sobreviveu** |
+| **C03** | grava o original em vez do gerado | ❌ **Sobreviveu** |
+| **C04** | não grava nada | ❌ **Sobreviveu** |
+| **C05** | lê `SENTRY_DSN` em vez de `VITE_SENTRY_DSN` | ❌ **Sobreviveu** |
+| **C06** | com DSN inválido grava o DSN cru no `connect-src` | ❌ **Sobreviveu** |
+
+**Placar**: 54 mutações. 36 mortas; 9 sobreviveram com relevância (C01 a C06, G15, G19, G22); 6 sobreviventes equivalentes ou irrelevantes (G12, G13, G14, G18, G20, G21); 3 mal formadas (G01 a G03 do primeiro rótulo, substituídas pelas versões de rótulo inteiro, mortas).
+
+## Build real do front (item 3)
+
+`cd frontend/web && VITE_SENTRY_DSN=... pnpm build`, três vezes. `dist/` é ignorado (`.gitignore:4`); `git status --porcelain` vazio depois.
+
+| Caso | Saída do gerador | `connect-src` em `dist/_headers` |
+| ---- | ---------------- | -------------------------------- |
+| DSN válido `https://chave@o1.ingest.us.sentry.io/123` | nenhum aviso, `exit=0` | `connect-src 'self' https://o1.ingest.us.sentry.io;` |
+| DSN com `;`: `https://x@a.com;script-src/1` | `[gerar-headers] VITE_SENTRY_DSN ignorado (host inválido); a CSP fica sem o host do Sentry.`, `exit=0` | `connect-src 'self';` |
+| Sem DSN (variável vazia) | nenhum aviso, `exit=0` | `connect-src 'self';` |
+
+Nos três casos as linhas que não são comentário são idênticas às de `public/_headers`. **Mas `cmp dist/_headers public/_headers` acusa diferença nos três (char 239, linha 3)**: o `public/_headers` tem bytes Latin-1 soltos no comentário da linha 3 (`ingest\xE3o`, `v\xE1lido`, `est\xE1`, `exce\xE7\xE3o`), num arquivo que no resto é UTF-8. `decode('utf8')` do `public/_headers` no HEAD falha com `invalid continuation byte`; no `393e388` o arquivo era UTF-8 válido. O gerador lê como `utf8`, troca esses bytes por U+FFFD (`efbf bd`) e grava o resultado. O comentário é ignorado pelo Cloudflare, então o efeito prático é estético, mas o arquivo commitado ficou corrompido e o critério "idêntico" falha na letra.
+
+## Integridade dos testes (item 4)
+
+- `git diff d17534b..HEAD -- '*.test.*'`: 7 arquivos, **533 linhas acrescentadas, 0 removidas** (`saude-e-cabecalhos.test.ts` nem aparece mais: o revert da T8 o devolve ao estado de `d17534b`). Nenhum teste apagado, pulado, comentado ou enfraquecido.
+- `git diff 393e388..HEAD -- '*.test.*'`: a única remoção é o bloco de 30 linhas do `saude-e-cabecalhos.test.ts` (os 6 testes da T2 revertidos na T8, criados dentro da própria feature, em 743236f). Esperado e registrado. O resto é acréscimo: `conferir-banco.test.ts` +28, `scripts-package.test.ts` +23, `gerar-headers.test.mjs` +58.
+- A contagem fecha: 3889 antes, menos 6 (API 686 → 680), mais 4 (scripts 487 → 491) e mais 18 (web 2106 → 2124, o novo `gerar-headers.test.mjs`) = 3905.
+
+## `tasks.md` (item 5)
+
+11 tarefas (T1 a T11). Estimativas todas ≤ 2 h (`tasks.md:92,113,139,161,183,206,228,251,272,295,317`: 1h, 2h, 2h, 2h, 1,5h, 2h, 30 min, 30 min, 2h, 1h, 30 min). `python .claude/skills/tlc-spec-driven/scripts/validate_tasks.py publicacao-repositorio`: **0 erros, 1 aviso** (T7, `Tests: none`, esperado: a matriz de cobertura diz `none` para documentação).
+
+## Gate
+
+`pnpm lint && pnpm typecheck && EXIGIR_BANCO=1 pnpm test` na árvore real, um processo por vez, Postgres 18 na 55432.
+
+| Pacote | Arquivos | Testes | Falhas |
+| ------ | -------- | ------ | ------ |
+| contrato | 11 | 116 | 0 |
+| scripts | 29 | 491 | 0 |
+| dominio | 14 | 494 | 0 |
+| frontend/web | 220 | 2124 | 0 |
+| api | 54 | 680 | 0 |
+| **Total** | **328** | **3905** | **0** |
+
+`lint` e `typecheck` com saída 0. Nenhum teste instável falhou nesta rodada. A trava `trava-testes.py --rodar` não foi rodada por mim (registra estado de commit).
+
+## Achados em ordem de gravidade
+
+1. **(Maior) `public/_headers` com bytes inválidos em UTF-8**, e por isso o `dist/_headers` sem DSN não é idêntico ao original. `frontend/web/public/_headers:3`, commit e2764b3. Falta também um teste que compare o arquivo gerado byte a byte (hoje os dois lados são lidos como texto). **Correção proposta**: regravar a linha 3 em UTF-8 e acrescentar um teste que roda o gerador e compara o `Buffer` de `dist/_headers` com o de `public/_headers` sem DSN.
+2. **(Maior) A linha de comando do gerador não tem teste** (`gerar-headers.mjs`, bloco `if (process.argv[1] === ...)`): C01 a C06 sobrevivem. Sem teste, o aviso pode sumir, a variável pode ser lida errada ou o arquivo pode nem ser gravado, e o `build` continua verde. **Correção proposta**: teste que executa `node scripts/gerar-headers.mjs` com `VITE_SENTRY_DSN` válido, com `;` e ausente, afirmando o `connect-src`, o aviso no `stderr` e o arquivo gravado (origem e destino configuráveis, ou rodar sobre o `dist/` ignorado).
+3. **(Médio) Três lacunas na validação do host**: G15 (âncora inicial; caso `https://x@a;b.com/1`), G19 (`"`) e G22 (`,`). **Correção proposta**: acrescentar esses três DSNs ao `it.each` de recusa.
+4. **(Menor) Equivalentes** G12 a G14, G18, G20: a defesa é redundante com `new URL` e a regex; sem tarefa.
+5. **Observações herdadas, sem tarefa**: banco virgem dá mensagem genérica em `conferir-banco`; `IGNORAR_ROLES`; checkout com CRLF no Windows (a cópia isolada com `core.autocrlf=false` rodou limpa).
+
+## Resumo da reverificação
+
+**Geral**: ⚠️ FAIL (2 lacunas na T9; T8, T10 e T11 completas).
+**Critérios**: T8, T10, T11 e T1 a T7 com evidência; T9 com o critério "idêntico" falho no build real e a injeção parcial.
+**Sensor**: 54 mutações, 36 mortas, 9 vivas relevantes, 6 equivalentes ou irrelevantes, 3 mal formadas e descartadas.
+**Gate**: 3905 passaram, 0 falharam.
+**Próximo passo**: Fix A (encoding do `_headers` e teste byte a byte), Fix B (teste da linha de comando), Fix C (3 DSNs a mais no `it.each`); depois nova rodada só nos mutantes C01 a C06, G15, G19 e G22.
