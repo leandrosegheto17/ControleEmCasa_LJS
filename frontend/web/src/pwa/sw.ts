@@ -3,12 +3,13 @@ import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { NetworkOnly } from 'workbox-strategies';
 import { NAVEGACAO_NEGADA, NAVEGACAO_PERMITIDA, ehChamadaApi } from './configuracaoSw';
+import { registrarHandlersPush, type EscopoPush } from './handlersPush';
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<string | { url: string; revision: string | null }>;
 };
 
-// Service worker do app (injectManifest). Os handlers de push e notificationclick entram na etapa 15.
+// Service worker do app (injectManifest). Os handlers de push e notificationclick (etapa 15) estão em `handlersPush.ts`.
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -22,6 +23,9 @@ registerRoute(
     denylist: NAVEGACAO_NEGADA,
   }),
 );
+
+// Web Push (RN-27): carga só de texto, clique só para `/app/...` do mesmo origin.
+registrarHandlersPush(self as unknown as EscopoPush);
 
 // registerType "autoUpdate": a versão nova instala, assume e atualiza as abas abertas.
 void self.skipWaiting();

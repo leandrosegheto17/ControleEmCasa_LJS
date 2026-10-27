@@ -31,6 +31,10 @@ export const CHAVES = {
   lar: ['lar'],
   /** Plano do lar e a cobrança em aberto (`GET /api/plano`). */
   plano: ['plano'],
+  /** Situação do navegador para o Web Push (permissão e inscrição deste aparelho). */
+  pushEstado: ['push_estado'],
+  /** Preferências de notificação (`GET /api/notificacoes/preferencias`). */
+  preferenciasPush: ['preferencias_push'],
 } as const;
 
 /** O que muda de total quando um lançamento é criado, editado ou excluído: o resumo e o realizado do orçamento. */

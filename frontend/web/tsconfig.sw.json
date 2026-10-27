@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "lib": ["ES2023", "WebWorker"], "types": [] },
-  "include": ["src/pwa/sw.ts", "src/pwa/configuracaoSw.ts"]
+  "include": ["src/pwa/sw.ts", "src/pwa/configuracaoSw.ts", "src/pwa/cargaPush.ts", "src/pwa/handlersPush.ts"]
 }

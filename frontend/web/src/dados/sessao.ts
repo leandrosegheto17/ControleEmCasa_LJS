@@ -1,5 +1,6 @@
 import type { EntradaCadastro, SaidaSessaoAtual } from '@controle/contrato';
 import { limparAparelho } from './aparelho';
+import { removerInscricaoAoSair } from './push';
 import { chamar } from './transporte';
 
 export type SessaoAtual = SaidaSessaoAtual;
@@ -72,6 +73,8 @@ async function aceitarSemSessao(operacao: Promise<unknown>): Promise<void> {
 
 /** Encerra só esta sessão. Sem rede lança `rede` e mantém sessão e dados locais. */
 export async function sair(): Promise<void> {
+  // G-39: a inscrição de push sai antes da sessão (o DELETE precisa dela); nada daqui impede a saída.
+  await removerInscricaoAoSair().catch(() => undefined);
   await aceitarSemSessao(chamar('POST', '/api/sessao/sair', undefined, { semAvisoDeSessao: true }));
   await encerrarNoAparelho();
 }

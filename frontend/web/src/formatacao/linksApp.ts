@@ -37,3 +37,5 @@ export const LINK_PLANO = noApp('/ajustes/plano');
 export const LINK_LAR = noApp('/ajustes/lar');
 /** Conta: exclusão da própria conta (SDD 9.3; RN-26). Exige sessão, não exige lar. */
 export const LINK_CONTA = noApp('/ajustes/conta');
+/** Notificações: aviso neste aparelho e preferências (SDD 9.3; RN-27). */
+export const LINK_NOTIFICACOES = noApp('/ajustes/notificacoes');

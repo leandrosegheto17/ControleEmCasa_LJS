@@ -70,7 +70,7 @@ describe('sw.ts (injectManifest)', () => {
   it('não importa nada de fora do projeto nem dos pacotes do Workbox', () => {
     const imports = [...sw.matchAll(/from '([^']+)'/g)].map((m) => m[1] as string);
     for (const origem of imports)
-      expect(origem).toMatch(/^(workbox-(precaching|routing|strategies)|\.\/configuracaoSw)$/);
+      expect(origem).toMatch(/^(workbox-(precaching|routing|strategies)|\.\/configuracaoSw|\.\/handlersPush)$/);
     expect(sw).not.toMatch(/importScripts/);
   });
 });

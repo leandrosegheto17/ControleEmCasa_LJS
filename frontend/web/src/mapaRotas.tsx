@@ -28,6 +28,16 @@ function AjustesInstalavel({ Ajustes }: { Ajustes: typeof import('./paginas/Ajus
   return <Ajustes instalado={instalado} aoInstalar={instalar} />;
 }
 
+/** Push no iPhone/iPad só existe com o app instalado: `paginas/` não importa `pwa/`, a raiz informa. */
+function NotificacoesInstalavel({
+  Notificacoes,
+}: {
+  Notificacoes: typeof import('./paginas/Notificacoes').Notificacoes;
+}) {
+  const { plataforma, instalado } = useInstalacao();
+  return <Notificacoes iosForaDoInstalado={plataforma === 'ios' && !instalado} />;
+}
+
 const estreito = { estreito: true };
 const comMes = { comMes: true };
 
@@ -171,6 +181,14 @@ export const mapaRotas: RouteObject[] = [
         path: '/app/ajustes/conta',
         lazy: () => import('./paginas/ExcluirConta').then((m) => ({ Component: m.ExcluirConta })),
         handle: { titulo: 'Conta', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/app/ajustes/notificacoes',
+        lazy: () =>
+          import('./paginas/Notificacoes').then((m) => ({
+            Component: () => <NotificacoesInstalavel Notificacoes={m.Notificacoes} />,
+          })),
+        handle: { titulo: 'Notificações', ...estreito } satisfies HandleRota,
       },
       {
         path: '/app/ajustes/lar',

@@ -6,7 +6,7 @@ import { ItemLink } from '../componentes/base/ItemLink';
 import { ItemValor } from '../componentes/base/ItemValor';
 import { useAviso } from '../componentes/base/useAviso';
 import { GrupoMenu } from '../componentes/GrupoMenu';
-import { LINK_CONTA, LINK_LAR, LINK_METAS, LINK_PLANO } from '../formatacao/linksApp';
+import { LINK_CONTA, LINK_LAR, LINK_METAS, LINK_NOTIFICACOES, LINK_PLANO } from '../formatacao/linksApp';
 import { useContexto } from '../ganchos/useContexto';
 import { useSair } from '../ganchos/useSair';
 import { mensagemErro } from '../rotulos/mensagensErro';
@@ -58,6 +58,9 @@ export function Ajustes({ instalado, aoInstalar }: Props) {
         </GrupoMenu>
         <GrupoMenu titulo="Plano">
           <ItemLink icone="estrela" rotulo="Meu plano" para={LINK_PLANO} />
+        </GrupoMenu>
+        <GrupoMenu titulo="Avisos">
+          <ItemLink icone="alerta" rotulo="Notificações" para={LINK_NOTIFICACOES} />
         </GrupoMenu>
         <GrupoMenu titulo="Aplicativo">
           {instalado ? null : <ItemLink icone="adicionar" rotulo="Instalar o app" seta aoClicar={aoInstalar} />}
