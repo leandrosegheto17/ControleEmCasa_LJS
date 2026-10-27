@@ -14,7 +14,7 @@
 ## 1. Projeto no Neon (console)
 
 - Criar o projeto `controle-em-casa`, região **AWS São Paulo (`aws-sa-east-1`)**, **Postgres 17**.
-- Anotar o **Project ID** (Settings do projeto) para a variável `NEON_PROJECT_ID`. `[A VALIDAR]` a localização exata no console.
+- **Project ID:** `nameless-grass-28234591` (informado pelo usuário em 2026-10-27; não é segredo). Vai para a variável `NEON_PROJECT_ID`. `[A VALIDAR]` região `aws-sa-east-1` e Postgres 17 no console.
 - O console cria a branch `main` e o banco `neondb`, com a role `neondb_owner`. **Não use** `neondb_owner` no app: ela é `neon_superuser`, que tem `BYPASSRLS` e anularia a RLS.
 
 ## 2. Roles (SQL Editor, como `neondb_owner`)
