@@ -26,6 +26,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # G-43: migration não aditiva (drop, rename, troca de tipo, NOT NULL sem default, truncate) só passa com a
+      # anotação `-- migracao-nao-aditiva:` ligada a uma fase expand já publicada (no commit de base) ou a uma linha
+      # aprovada do Log de Alterações. As exceções aceitas ficam impressas no log deste passo.
+      - name: Migrations aditivas (G-43)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: pnpm --filter @controle/scripts migracoes-aditivas --base "$BASE"
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

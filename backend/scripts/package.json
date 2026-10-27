@@ -16,7 +16,8 @@
     "medir-cpu": "tsx src/medir-cpu.ts",
     "cache-hyperdrive": "tsx src/operacao/cache-hyperdrive.ts",
     "restauracao-neon": "tsx src/operacao/restauracao-neon.ts",
-    "dump-cifrado": "tsx src/operacao/dump-cifrado.ts"
+    "dump-cifrado": "tsx src/operacao/dump-cifrado.ts",
+    "migracoes-aditivas": "tsx src/operacao/migracao-aditiva.ts"
   },
   "dependencies": {
     "node-pg-migrate": "^9.0.0",
