@@ -101,9 +101,9 @@ T16
 
 **Done when**:
 
-- [ ] As 3 roles existem; a consulta de conferência do roteiro devolve `false` em `rolsuper`, `rolbypassrls`, `rolcreaterole` e `rolcreatedb` nas 3 linhas (o usuário cola só os true/false; nenhuma senha)
-- [ ] Se algum `rolbypassrls` vier `true`, a feature PARA e o usuário avisa
-- [ ] Evidência registrada em `evidencias.md`
+- [x] As 3 roles existem; a consulta de conferência do roteiro devolve `false` em `rolsuper`, `rolbypassrls`, `rolcreaterole` e `rolcreatedb` nas 3 linhas (o usuário cola só os true/false; nenhuma senha)
+- [x] Se algum `rolbypassrls` vier `true`, a feature PARA e o usuário avisa
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: none
 **Gate**: evidência registrada
