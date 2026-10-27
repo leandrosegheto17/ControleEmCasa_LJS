@@ -289,7 +289,40 @@ migrations, e manter o procedimento das seções 4.2 e 4.3 correto.
 - **Limpeza:** os dois bancos foram apagados (`drop database ... with (force)`), o dump em claro, o cifrado e a chave
   foram apagados.
 
-### 9.2 Pendente para a etapa 17 `[A VALIDAR NA ETAPA 17]`
+O 9.1 fica como registro do Postgres 17. Desde o ADR-016 a versão é a 18; o ensaio que vale hoje é o 9.2.
+
+### 9.2 Resultado registrado — 2026-10-27 (local, Postgres 18 do Docker)
+
+- **Quando:** 2026-10-27, das 14:43 às 14:45 (horário de Brasília), depois da troca para o Postgres 18 (ADR-016).
+- **Onde:** máquina de desenvolvimento, Postgres 18.6 do `docker compose` (volume novo, porta 55432,
+  `data_checksums = on`), `age` 1.3.2. O dump usou o **script do `backup.yml`** com a imagem
+  `postgres:18-alpine@sha256:10a5c69a…` fixada no `dump-cifrado.ts`.
+- **Origem e comandos:** os mesmos do 9.1 (banco `ensaio_origem` com as 12 migrations, o seed e a massa de 2 anos; dump
+  cifrado como `controle_backup_ro` por `pnpm --filter @controle/scripts dump-cifrado`; `age -d`; `pg_restore` com
+  `--exit-on-error --no-owner --role=controle_owner` dentro do container; passo 5 da seção 4.2 no restaurado).
+- **Resultado:**
+
+  | Conferência                                           | Origem                                                                        | Restaurado                                                    |
+  | ----------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+  | Dump cifrado (script do `backup.yml`)                 | 779.645 bytes, cabeçalho `age-encryption.org/v1`, código 0                    | —                                                             |
+  | `pg_restore`                                          | —                                                                             | código 0                                                      |
+  | Tabelas (`app` + `public`)                            | 27                                                                            | 27, **contagens idênticas** (diff vazio)                      |
+  | Linhas principais                                     | lançamento 4.758, parcela 5.718, ocorrência fixa 102, usuário 6, categoria 20 | iguais                                                        |
+  | Tabelas de `app` com RLS ENABLE e FORCE               | 20 de 26                                                                      | 20 de 26                                                      |
+  | Políticas em `app`                                    | 127                                                                           | 127                                                           |
+  | `public.pgmigrations`                                 | 12, última `20261031120000_backup_ro_dump_completo`                           | igual; `node-pg-migrate up` respondeu "No migrations to run!" |
+  | `controle_app` sem contexto, `count(*)` em lançamento | 0                                                                             | 0                                                             |
+  | `controle_app` com o contexto do titular              | 3.540                                                                         | 3.540; de outro lar: 0                                        |
+  | Senha do seed confere (`app.crypt`)                   | —                                                                             | sim (4 de 4 usuários do seed)                                 |
+  | `search_path` da `controle_app`                       | `app`                                                                         | `"$user", public` até o passo 5 da seção 4.2; depois `app`    |
+
+- **Achados:** nenhum novo no 18. O `pg_dump` 18 roda como `controle_backup_ro` sem privilégio a mais, e continua sem
+  levar o `ALTER ROLE ... IN DATABASE` (mesmo achado do 9.1, já coberto pelo passo 5 da seção 4.2). O login pelo
+  `wrangler dev` não foi repetido contra o restaurado; o app no 18 foi exercitado pelos e2e da pilha real no mesmo dia.
+- **Limpeza:** os dois bancos, o dump em claro, o cifrado e a chave foram apagados.
+- **Produção:** segue `[A VALIDAR NA ETAPA 17]` (9.3).
+
+### 9.3 Pendente para a etapa 17 `[A VALIDAR NA ETAPA 17]`
 
 - Repetir o ensaio com o **primeiro backup real** (artefato do `backup.yml` baixado do GitHub), decifrado com a chave
   privada da guarda offline, restaurado numa branch nova do Neon com a role owner do Neon, e registrar aqui data,
