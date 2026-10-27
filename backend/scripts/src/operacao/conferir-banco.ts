@@ -76,7 +76,7 @@ export function migracoesDaPasta(pasta: string): string[] {
 export async function lerBanco(c: pg.Client, pasta: string): Promise<DadosDoBanco> {
   const roles = await c.query<RoleConferida>(
     `select rolname, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb
-       from pg_roles where rolname like 'controle\_%' order by 1`,
+       from pg_roles where rolname like 'controle\\_%' order by 1`,
   );
   const tabelas = await c.query<TabelaConferida>(
     `select cl.relname as tabela, cl.relrowsecurity as rls, cl.relforcerowsecurity as force
