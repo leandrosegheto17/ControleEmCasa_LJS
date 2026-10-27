@@ -7,6 +7,7 @@
   },
   "scripts": {
     "migrar": "node --env-file-if-exists=../../.env node_modules/node-pg-migrate/bin/node-pg-migrate.js up -m migracoes --database-url-var DATABASE_URL_OWNER --no-single-transaction",
+    "migrar-neon": "tsx src/operacao/migrar-neon.ts",
     "seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
     "purgar": "tsx --env-file-if-exists=../../.env src/purgar.ts",
     "gerar-vapid": "tsx src/gerar-vapid.ts",

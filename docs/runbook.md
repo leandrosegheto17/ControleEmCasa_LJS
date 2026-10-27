@@ -172,7 +172,8 @@ select count(*), max(name) from public.pgmigrations;
 ```
 
 Depois, como `controle_app` **sem** contexto, `select count(*) from app.lancamento` tem de dar 0 (a RLS está valendo), e
-`pnpm migrar` contra o banco restaurado responde "No migrations to run". Por fim, entre no app com uma conta conhecida.
+`pnpm migrar-neon` contra o banco restaurado responde "No migrations to run" (contra o Neon use sempre `migrar-neon`:
+o `.env` local aponta para o Docker e o `pnpm migrar` o carrega; `migrar` fica só para o local). Por fim, entre no app com uma conta conhecida.
 
 ## 5. Conferência do último backup (toda semana e depois de cada incidente)
 
@@ -278,7 +279,7 @@ migrations, e manter o procedimento das seções 4.2 e 4.3 correto.
   | Linhas principais                                     | lançamento 4.758, parcela 5.718, ocorrência fixa 102, usuário 6, categoria 20 | iguais                                                                                        |
   | Tabelas de `app` com RLS ENABLE e FORCE               | 20 de 26                                                                      | 20 de 26                                                                                      |
   | Políticas em `app`                                    | 127                                                                           | 127                                                                                           |
-  | `public.pgmigrations`                                 | 12, última `20261031120000_backup_ro_dump_completo`                           | igual; `pnpm migrar` respondeu "No migrations to run"                                         |
+  | `public.pgmigrations`                                 | 12, última `20261031120000_backup_ro_dump_completo`                           | igual; `pnpm migrar-neon` respondeu "No migrations to run"                                    |
   | `controle_app` sem contexto, `count(*)` em lançamento | 0                                                                             | 0                                                                                             |
   | `controle_app` com o contexto do titular              | 3.540 (as individuais do outro membro ficam ocultas)                          | 3.540; de outro lar: 0                                                                        |
   | Senha do seed confere (`crypt`)                       | —                                                                             | sim                                                                                           |

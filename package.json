@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @controle/web dev",
     "migrar": "pnpm --filter @controle/scripts migrar",
+    "migrar-neon": "pnpm --filter @controle/scripts migrar-neon",
     "seed": "pnpm --filter @controle/scripts seed",
     "lint": "eslint . && prettier --check .",
     "typecheck": "pnpm -r typecheck",
