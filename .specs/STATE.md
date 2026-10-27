@@ -39,3 +39,18 @@
 - **Etapa 17, andamento (2026-10-27):** push feito até `5062fe6`; **CI do GitHub verde pela primeira vez** (e2e-web, e2e-pilha, banco, base, gitleaks). Gitleaks: allowlist por caminho de 5 arquivos no `.gitleaks.toml` (TOKEN falso do Sentry em 3 testes, vetor público do RFC 8291, THREAT-MODEL), aprovada pelo usuário, com linhas no Log do GUARDRAILS; varredura local do histórico sem achados. Bug achado pelo CI e corrigido em `5062fe6` (excluir lançamento relia o detalhe apagado e piscava "não existe mais"; causa: `removeQueries` com a tela aberta; e2e novo, testes existentes intactos). **Roteiro do Neon e do Hyperdrive em `.specs/etapa-17/neon.md`** (commit `1de46d2`, ainda sem push): roles só por SQL (as do console herdam BYPASSRLS), conexão direta sem `-pooler`, ensaio na branch `dev` antes da `main`. **Nada externo executado ainda.** Não confirmados, descobrir no primeiro uso: `ratelimits` no Workers Free, escopo mínimo da `NEON_API_KEY` e do `CLOUDFLARE_API_TOKEN`, formato do id do Hyperdrive. Falta no repositório: `routes` com `custom_domain` para `controleemcasa.ljssoftware.com.br` e o id real do Hyperdrive no `wrangler.jsonc`. **Próximo:** passo 1 do roteiro (projeto no Neon, ação do usuário no painel).
 - **Progresso**: Plano: Faltam 2 de 18 etapas: 89% concluído; Em andamento: 16 Operação e qualidade; Projeto: Sem tarefas ainda (conferida em 2026-10-27)
 - **Gravada em**: 2026-10-27
+
+## Decisions
+
+### AD-001: Reorganização do plano pelas regras novas de Tarefas (2026-10-27)
+
+- **Contexto:** as regras novas dos fluxos (`.claude/CLAUDE.md`, seções Vocabulário e Tarefas) limitam o tamanho de cada tarefa a até 2 h de trabalho humano, com `**Estimativa**`, sem limite de quantidade. O projeto não tinha nenhum `tasks.md`: o plano era o `.md/PLANO.md`, com a etapa 17 (Publicação) como uma linha só, esforço M, somando mais de 40 tarefas de até 2 h e mais de 15 pendências espalhadas por este arquivo e pelo runbook.
+- **Decisão (aprovada pelo usuário em 2026-10-27, em Opus):**
+  - a etapa 17 vira quatro linhas no roadmap, na ordem de dependência: **17a** repositório pronto para produção (código), **17b** infraestrutura (ações do usuário), **17c** primeiro deploy e medições, **17d** abertura ao público;
+  - entra a **18**, remover membro e sair do lar (pendência do front desde a etapa 12), depois da 17c;
+  - só a 17a ganha `tasks.md` agora (`.specs/features/publicacao-repositorio/tasks.md`, 7 tarefas, cerca de 11 h, 1 lote); as demais ganham o seu quando chegar a vez;
+  - ações que dependem do usuário entram como tarefas, com Estimativa e evidência, e nunca rodam sem confirmação própria;
+  - spikes (ratelimits no Free, escopo dos tokens, lacunas do Asaas, rollback não interativo, medições) entram como tarefas normais, com o resultado registrado no runbook ou no ADR;
+  - as etapas 0 a 16, já concluídas, não ganham tarefas retroativas.
+- **Alternativas descartadas:** um `tasks.md` único para a etapa 17 inteira (envelheceria antes de chegar a infra e as medições); detalhar já as quatro features (contraria a regra de só detalhar a próxima); checklist das ações do usuário fora do `tasks.md` (o progresso não contaria esse trabalho).
+- **Efeito no progresso:** o Plano passa de 18 para 22 linhas, então o percentual cai de 94% para cerca de 77% sem nenhum trabalho perdido; o Projeto passa de "sem tarefas" para 7 tarefas pendentes.
