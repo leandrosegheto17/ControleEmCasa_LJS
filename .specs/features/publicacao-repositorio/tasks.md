@@ -176,9 +176,9 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Testes da função de resumo (primeira contra mediana das seguintes) e da escolha da rota que toca o banco
-- [ ] Teste de que o script recusa rodar contra `/api/health`
-- [ ] Gate quick verde
+- [x] Testes da função de resumo (primeira contra mediana das seguintes) e da escolha da rota que toca o banco
+- [x] Teste de que o script recusa rodar contra `/api/health`
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
