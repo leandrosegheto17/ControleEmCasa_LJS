@@ -154,10 +154,10 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Testes do parser da resposta (feliz, sem dados na janela, resposta de erro da API) e da regra do teto
-- [ ] Token e conta só por variável de ambiente; o token não aparece em nenhuma saída (teste)
-- [ ] Consulta à API simulada no teste; a consulta real fica para a 17c
-- [ ] Gate quick verde
+- [x] Testes do parser da resposta (feliz, sem dados na janela, resposta de erro da API) e da regra do teto
+- [x] Token e conta só por variável de ambiente; o token não aparece em nenhuma saída (teste)
+- [x] Consulta à API simulada no teste; a consulta real fica para a 17c
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
