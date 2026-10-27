@@ -20,5 +20,5 @@ Uma linha por etapa do `.md/PLANO.md`. A **Situação** usa o vocabulário fixo 
 | 13 | Cobrança Asaas | Concluída | Código fechado (ADR 012 aceito); falta a validação no sandbox do Asaas |
 | 14 | Landing e LGPD | Concluída | Código fechado (ADR 013 aceito); falta a revisão jurídica dos textos |
 | 15 | Web Push | Concluída | Código fechado (ADR 014 aceito); falta validar o envio real em navegadores e o par VAPID de produção (etapa 17) |
-| 16 | Operação e qualidade | Não começada |  |
+| 16 | Operação e qualidade | Em andamento | Lote 1 (deploy e backup) aprovado; lote 2 (Sentry, README, runbook, e2e críticos, Lighthouse) por fazer |
 | 17 | Publicação | Não começada |  |
