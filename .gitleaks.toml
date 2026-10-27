@@ -4,10 +4,12 @@ title = "Controle em Casa"
 useDefault = true
 
 [allowlist]
-description = "Manifesto de instalação dos fluxos (só hashes SHA-256) e os 3 testes de scrubbing do Sentry, que usam um TOKEN falso de propósito para provar que o evento sai limpo. Aprovado por Leandro em 2026-10-27."
+description = "Manifesto de instalação dos fluxos (só hashes SHA-256) e os 3 testes de scrubbing do Sentry, que usam um TOKEN falso de propósito para provar que o evento sai limpo, o teste de push com o vetor público do RFC 8291 (apêndice A) e o THREAT-MODEL (texto, sem segredo). Aprovado por Leandro em 2026-10-27."
 paths = [
   '''^\.claude/\.instalacao\.json$''',
   '''^backend/contrato/src/observabilidade\.test\.ts$''',
   '''^backend/api/src/observabilidade\.test\.ts$''',
   '''^frontend/web/src/configuracao/observabilidade\.test\.ts$''',
+  '''^backend/api/src/push-modulo\.test\.ts$''',
+  '''^\.md/THREAT-MODEL\.md$''',
 ]
