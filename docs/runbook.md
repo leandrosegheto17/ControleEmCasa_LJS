@@ -11,7 +11,7 @@
 | Peça                  | Onde                                                                                     | Observação                                                              |
 | --------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | App (front + API)     | Worker `controle-em-casa` na Cloudflare                                                  | `https://controleemcasa.ljssoftware.com.br`; saúde em `/api/health`     |
-| Banco                 | Neon, projeto em `sa-east-1`, Postgres 17, branch `main`                                 | Acesso do Worker pelo Hyperdrive (cache desligado), role `controle_app` |
+| Banco                 | Neon, projeto em `sa-east-1`, Postgres 18, branch `main`                                 | Acesso do Worker pelo Hyperdrive (cache desligado), role `controle_app` |
 | Roles                 | `controle_owner` (migrations e purga), `controle_app` (API), `controle_backup_ro` (dump) | Criadas à mão no Neon `[A VALIDAR NA ETAPA 17]`                         |
 | Deploy                | `.github/workflows/deploy.yml`                                                           | Único lugar que publica o Worker (G-42)                                 |
 | Backup                | `.github/workflows/backup.yml`                                                           | Diário, 04:00 de Brasília, artefato `.dump.age` por 30 dias             |
@@ -122,7 +122,7 @@ Depois de restaurar: o Hyperdrive aponta para a `main`, então não muda. Rode a
 
 3. **Crie um banco vazio** para receber o dump: uma branch nova no Neon (ex.: `restaurada-<data>`) ou outro banco. Não
    restaure por cima da `main` em uso.
-4. **Restaure com a role owner**, com o cliente do Postgres 17 (a mesma versão maior do servidor):
+4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016):
 
    ```bash
    pg_restore --exit-on-error --no-owner --role=controle_owner -d "<URL owner do banco novo>" restauracao/banco.dump

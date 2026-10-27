@@ -16,7 +16,7 @@
 ## A. Dados e isolamento
 
 **G-01 — RLS com FORCE em toda tabela de negócio.** Toda tabela com `lar_id` tem `ENABLE` e `FORCE ROW LEVEL SECURITY` e uma política para cada comando concedido. Nenhuma política é `using (true)` ou `with check (true)`.
-- *Verificação:* teste de catálogo (Vitest contra o Postgres 17 do CI) lê `pg_class.relforcerowsecurity` e `pg_policies`. Vale para tabelas futuras, porque falha com qualquer tabela nova que tenha `lar_id` sem FORCE. (Etapas 2 e 6)
+- *Verificação:* teste de catálogo (Vitest contra o Postgres 18 do CI) lê `pg_class.relforcerowsecurity` e `pg_policies`. Vale para tabelas futuras, porque falha com qualquer tabela nova que tenha `lar_id` sem FORCE. (Etapas 2 e 6)
 - *Origem:* L-G-01; ADR-002 §2 do legado; LJS.
 
 **G-02 — Identidade por GUC só dentro da transação.** A API abre uma transação por requisição autenticada. O primeiro comando é `select set_config('app.usuario_id', $1, true), set_config('app.lar_id', $2, true)`. São proibidos `set_config(..., false)`, `SET` sem `LOCAL` e consultas de negócio fora dessa transação. As políticas leem `nullif(current_setting('app.usuario_id', true), '')::uuid`: GUC ausente ou vazio nega o acesso. O cache de consultas do Hyperdrive fica desligado.
@@ -198,7 +198,7 @@
 - *Origem:* LJS; L-G-14.
 
 **G-43 — Migração com `owner`, aditiva e depois da cópia.** Ordem fixa: build, branch de restauração no Neon, dump cifrado, migração com `owner` e deploy. As migrations são aditivas: `drop`, `rename` e `alter type` exigem justificativa ligada a uma fase *expand* publicada ou a uma linha do Log.
-- *Verificação:* teste da ordem dos passos do `deploy.yml`; passo de CI que detecta migration não aditiva; migrations do zero no Postgres 17 do CI. (Etapas 2 e 16)
+- *Verificação:* teste da ordem dos passos do `deploy.yml`; passo de CI que detecta migration não aditiva; migrations do zero no Postgres 18 do CI. (Etapas 2 e 16)
 - *Origem:* L-G-12; L-G-14; LJS.
 
 **G-44 — Backup cifrado com `age`.** `pg_dump -Fc` com `backup_ro`, cifrado com a chave pública `age` antes de sair do runner, retido por 30 dias. A chave privada nunca entra no GitHub. O dump em claro nunca vai para disco persistente nem para artefato. A restauração é ensaiada e o resultado registrado.
@@ -271,3 +271,4 @@
 | 2026-10-27 | implementador (agente) | Leandro (2026-10-27) | G-42 cumprida por deploy manual (`workflow_dispatch` só da `main`, job `conferir` exige o `ci` verde no mesmo SHA); sai o environment `producao-aprovacao`. A regra não muda nem afrouxa | GitHub Free não permite revisor obrigatório em repositório privado (emenda ao ADR-015) | Permanente (até nova decisão sobre o deploy) |
 | 2026-10-27 | sessão principal | Leandro (2026-10-27) | `.gitleaks.toml`: allowlist por caminho de 3 arquivos `observabilidade.test.ts` (contrato, api, web) | O CI sinalizou como `generic-api-key` a constante `TOKEN` de exemplo, valor falso de propósito nos testes de scrubbing do Sentry | Enquanto os testes usarem valor falso |
 | 2026-10-27 | sessão principal | Leandro (2026-10-27) | `.gitleaks.toml`: allowlist de `backend/api/src/push-modulo.test.ts` (vetor público do RFC 8291, apêndice A) e `.md/THREAT-MODEL.md` (texto) | Varredura do histórico inteiro acusou os dois; nenhum é segredo | Enquanto o teste usar o vetor do RFC |
+| 2026-10-27 | implementador (agente) | Leandro (2026-10-27) | Menções de versão: os testes de banco e as migrations do zero rodam no Postgres 18 do CI (G-01, G-43); a imagem do `pg_dump` passa a `postgres:18-alpine` fixada por digest (como G-40 exige das ações). A regra não muda | O Neon de produção nasceu em Postgres 18; ADR-016 substitui o ADR-002 | Permanente (até nova troca de versão maior) |

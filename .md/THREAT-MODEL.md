@@ -7,7 +7,7 @@
 
 ## 1. Sistema em uma frase
 
-PWA de finanças de casal: um **lar** com um **titular** e no máximo 1 **membro convidado**. Os dados são **conjuntos** (visíveis aos dois) ou **individuais** (só do dono), e numa despesa conjunta a forma de pagamento, a conta e as datas privadas são **só do pagador**. O cadastro é aberto, o plano é do lar (Free ou Pro, cobrado por Pix no Asaas), há push e uma fila offline. Roda num Cloudflare Worker (Hono) com assets estáticos, Hyperdrive para o Neon Postgres 17, e-mail pelo Resend, Sentry, e CI/CD e backup no GitHub Actions.
+PWA de finanças de casal: um **lar** com um **titular** e no máximo 1 **membro convidado**. Os dados são **conjuntos** (visíveis aos dois) ou **individuais** (só do dono), e numa despesa conjunta a forma de pagamento, a conta e as datas privadas são **só do pagador**. O cadastro é aberto, o plano é do lar (Free ou Pro, cobrado por Pix no Asaas), há push e uma fila offline. Roda num Cloudflare Worker (Hono) com assets estáticos, Hyperdrive para o Neon Postgres 18, e-mail pelo Resend, Sentry, e CI/CD e backup no GitHub Actions.
 
 ## 2. Ativos
 
@@ -57,7 +57,7 @@ flowchart LR
     HD["Hyperdrive<br/>pool, cache desligado"]
   end
   subgraph Z3["FT-2/FT-7 Neon sa-east-1"]
-    PG[("Postgres 17<br/>RLS FORCE por lar e dono")]
+    PG[("Postgres 18<br/>RLS FORCE por lar e dono")]
     BR[("Branches de restauração")]
   end
   subgraph Z4["FT-3/FT-4 Terceiros"]

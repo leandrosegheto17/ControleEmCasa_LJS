@@ -36,7 +36,7 @@
    - grants por coluna (`usuario` só atualiza `nome`, `senha_hash`, `email_confirmado_em` e `atualizado_em`; `sessao` só `ultimo_uso_em`; `token_email` só `usado_em`);
    - ausência de `DELETE` onde a linha é registro (`usuario`, `aceite_termos`); a purga roda como owner.
    As tabelas de negócio (etapa 6 em diante) usam `ENABLE` e `FORCE ROW LEVEL SECURITY` com as funções acima (ADR-004).
-6. **Testes** contra um Postgres 17 real, num banco descartável por execução: migrations do zero; a `app` recusa DDL, `TRUNCATE`, `DELETE` e `UPDATE` fora das colunas, e `SET ROLE`, com `42501`; as roles não têm `BYPASSRLS` nem `SUPERUSER`; as funções de GUC dão nulo sem `set_config`, o valor dentro da transação e nulo depois do `COMMIT` e do `ROLLBACK`. O CI sobe o Postgres 17 como serviço e esses testes são obrigatórios lá (`EXIGIR_BANCO=1`).
+6. **Testes** contra um Postgres 18 real (ADR-016), num banco descartável por execução: migrations do zero; a `app` recusa DDL, `TRUNCATE`, `DELETE` e `UPDATE` fora das colunas, e `SET ROLE`, com `42501`; as roles não têm `BYPASSRLS` nem `SUPERUSER`; as funções de GUC dão nulo sem `set_config`, o valor dentro da transação e nulo depois do `COMMIT` e do `ROLLBACK`. O CI sobe o Postgres 18 (ADR-016) como serviço e esses testes são obrigatórios lá (`EXIGIR_BANCO=1`).
 
 ## Consequências
 

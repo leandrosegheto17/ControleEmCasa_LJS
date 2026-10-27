@@ -15,7 +15,7 @@ uso offline com fila de envio. É a recriação do MyMoney no Padrão LJS.
 | Parte    | Tecnologia                                                                                      |
 | -------- | ----------------------------------------------------------------------------------------------- |
 | API      | Cloudflare Worker único (Hono), `backend/api`                                                   |
-| Banco    | Postgres 17 (Neon em produção, Docker no local), acesso pelo Hyperdrive, RLS por lar            |
+| Banco    | Postgres 18 (Neon em produção, Docker no local), acesso pelo Hyperdrive, RLS por lar            |
 | Front    | React 19 + Vite + React Router + TanStack Query, PWA com service worker próprio, `frontend/web` |
 | E-mail   | Resend (no local, o link aparece no terminal)                                                   |
 | Cobrança | Asaas (Pix), sandbox no local                                                                   |
@@ -40,7 +40,7 @@ wrangler.jsonc  configuração do Worker (sem segredo)
 ## Requisitos
 
 - Node 24 (`.nvmrc`) e pnpm 11 (`corepack enable`)
-- Docker (Postgres 17 local)
+- Docker (Postgres 18 local)
 
 ## Rodar no local
 
@@ -65,6 +65,9 @@ wrangler.jsonc  configuração do Worker (sem segredo)
    pnpm migrar
    pnpm seed
    ```
+
+   Quem tinha o banco local em Postgres 17 (antes do ADR-016) precisa recriar o volume, que o 18 não lê:
+   `docker compose down -v` e `docker compose up -d` (os dados locais são de teste).
 
 4. Segredos do Worker no local: crie o `.dev.vars` na raiz (está no `.gitignore`; o bloco no fim do `.env.example`
    explica cada um). O mínimo é a `CHAVE_HMAC`:
@@ -116,7 +119,7 @@ wrangler.jsonc  configuração do Worker (sem segredo)
 - Antes de integrar: `python .claude/scripts/trava-testes.py --rodar` (o hook bloqueia push sem a suíte verde).
 
 O CI (`.github/workflows/ci.yml`) roda lint, typecheck, testes, o passo de migrations aditivas, os testes de banco no
-Postgres 17, os e2e (simulados e da pilha real), o Lighthouse e o gitleaks. As ações ficam fixadas por SHA.
+Postgres 18, os e2e (simulados e da pilha real), o Lighthouse e o gitleaks. As ações ficam fixadas por SHA.
 
 ## Deploy e operação
 

@@ -46,6 +46,8 @@ Esforço por etapa: **P** = até meio dia de sessão; **M** = 1 a 2 dias; **G** 
 | 16 | **Operação e qualidade** | M | Sentry (`@sentry/cloudflare` + `@sentry/react`, release = SHA, scrubbing), `deploy.yml` (ordem fixa: build, branch de restauração no Neon mantendo 2, dump cifrado, migração com `owner`, `wrangler deploy --var URL_PUBLICA`) + teste que proíbe outro `wrangler deploy`, `backup.yml` (diário às 04:00 BRT, `pg_dump -Fc` com `backup_ro`, `age`, 30 dias), `README.md`, `docs/runbook.md`, e2e Playwright críticos (cadastro, login, assinar, lançar), Lighthouse PWA ≥ 90 | 015 Deploy e backup | Restauração nunca testada: o runbook inclui um ensaio com resultado registrado |
 | 17 | **Publicação** | M | criar o Neon (sa-east-1, branches `main`/`dev`, roles), Hyperdrive com cache desligado, secrets (GitHub `producao` + `wrangler secret`), domínio `controleemcasa.ljssoftware.com.br`, `MAIL_FROM`, Asaas produção, UptimeRobot, primeiro deploy, teste de fumaça, ensaio de restauração | — | Ações externas: **cada uma com sua confirmação**. Limites atuais do Neon e do Workers Free conferidos na hora, não de memória |
 
+> **Nota (2026-10-27):** onde as etapas 0 a 2 dizem Postgres 17, vale hoje o **Postgres 18** em local, CI e produção (ADR-016, que substitui o ADR-002): o Neon de produção nasceu em 18. As linhas acima ficam como o plano registrado.
+
 **Total estimado:** 11 etapas M e 7 etapas G, ou seja, **32 a 57 dias de sessão**. O número é uma estimativa; o esforço real de cada etapa é medido e registrado ao fechá-la. O uso diário (casal, sem cobrança) fica possível ao fim da etapa 12, e o produto completo e publicado, ao fim da 17.
 
 ## Pré-requisitos seus (antes das etapas indicadas)

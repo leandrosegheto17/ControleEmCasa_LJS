@@ -12,7 +12,7 @@
 
 ## 1. Visão geral
 
-O app é um **Worker único** da Cloudflare. Ele serve os arquivos estáticos do front (landing em `/`, app em `/app`) e a API Hono em `/api/*` (`run_worker_first: ["/api/*"]`). O banco é o Neon Postgres 17, acessado pelo Hyperdrive. Toda regra de isolamento existe em duas camadas: a API filtra, e a RLS FORCE recusa o que escapar.
+O app é um **Worker único** da Cloudflare. Ele serve os arquivos estáticos do front (landing em `/`, app em `/app`) e a API Hono em `/api/*` (`run_worker_first: ["/api/*"]`). O banco é o Neon Postgres 18, acessado pelo Hyperdrive. Toda regra de isolamento existe em duas camadas: a API filtra, e a RLS FORCE recusa o que escapar.
 
 ```mermaid
 flowchart LR
@@ -31,7 +31,7 @@ flowchart LR
     HD["Hyperdrive<br/>pool, cache desligado"]
   end
 
-  NEON[("Neon Postgres 17<br/>sa-east-1, RLS FORCE")]
+  NEON[("Neon Postgres 18<br/>sa-east-1, RLS FORCE")]
   RESEND["Resend<br/>e-mail transacional"]
   ASAAS["Asaas<br/>assinatura Pix do lar"]
   SENTRY["Sentry<br/>@sentry/cloudflare + @sentry/react"]
@@ -61,7 +61,7 @@ flowchart LR
 | Assets | Landing, páginas legais e o SPA do app | `not_found_handling: single-page-application`. CSP e cabeçalhos vêm de `frontend/web/public/_headers` |
 | Worker Hono | API REST em português, webhook e handler `scheduled` | Uma conexão `pg` por requisição (padrão GP `db/cliente.ts`), aberta só na 1ª consulta |
 | Hyperdrive | Pool de conexões para o Neon | Cache de consulta **desligado**, conferido no deploy (R2) |
-| Neon | Dados, RLS, bcrypt (`pgcrypto`) | Postgres 17 também no local e no CI (P6, ADR-002) |
+| Neon | Dados, RLS, bcrypt (`pgcrypto`) | Postgres 18 também no local e no CI (ADR-016, que substitui o ADR-002) |
 | Cron | `0 * * * *` (push) e `30 6 * * *` (limpeza) | Lotes com `ctx.waitUntil` |
 | Resend, Asaas, Push | Módulos isolados em `infraestrutura/{email,asaas,push}` | Sempre via `fetch`, sem SDK |
 | GitHub Actions | Deploy, backup diário e purga de exclusões | As únicas peças com a credencial `owner` |
@@ -1099,7 +1099,7 @@ O Worker Free tem **10 ms de CPU** por requisição. O tempo esperando o banco n
 
 - O deploy injeta `--var URL_PUBLICA:https://controleemcasa.ljssoftware.com.br --var AMBIENTE:producao --var ASAAS_API_URL:https://api.asaas.com/v3 --var SENTRY_RELEASE:<sha>`. Só existe um `wrangler deploy`, no `deploy.yml`, garantido por teste (padrão GP).
 - `deploy.yml` (etapa 16, ADR-015): disparo manual (`workflow_dispatch`, emenda de 2026-10-27) só da `main`; o job `conferir` (sem segredo) exige o run do `ci` do mesmo SHA, num push à `main`, concluído com sucesso; então publica a ponta da `main` (`github.sha`) no environment `producao` (sem revisor). Ordem fixa: build do front → cache do Hyperdrive conferido (`caching.disabled`) → branch `restauracao-<run>-<tentativa>` no Neon a partir da `main`, mantendo as 2 mais novas → dump cifrado (`backup_ro`, `age`, artefato de 30 dias) → migração com o `owner` → `wrangler deploy` → `GET /api/health`. Falha depois da migração faz `wrangler rollback` (se o Worker já tinha sido publicado) e aponta a branch e o dump. Inerte até `DEPLOY_ATIVO = true` (etapa 17).
-- `backup.yml` (etapa 16, ADR-015): todo dia às 07:00 UTC (04:00 BRT), `pg_dump --format=custom --enable-row-security` como `backup_ro`, com o cliente do Postgres 17 (imagem fixada por digest), em pipe para `age -r $AGE_RECIPIENT`; só o `.age` sai do runner, como artefato do Actions de 30 dias. Inerte até `BACKUP_ATIVO = true` (etapa 17).
+- `backup.yml` (etapa 16, ADR-015): todo dia às 07:00 UTC (04:00 BRT), `pg_dump --format=custom --enable-row-security` como `backup_ro`, com o cliente do Postgres 18 (imagem fixada por digest; ADR-016), em pipe para `age -r $AGE_RECIPIENT`; só o `.age` sai do runner, como artefato do Actions de 30 dias. Inerte até `BACKUP_ATIVO = true` (etapa 17).
 - O cron `30 6 * * *` (03:30 BRT) faz a limpeza:
   - sessões expiradas;
   - tentativas com mais de 24 h;
@@ -1143,7 +1143,7 @@ O `config/index.ts` valida tudo com Zod na 1ª requisição e falha fechado (`Co
 ```yaml
 services:
   banco:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: controle
       POSTGRES_USER: controle_owner
@@ -1151,7 +1151,7 @@ services:
       TZ: UTC
     ports: ["5432:5432"]
     volumes:
-      - dados-banco:/var/lib/postgresql/data
+      - dados-banco:/var/lib/postgresql # no 18 o PGDATA é /var/lib/postgresql/18/docker
       - ./backend/scripts/init-local.sql:/docker-entrypoint-initdb.d/01-roles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U controle_owner -d controle"]
@@ -1164,7 +1164,7 @@ volumes:
 - `init-local.sql` cria `controle_app` e `controle_backup_ro` com senhas locais fixas. Em produção, as roles são criadas à mão no Neon na etapa 17 e ficam registradas no runbook.
 - `pnpm migrar`: `node-pg-migrate up` como owner, uma transação por migration, arquivos `backend/scripts/migracoes/AAAAMMDDHHMMSS_nome.sql`.
 - `pnpm seed`: 2 lares, cada um com 2 membros, e a massa de 2 anos no lar A, só para o local.
-- O CI usa o mesmo `postgres:17` como serviço.
+- O CI usa o mesmo `postgres:18` como serviço.
 
 ---
 
@@ -1175,7 +1175,7 @@ volumes:
 | Nível | Ferramenta | Escopo | Base portada do legado |
 |---|---|---|---|
 | Domínio | Vitest | `backend/dominio`: parcelas, datas, permissões, orçamento, metas, fixas, plano, percentuais. Tabelas de casos | pgTAP de regra (F `gerar_parcelas`, `dia_no_mes`, `permissoes_edicao`, `situacao_orcamento`, `progresso_meta` etc.) |
-| Banco | Vitest + `pg` no Postgres 17 | Grants e RLS por tabela como `controle_app` (DDL e DELETE recusados, políticas, índices de limite de membros), migrations do zero | pgTAP de RLS e de privilégios |
+| Banco | Vitest + `pg` no Postgres 18 | Grants e RLS por tabela como `controle_app` (DDL e DELETE recusados, políticas, índices de limite de membros), migrations do zero | pgTAP de RLS e de privilégios |
 | API | `@cloudflare/vitest-pool-workers` + Postgres real (`localConnectionString`) | Cada rota: contrato Zod de entrada e saída, códigos de erro, idempotência, ordem das recusas, plano, CSRF, rate limit, sessão (15 min e 12 h com relógio injetado), webhook (repetido e fora de ordem) | `backend/testes-api/casos/*` (241 casos) e `_meta.test.ts` |
 | Front | Vitest + Testing Library + axe | Componentes, ganchos, `dados/` com `fetch` simulado em `/api/*`, fila offline | cerca de 75 arquivos; os mocks do Supabase são regravados |
 | E2E | Playwright | Críticos: cadastro → confirmar → entrar → criar lar; lançar (também offline → reenvio); convite; assinar no sandbox; comparação visual contra o mockup | cerca de 45 specs |
@@ -1195,7 +1195,7 @@ volumes:
 - **Webhook:** o mesmo `event_id` 2 vezes aplica uma vez só; `CONFIRMED` depois de `OVERDUE` com `ocorrido_em` anterior é ignorado; token errado → 401.
 - **Logs sem PII:** `onError` e Sentry `beforeSend` sem e-mail, token, cookie ou corpo da requisição (teste com e-mail no corpo de uma requisição que falha).
 
-`pnpm lint && pnpm typecheck && pnpm test` verdes antes de cada commit (PLANO). O CI roda tudo isso com o serviço Postgres 17, mais gitleaks e a checagem de migration aditiva.
+`pnpm lint && pnpm typecheck && pnpm test` verdes antes de cada commit (PLANO). O CI roda tudo isso com o serviço Postgres 18, mais gitleaks e a checagem de migration aditiva.
 
 ---
 
