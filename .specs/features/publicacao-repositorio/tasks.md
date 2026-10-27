@@ -132,10 +132,10 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Teste de integração no Postgres 18 local: passa no banco migrado; falha com mensagem clara quando uma role ganha `BYPASSRLS` e quando uma tabela perde o `FORCE`
-- [ ] Teste de que a saída nunca contém a URL nem a senha
-- [ ] Script `conferir-banco` no `backend/scripts/package.json`
-- [ ] Gate full verde
+- [x] Teste de integração no Postgres 18 local: passa no banco migrado; falha com mensagem clara quando uma role ganha `BYPASSRLS` e quando uma tabela perde o `FORCE`
+- [x] Teste de que a saída nunca contém a URL nem a senha
+- [x] Script `conferir-banco` no `backend/scripts/package.json`
+- [x] Gate full verde
 
 **Tests**: integration
 **Gate**: full

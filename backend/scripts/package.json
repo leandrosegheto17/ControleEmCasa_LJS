@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p .",
     "massa": "tsx --env-file-if-exists=../../.env src/massa-dois-anos.ts",
     "medir-cpu": "tsx src/medir-cpu.ts",
+    "conferir-banco": "tsx --env-file-if-exists=../../.env src/operacao/conferir-banco.ts",
     "cache-hyperdrive": "tsx src/operacao/cache-hyperdrive.ts",
     "restauracao-neon": "tsx src/operacao/restauracao-neon.ts",
     "dump-cifrado": "tsx src/operacao/dump-cifrado.ts",
