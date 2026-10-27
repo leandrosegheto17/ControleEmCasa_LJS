@@ -50,6 +50,22 @@ describe('gerarHeaders', () => {
   });
 });
 
+describe('codificação do public/_headers', () => {
+  const bytes = readFileSync(new URL('../public/_headers', import.meta.url));
+
+  it('é UTF-8 válido (decodificação fatal)', () => {
+    expect(() => new TextDecoder('utf-8', { fatal: true }).decode(bytes)).not.toThrow();
+  });
+
+  it.each([undefined, '', 'isso nao e url'])(
+    'sem DSN válido (%j) o gerado é idêntico ao original byte a byte',
+    (dsn) => {
+      const { conteudo } = gerarHeaders(bytes.toString('utf8'), dsn);
+      expect(Buffer.from(conteudo, 'utf8').equals(bytes)).toBe(true);
+    },
+  );
+});
+
 describe('integração com o build', () => {
   it('o script build do package.json roda o gerador depois do vite', () => {
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));

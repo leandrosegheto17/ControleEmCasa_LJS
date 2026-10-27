@@ -354,9 +354,9 @@ T14
 
 **Done when**:
 
-- [ ] `public/_headers` é UTF-8 válido (o teste lê os bytes e decodifica com `TextDecoder` em modo fatal)
-- [ ] Teste novo compara o `Buffer` do original com o do gerado sem DSN e falha com o arquivo em Latin-1 (provado na cópia)
-- [ ] Gate quick verde (pacote web)
+- [x] `public/_headers` é UTF-8 válido (o teste lê os bytes e decodifica com `TextDecoder` em modo fatal)
+- [x] Teste novo compara o `Buffer` do original com o do gerado sem DSN e falha com o arquivo em Latin-1 (provado na cópia)
+- [x] Gate quick verde (pacote web)
 
 **Tests**: unit
 **Gate**: quick
