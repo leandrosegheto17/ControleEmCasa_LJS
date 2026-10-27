@@ -44,14 +44,14 @@ Escopo: criar e configurar, **fora do repositório**, tudo o que o primeiro depl
 
 ## Execution Plan
 
-As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 17 tarefas, cerca de 18 h de trabalho humano, em 2 lotes (a T17 entrou depois do ensaio da T3 falhar). Ações do usuário: T1 a T5, T7 a T11 e T13 a T16. Trabalho do Claude: T6, T12 e T17 (e a conferência de cada tarefa).
+As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 18 tarefas, cerca de 19,5 h de trabalho humano, em 2 lotes (a T17 e a T18 entraram depois do ensaio da T3 falhar). Ações do usuário: T1 a T5, T7 a T11 e T13 a T16. Trabalho do Claude: T6, T12, T17 e T18 (e a conferência de cada tarefa).
 
 ### Phase 1: Neon
 
 Banco de produção pronto, migrado e conferido.
 
 ```
-T1 → T2 → T17 → T3 → T4
+T1 → T2 → T17 → T3 → T18 → T4
 ```
 
 ### Phase 2: Cloudflare e chaves
@@ -179,17 +179,43 @@ T16
 
 ---
 
+#### T18: Comando `migrar-neon` que confirma o destino antes de migrar
+
+**What**: Passo `pnpm migrar-neon` que exige `DATABASE_URL_OWNER` no ambiente do terminal (sem cair no `.env`), recusa destino local ou fora do Neon e o host com `-pooler`, imprime usuário, host e banco com a senha mascarada e só migra depois de o usuário digitar o nome do banco para confirmar.
+**Estimativa**: 1,5h
+**Where**: `backend/scripts/src/operacao/migrar-neon.ts`
+**Depends on**: T3
+**Reuses**: `backend/scripts/src/operacao/conferir-banco.ts` (padrão de leitura do ambiente e de saída sem segredo); `node-pg-migrate`
+**Requirement**: G-43; TM-DB-05; roteiro `.specs/etapa-17/neon.md` passos 5 e 6
+
+**Done when**:
+
+- [ ] Teste: sem `DATABASE_URL_OWNER` no ambiente, o comando falha com mensagem clara e NÃO usa o `.env`
+- [ ] Testes: recusa `localhost`, `127.0.0.1`, `55432`, host que não termine em `.neon.tech` e host com `-pooler`
+- [ ] Teste: a saída traz usuário, host e banco com a senha mascarada, nunca a URL inteira
+- [ ] Teste: só prossegue com a confirmação digitada igual ao nome do banco (ou `--sim` explícito para automação); qualquer outra resposta cancela sem migrar
+- [ ] Script `migrar-neon` no `backend/scripts/package.json` e no `package.json` da raiz; o `migrar` existente não muda
+- [ ] `docs/runbook.md` e `.specs/etapa-17/neon.md` passam a mandar usar `migrar-neon` para o Neon
+- [ ] Nenhum teste existente alterado; gate quick verde
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(operacao): migrar-neon confirma o destino antes de migrar`
+
+---
+
 #### T4: Migrar a `main` do Neon
 
-**What**: **Ação do usuário, com confirmação própria.** Rodar `pnpm migrar` com a URL direta do owner da `main` e `conferir-banco`.
+**What**: **Ação do usuário, com confirmação própria.** Rodar `pnpm migrar-neon` (T18) com a URL direta do owner da `main` e `conferir-banco`.
 **Estimativa**: 30 min
 **Where**: terminal do usuário
-**Depends on**: T3
+**Depends on**: T18
 **Reuses**: `.specs/etapa-17/neon.md` passo 6
 **Requirement**: RNF-07; ADR-015
 
 **Done when**:
 
+- [ ] Antes de migrar, repetir como `neondb_owner` na branch `main` a preparação do `search_path` (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;`)
 - [ ] Só executada depois de T3 sem erro e com a confirmação do usuário
 - [ ] `conferir-banco` sai com código 0 na `main`
 - [ ] Evidência registrada em `evidencias.md`
@@ -467,7 +493,7 @@ T16
 ```
 Phase 1 → Phase 2 → Phase 3 → Phase 4
 
-Phase 1:  T1 ------→ T2 ------→ T17 -----→ T3 ------→ T4
+Phase 1:  T1 ------→ T2 ------→ T17 -----→ T3 ------→ T18 -----→ T4
 Phase 2:  T5 ------→ T6
           T7
           T8
