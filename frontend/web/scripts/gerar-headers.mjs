@@ -37,8 +37,9 @@ export function gerarHeaders(original, dsn) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const origem = new URL('../public/_headers', import.meta.url);
-  const destino = new URL('../dist/_headers', import.meta.url);
+  // HEADERS_ORIGEM e HEADERS_DESTINO (opcionais) trocam os caminhos padrão; usados pelo teste da linha de comando.
+  const origem = process.env.HEADERS_ORIGEM ?? new URL('../public/_headers', import.meta.url);
+  const destino = process.env.HEADERS_DESTINO ?? new URL('../dist/_headers', import.meta.url);
   const { conteudo, aviso } = gerarHeaders(readFileSync(origem, 'utf8'), process.env.VITE_SENTRY_DSN);
   if (aviso) console.warn(`[gerar-headers] ${aviso}`);
   writeFileSync(destino, conteudo);

@@ -375,11 +375,11 @@ T14
 
 **Done when**:
 
-- [ ] DSN válido: arquivo gravado com `https://<host>` no `connect-src`, sem aviso
-- [ ] DSN com `;`: arquivo idêntico ao original e aviso `[gerar-headers] VITE_SENTRY_DSN ignorado` no `stderr`
-- [ ] Sem DSN: arquivo idêntico ao original, sem aviso; lê `VITE_SENTRY_DSN` e não `SENTRY_DSN`
-- [ ] Os 6 estragos C01 a C06 do `validation.md` fazem o teste falhar (provado na cópia)
-- [ ] Gate quick verde (pacote web)
+- [x] DSN válido: arquivo gravado com `https://<host>` no `connect-src`, sem aviso
+- [x] DSN com `;`: arquivo idêntico ao original e aviso `[gerar-headers] VITE_SENTRY_DSN ignorado` no `stderr`
+- [x] Sem DSN: arquivo idêntico ao original, sem aviso; lê `VITE_SENTRY_DSN` e não `SENTRY_DSN`
+- [x] Os 6 estragos C01 a C06 do `validation.md` fazem o teste falhar (provado na cópia)
+- [x] Gate quick verde (pacote web)
 
 **Tests**: unit
 **Gate**: quick
