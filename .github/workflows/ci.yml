@@ -138,6 +138,9 @@ jobs:
         run: pnpm --filter @controle/web e2e:pilha
         env:
           CI: 'true'
+      # Lighthouse 11.7.1 (a última com a categoria PWA) sobre o mesmo build: PWA ≥ 90 na landing e no início do app.
+      - name: Lighthouse PWA ≥ 90
+        run: pnpm --filter @controle/web run lighthouse
 
   gitleaks:
     runs-on: ubuntu-latest

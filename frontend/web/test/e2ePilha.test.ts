@@ -40,4 +40,10 @@ describe('e2e da pilha real', () => {
     expect(job).toMatch(/run: pnpm --filter @controle\/web e2e:pilha/);
     expect(job).not.toMatch(/continue-on-error/);
   });
+
+  it('o mesmo job mede o Lighthouse PWA depois do build dos e2e', () => {
+    const job = ci.slice(ci.indexOf('  e2e-pilha:'), ci.indexOf('\n  gitleaks:'));
+    expect(job).toMatch(/run: pnpm --filter @controle\/web run lighthouse/);
+    expect(job.indexOf('run lighthouse')).toBeGreaterThan(job.indexOf('e2e:pilha'));
+  });
 });
