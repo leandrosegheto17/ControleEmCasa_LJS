@@ -10,9 +10,13 @@ const ORIGEM = "connect-src 'self'";
 /** Devolve `{ host }` com o host validado do DSN, `{ host: null }` sem DSN, ou `{ host: null, aviso }`. */
 export function hostDoDsn(dsn) {
   if (dsn === undefined || dsn.trim() === '') return { host: null };
-  const recusa = (motivo) => ({ host: null, aviso: `VITE_SENTRY_DSN ignorado (${motivo}); a CSP fica sem o host do Sentry.` });
+  const recusa = (motivo) => ({
+    host: null,
+    aviso: `VITE_SENTRY_DSN ignorado (${motivo}); a CSP fica sem o host do Sentry.`,
+  });
   // `new URL` descarta tab e quebra de linha em silêncio: o DSN cru não pode ter espaço nem controle.
-  if ([...dsn].some((c) => /\s/.test(c) || c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) return recusa('espaço ou caractere de controle');
+  if ([...dsn].some((c) => /\s/.test(c) || c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127))
+    return recusa('espaço ou caractere de controle');
   let url;
   try {
     url = new URL(dsn);

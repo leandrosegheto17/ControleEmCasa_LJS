@@ -19,7 +19,12 @@ describe('gerarHeaders', () => {
 
   it('mantém HSTS, nosniff e as demais linhas', () => {
     const { conteudo } = gerarHeaders(original, 'https://k@o1.ingest.sentry.io/1');
-    for (const l of ['Strict-Transport-Security', 'X-Content-Type-Options: nosniff', 'Referrer-Policy', 'Permissions-Policy']) {
+    for (const l of [
+      'Strict-Transport-Security',
+      'X-Content-Type-Options: nosniff',
+      'Referrer-Policy',
+      'Permissions-Policy',
+    ]) {
       expect(conteudo).toContain(l);
     }
   });
