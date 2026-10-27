@@ -73,7 +73,7 @@ describe('iniciarSentry', () => {
     window.history.pushState({}, '', `/confirmar?email=${EMAIL}#t=${TOKEN}`);
 
     expect(
-      await iniciarSentry({ VITE_SENTRY_DSN: DSN, VITE_SENTRY_RELEASE: SHA }, () => import('@sentry/react'), {
+      await iniciarSentry({ VITE_SENTRY_DSN: DSN, VITE_SENTRY_RELEASE: SHA }, () => import('./sdkSentry'), {
         transport,
       }),
     ).toBe(true);

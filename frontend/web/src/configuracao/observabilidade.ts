@@ -1,4 +1,5 @@
-import { DADOS_COLETADOS_SENTRY, limparEventoSentry, limparMigalhaSentry } from '@controle/contrato';
+// Subcaminho do contrato: o índice traria os schemas e o Zod para o bundle de produção.
+import { DADOS_COLETADOS_SENTRY, limparEventoSentry, limparMigalhaSentry } from '@controle/contrato/observabilidade';
 import type { BrowserOptions } from '@sentry/react';
 
 /**
@@ -48,7 +49,7 @@ export function opcoesSentryWeb(config: ConfigSentryWeb, extra: Partial<BrowserO
   };
 }
 
-type Sdk = Pick<typeof import('@sentry/react'), 'init' | 'captureException'>;
+type Sdk = typeof import('./sdkSentry');
 
 let relatar: ((erro: unknown) => void) | null = null;
 
@@ -57,7 +58,7 @@ let relatar: ((erro: unknown) => void) | null = null;
  */
 export async function iniciarSentry(
   ambiente: AmbienteSentry = import.meta.env,
-  carregar: () => Promise<Sdk> = () => import('@sentry/react'),
+  carregar: () => Promise<Sdk> = () => import('./sdkSentry'),
   extra: Partial<BrowserOptions> = {},
 ): Promise<boolean> {
   const config = lerConfigSentry(ambiente);
