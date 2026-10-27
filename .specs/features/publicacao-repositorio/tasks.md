@@ -300,10 +300,10 @@ T11
 
 **Done when**:
 
-- [ ] Teste novo passa e falha quando o filtro vira `like '%'` ou perde o escape do `_` (provado na cópia com os dois estragos)
-- [ ] Roles temporárias sempre derrubadas
-- [ ] Nenhum teste existente alterado
-- [ ] Gate full verde
+- [x] Teste novo passa e falha quando o filtro vira `like '%'` ou perde o escape do `_` (provado na cópia com os dois estragos)
+- [x] Roles temporárias sempre derrubadas
+- [x] Nenhum teste existente alterado
+- [x] Gate full verde
 
 **Tests**: integration
 **Gate**: full

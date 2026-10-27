@@ -109,6 +109,34 @@ describe.skipIf(!temBanco)('no Postgres 18 local', () => {
     }
   });
 
+  it('só confere roles controle_*: controleX... e roles de fora do prefixo, mesmo perigosas, não são acusadas', async () => {
+    const sufixo = randomBytes(3).toString('hex');
+    const casaPrefixo = `controle_ok${sufixo}`;
+    const quaseCasa = `controleXfoo${sufixo}`;
+    const fora = `outra_fora${sufixo}`;
+    const contagem = () => Number(/(\d+) roles controle_\*/.exec(saida.join('\n'))?.[1]);
+    saida.length = 0;
+    expect(await main({ ...AMB, DATABASE_URL_OWNER: banco.owner })).toBe(0);
+    const antes = contagem();
+    try {
+      await comCliente(URL_OWNER as string, async (c) => {
+        await c.query(`create role ${casaPrefixo} nologin`);
+        await c.query(`create role ${quaseCasa} nologin bypassrls createrole`);
+        await c.query(`create role ${fora} nologin bypassrls createdb`);
+      });
+      saida.length = 0;
+      expect(await main({ ...AMB, DATABASE_URL_OWNER: banco.owner })).toBe(0);
+      const tudo = saida.join('\n');
+      expect(tudo).not.toContain(quaseCasa);
+      expect(tudo).not.toContain(fora);
+      expect(contagem()).toBe(antes + 1);
+    } finally {
+      await comCliente(URL_OWNER as string, async (c) => {
+        for (const r of [casaPrefixo, quaseCasa, fora]) await c.query(`drop role if exists ${r}`);
+      });
+    }
+  });
+
   it('falha com mensagem clara quando uma tabela perde o FORCE', async () => {
     await comCliente(banco.owner, (c) => c.query('alter table app.lancamento no force row level security'));
     saida.length = 0;
