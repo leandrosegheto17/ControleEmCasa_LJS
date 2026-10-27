@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -112,13 +112,16 @@ describe('visitante', () => {
     const { unmount } = montar(false);
     await screen.findByRole('heading', { level: 1 });
 
-    expect(document.title).toBe('As finanças da casa, em dois · Controle em Casa');
-    expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toContain(
-      '14 dias de Pro sem cartão',
-    );
-    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
-      `${window.location.origin}/`,
-    );
+    // O título e o `<head>` são aplicados em efeitos que podem rodar um instante depois do primeiro render.
+    await waitFor(() => {
+      expect(document.title).toBe('As finanças da casa, em dois · Controle em Casa');
+      expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toContain(
+        '14 dias de Pro sem cartão',
+      );
+      expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+        `${window.location.origin}/`,
+      );
+    });
 
     unmount();
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
