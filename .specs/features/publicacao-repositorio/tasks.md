@@ -277,11 +277,11 @@ T11
 
 **Done when**:
 
-- [ ] Testes novos: DSN válido põe `https://<host>` no `connect-src` e mais nada; sem DSN o arquivo gerado é idêntico ao de `public/_headers`
-- [ ] Testes de injeção: host do DSN com `;`, `*`, `'`, espaço, quebra de linha e `http:` é recusado, o build falha ou ignora o DSN com aviso, e a CSP nunca ganha diretiva extra (o caso `new URL('https://x@a.com;script-src/1')` dá host `a.com;script-src`)
-- [ ] O `build` do front usa o script, e o `_headers` final continua com HSTS, `X-Content-Type-Options` e demais linhas
-- [ ] Linha no Log de Alterações do `.md/GUARDRAILS.md`
-- [ ] Gate quick verde (pacote web)
+- [x] Testes novos: DSN válido põe `https://<host>` no `connect-src` e mais nada; sem DSN o arquivo gerado é idêntico ao de `public/_headers`
+- [x] Testes de injeção: host do DSN com `;`, `*`, `'`, espaço, quebra de linha e `http:` é recusado, o build falha ou ignora o DSN com aviso, e a CSP nunca ganha diretiva extra (o caso `new URL('https://x@a.com;script-src/1')` dá host `a.com;script-src`)
+- [x] O `build` do front usa o script, e o `_headers` final continua com HSTS, `X-Content-Type-Options` e demais linhas
+- [x] Linha no Log de Alterações do `.md/GUARDRAILS.md`
+- [x] Gate quick verde (pacote web)
 
 **Tests**: unit
 **Gate**: quick

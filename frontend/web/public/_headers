@@ -1,6 +1,6 @@
 # Cabe√ßalhos dos arquivos est√°ticos (SDD 11; G-35). Servidos pelo Cloudflare Assets.
 # CSP sem unsafe-inline/unsafe-eval em script; sem analytics nem script de terceiros.
-# A etapa 16 acrescenta o host de ingest√£o do Sentry em connect-src (exce√ß√£o registrada em GUARDRAILS).
+# O build (scripts/gerar-headers.mjs) acrescenta o host de ingest„o do Sentry (VITE_SENTRY_DSN) ao connect-src em dist/_headers; sem DSN v·lido este arquivo vale como est· (exceÁ„o registrada em GUARDRAILS).
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
