@@ -41,7 +41,7 @@ Escopo: só o que dá para fazer **no repositório, antes de existir produção*
 
 ## Execution Plan
 
-As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 7 tarefas, 1 lote, cerca de 11 h de trabalho humano.
+As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 11 tarefas, cerca de 15 h de trabalho humano: as 7 do primeiro lote (T1 a T7, entregues e verificadas em `validation.md`, FAIL por lacunas de teste) e 4 do lote de correção (T8 a T11, Phase 4), decidido em 2026-10-27 depois da verificação.
 
 ### Phase 1: Configuração do Worker
 
@@ -68,6 +68,16 @@ Fumaça do deploy mais completa e o roteiro de ativação que junta tudo.
 
 ```
 T4 → T7
+```
+
+### Phase 4: Correções da verificação e CSP do app
+
+A verificação (`validation.md`) achou que a CSP que o navegador aplica ao app mora em `frontend/web/public/_headers`, não na CSP da API, e 3 lacunas de teste em `conferir-banco`.
+
+```
+T8 → T9
+T10
+T11
 ```
 
 ---
@@ -116,6 +126,8 @@ T4 → T7
 **Tests**: unit
 **Gate**: full
 **Commit**: `feat(api): CSP libera só o host de ingestão do Sentry`
+
+> **Nota (2026-10-27, verificação):** entregue, mas inócua para o Sentry do navegador: a CSP da API só vale para respostas JSON; a do app mora em `frontend/web/public/_headers`. O código é revertido na T8 e a CSP do app passa a ser gerada na T9. Os critérios acima ficam marcados porque foram cumpridos como escritos; o critério "sem DSN fica só `'self'`" era impreciso (a CSP da API não tem `connect-src`).
 
 ---
 
@@ -231,14 +243,106 @@ T4 → T7
 
 ---
 
+### Phase 4: Correções da verificação e CSP do app
+
+#### T8: Reverter o código inócuo da T2
+
+**What**: `git revert 743236f` (CSP da API com host do Sentry), que remove o código, os 6 testes dele e a linha do Log do GUARDRAILS; o runbook e o `tasks.md` não dependem dele.
+**Estimativa**: 30 min
+**Where**: `backend/api/src/middleware/cabecalhos.ts` (revert)
+**Depends on**: None
+**Reuses**: `git revert`
+**Requirement**: RNF-06 (menos código inútil na borda)
+
+**Done when**:
+
+- [ ] `cabecalhos.ts` e `saude-e-cabecalhos.test.ts` voltam ao estado anterior à T2; nenhum teste de antes da T2 alterado (confirmado com `git diff 5ad1f0f -- backend/api/src/saude-e-cabecalhos.test.ts`)
+- [ ] A linha da T2 no Log do GUARDRAILS sai junto, e o motivo fica no corpo do commit
+- [ ] Gate quick verde
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `revert: tira a CSP do Sentry da API (inócua; a do app mora no _headers)`
+
+---
+
+#### T9: `_headers` do app gerado no build com o host do Sentry
+
+**What**: O build do front gera `dist/_headers` a partir de `public/_headers`, acrescentando o host exato de `VITE_SENTRY_DSN` ao `connect-src`; sem DSN, o arquivo sai idêntico. Linha de exceção no Log do GUARDRAILS (decisão do usuário de 2026-10-27).
+**Estimativa**: 2h
+**Where**: `frontend/web/scripts/gerar-headers.mjs`
+**Depends on**: T8
+**Reuses**: `frontend/web/scripts/lighthouse.mjs` (padrão de script com teste); `frontend/web/public/_headers`
+**Requirement**: RNF-06, RNF-08
+
+**Done when**:
+
+- [ ] Testes novos: DSN válido põe `https://<host>` no `connect-src` e mais nada; sem DSN o arquivo gerado é idêntico ao de `public/_headers`
+- [ ] Testes de injeção: host do DSN com `;`, `*`, `'`, espaço, quebra de linha e `http:` é recusado, o build falha ou ignora o DSN com aviso, e a CSP nunca ganha diretiva extra (o caso `new URL('https://x@a.com;script-src/1')` dá host `a.com;script-src`)
+- [ ] O `build` do front usa o script, e o `_headers` final continua com HSTS, `X-Content-Type-Options` e demais linhas
+- [ ] Linha no Log de Alterações do `.md/GUARDRAILS.md`
+- [ ] Gate quick verde (pacote web)
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(web): CSP do app libera só o host de ingestão do Sentry`
+
+---
+
+#### T10: Teste do filtro de prefixo das roles em `conferir-banco`
+
+**What**: Teste de banco com uma role `controleXfoo` e outra fora do prefixo, ambas com atributo proibido: nenhuma é acusada, e a contagem do resumo reflete só as roles `controle_*`.
+**Estimativa**: 1h
+**Where**: `backend/scripts/src/operacao/conferir-banco.test.ts`
+**Depends on**: None
+**Reuses**: teste de `BYPASSRLS` já existente no mesmo arquivo (role temporária derrubada no `finally`)
+**Requirement**: RNF-07; `validation.md` (mutantes M3g e M3k)
+
+**Done when**:
+
+- [ ] Teste novo passa e falha quando o filtro vira `like '%'` ou perde o escape do `_` (provado na cópia com os dois estragos)
+- [ ] Roles temporárias sempre derrubadas
+- [ ] Nenhum teste existente alterado
+- [ ] Gate full verde
+
+**Tests**: integration
+**Gate**: full
+**Commit**: `test(operacao): conferir-banco só acusa roles controle_*`
+
+---
+
+#### T11: Guarda dos scripts de operação no `package.json`
+
+**What**: Teste que lê `backend/scripts/package.json` e exige as entradas `conferir-banco`, `medir-cpu-publicado` e `medir-retomada-a-frio` apontando para os arquivos de `src/operacao/`.
+**Estimativa**: 30 min
+**Where**: `backend/scripts/src/operacao/scripts-package.test.ts`
+**Depends on**: None
+**Reuses**: guarda de `migracao-aditiva.test.ts:262`
+**Requirement**: `validation.md` (mutante M3j)
+
+**Done when**:
+
+- [ ] Teste novo falha quando uma das três entradas some ou aponta para outro arquivo (provado na cópia)
+- [ ] O arquivo apontado existe
+- [ ] Gate quick verde
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(operacao): guarda os scripts de operação no package.json`
+
+---
+
 ## Phase Execution Map
 
 ```
-Phase 1 → Phase 2 → Phase 3
+Phase 1 → Phase 2 → Phase 3 → Phase 4
 
 Phase 1:  T1   T2
 Phase 2:  T3   T5   T6
 Phase 3:  T4 ------→ T7
+Phase 4:  T8 ------→ T9
+          T10
+          T11
 ```
 
-Lote único (7 tarefas): cabe num trabalhador só. Ao fim, verificação pelo agente `verificador` e aprovação seguir / ajustar / parar.
+Lote 1 (T1 a T7): entregue. Lote 2 (T8 a T11, 4 tarefas): cabe num trabalhador só. Ao fim, a reverificação dos mutantes M2c, M3g, M3j e M3k pelo agente `verificador` e a aprovação seguir / ajustar / parar.
