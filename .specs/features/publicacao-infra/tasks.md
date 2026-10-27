@@ -44,14 +44,14 @@ Escopo: criar e configurar, **fora do repositório**, tudo o que o primeiro depl
 
 ## Execution Plan
 
-As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 16 tarefas, cerca de 16 h de trabalho humano, em 2 lotes de 8. Ações do usuário: T1 a T5, T7 a T11 e T13 a T16. Trabalho do Claude: T6 e T12 (e a conferência de cada tarefa).
+As Phases rodam em sequência e as tarefas de cada Phase rodam em ordem. São 17 tarefas, cerca de 18 h de trabalho humano, em 2 lotes (a T17 entrou depois do ensaio da T3 falhar). Ações do usuário: T1 a T5, T7 a T11 e T13 a T16. Trabalho do Claude: T6, T12 e T17 (e a conferência de cada tarefa).
 
 ### Phase 1: Neon
 
 Banco de produção pronto, migrado e conferido.
 
 ```
-T1 → T2 → T3 → T4
+T1 → T2 → T17 → T3 → T4
 ```
 
 ### Phase 2: Cloudflare e chaves
@@ -132,17 +132,41 @@ T16
 
 ---
 
+#### T17: Migration base tolerante ao owner do Neon e conferência do `search_path`
+
+**What**: Fazer o `ALTER ROLE ... IN DATABASE ... SET search_path` da migration `20261024120000` tolerar a falta de privilégio (aviso, sem erro) e acrescentar ao `conferir-banco` a checagem de que `controle_app` e `controle_backup_ro` têm `search_path = app` no banco, para a omissão não passar despercebida.
+**Estimativa**: 2h
+**Where**: `backend/scripts/migracoes/20261024120000_base_schema_roles_extensoes.sql`
+**Depends on**: T2
+**Reuses**: `backend/scripts/src/operacao/conferir-banco.ts` e seus testes; `.specs/etapa-17/neon.md` passo 5
+**Requirement**: RNF-07; ADR-005; GUARDRAILS G-43 (linha no Log: edição de migration ainda não aplicada em produção)
+
+**Done when**:
+
+- [ ] Teste de banco novo: a parte do `ALTER ROLE` da migration roda como role SEM `CREATEROLE` (simulando o owner do Neon) e termina sem erro; como superusuário continua definindo o `search_path` (comportamento local e do CI intacto)
+- [ ] `conferir-banco` reprova quando `controle_app` ou `controle_backup_ro` não tem `search_path = app` no banco, e passa quando tem (testes novos; provados falhando sem a checagem)
+- [ ] `.specs/etapa-17/neon.md` e `docs/runbook.md` ganham o passo de preparação do `search_path` como `neondb_owner` (e o motivo)
+- [ ] Linha no Log de Alterações do `.md/GUARDRAILS.md` (aprovada por Leandro em 2026-10-27)
+- [ ] Nenhum teste existente alterado; `pnpm lint && pnpm typecheck` e gate full verdes
+
+**Tests**: integration
+**Gate**: full
+**Commit**: `fix(banco): migration base tolera owner sem CREATEROLE e conferir-banco checa o search_path`
+
+---
+
 #### T3: Ensaio de migração na branch `dev`
 
-**What**: **Ação do usuário com conferência do Claude.** Rodar `pnpm migrar` com a URL direta do owner da branch `dev` e `conferir-banco` em seguida, para provar que a role dona consegue criar o schema, as extensões e o `search_path` por role no Neon.
+**What**: **Ação do usuário com conferência do Claude.** Antes, como `neondb_owner` no SQL Editor da branch `dev`, definir o `search_path` das duas roles no banco `controle` (o `controle_owner` não pode: falta `CREATEROLE`); depois rodar `pnpm migrar` com a URL direta do owner da branch `dev` e `conferir-banco` em seguida, para provar que a role dona consegue criar o schema, as extensões e o `search_path` por role no Neon.
 **Estimativa**: 1h
 **Where**: terminal do usuário, variável `DATABASE_URL_OWNER` só no terminal
-**Depends on**: T2
+**Depends on**: T17
 **Reuses**: `backend/scripts/src/operacao/conferir-banco.ts`; `.specs/etapa-17/neon.md` passo 5
 **Requirement**: RNF-07; ADR-005
 
 **Done when**:
 
+- [ ] Passo de preparação feito como `neondb_owner`: `ALTER ROLE controle_app IN DATABASE controle SET search_path = app;` e o mesmo para `controle_backup_ro`
 - [ ] `pnpm migrar` aplica todas as migrations; rodar de novo diz "No migrations to run"
 - [ ] `conferir-banco` sai com código 0 na `dev` (sem `IGNORAR_ROLES`: o owner do Neon é `NOSUPERUSER`)
 - [ ] Como `controle_app`: sem contexto devolve 0 linhas, e `CREATE TABLE` é negado
@@ -443,7 +467,7 @@ T16
 ```
 Phase 1 → Phase 2 → Phase 3 → Phase 4
 
-Phase 1:  T1 ------→ T2 ------→ T3 ------→ T4
+Phase 1:  T1 ------→ T2 ------→ T17 -----→ T3 ------→ T4
 Phase 2:  T5 ------→ T6
           T7
           T8
