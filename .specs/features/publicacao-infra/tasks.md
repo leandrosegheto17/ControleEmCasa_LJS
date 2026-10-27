@@ -122,9 +122,9 @@ T16
 
 **Done when**:
 
-- [ ] O banco `controle` aparece com dono `controle_owner` nas branches `main` e `dev`
-- [ ] As strings de conexão **diretas** (host sem `-pooler`, `sslmode=require`) das 3 roles estão guardadas no gerenciador de senhas do usuário (nada na conversa)
-- [ ] Evidência registrada em `evidencias.md` (nomes de banco e branch, sem URL)
+- [x] O banco `controle` aparece com dono `controle_owner` nas branches `main` e `dev`
+- [x] As strings de conexão **diretas** (host sem `-pooler`, `sslmode=require`) das 3 roles estão guardadas no gerenciador de senhas do usuário (nada na conversa)
+- [x] Evidência registrada em `evidencias.md` (nomes de banco e branch, sem URL)
 
 **Tests**: none
 **Gate**: evidência registrada
