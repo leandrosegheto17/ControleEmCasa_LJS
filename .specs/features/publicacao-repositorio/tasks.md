@@ -108,10 +108,10 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Testes novos: com DSN válido o `connect-src` ganha `https://<host do DSN>` e nada mais; sem DSN fica só `'self'`; DSN malformado não muda a CSP nem derruba a resposta
-- [ ] Nenhum teste existente de cabeçalhos alterado
-- [ ] Linha no Log de Alterações do `.md/GUARDRAILS.md`
-- [ ] Gate full verde
+- [x] Testes novos: com DSN válido o `connect-src` ganha `https://<host do DSN>` e nada mais; sem DSN fica só `'self'`; DSN malformado não muda a CSP nem derruba a resposta
+- [x] Nenhum teste existente de cabeçalhos alterado
+- [x] Linha no Log de Alterações do `.md/GUARDRAILS.md`
+- [x] Gate full verde
 
 **Tests**: unit
 **Gate**: full
