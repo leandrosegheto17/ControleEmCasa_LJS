@@ -9,7 +9,9 @@ import pg from 'pg';
  * - alguma role `controle_*` tem `rolsuper`, `rolbypassrls`, `rolcreaterole` ou `rolcreatedb` (a RLS só protege se a
  *   role da API não pode furá-la);
  * - alguma tabela do schema `app` que tem política não está com RLS ligada (ENABLE) E forçada (FORCE);
- * - há migration da pasta `migracoes/` sem registro em `public.pgmigrations`.
+ * - há migration da pasta `migracoes/` sem registro em `public.pgmigrations`;
+ * - `controle_app` ou `controle_backup_ro` não tem `search_path = app` no banco atual (`pg_db_role_setting`). No Neon a
+ *   migration não consegue definir (o owner é NOCREATEROLE; T17): é feito antes, como `neondb_owner`.
  *
  * Só imprime contagens e nomes de role/tabela/migration: nunca a URL, a senha nem o texto de erro do driver.
  */
@@ -33,7 +35,12 @@ export interface DadosDoBanco {
   tabelasComPolitica: TabelaConferida[];
   migracoesAplicadas: string[];
   migracoesDaPasta: string[];
+  /** Roles que precisam de `search_path = app` e não o têm no banco atual (`lerBanco` sempre preenche). */
+  searchPath?: { banco: string; rolesSem: string[] };
 }
+
+/** Roles cujo `search_path` por banco tem de ser `app` (migration base; SDD 3.1). */
+export const ROLES_COM_SEARCH_PATH = ['controle_app', 'controle_backup_ro'] as const;
 
 const ATRIBUTOS = ['rolsuper', 'rolbypassrls', 'rolcreaterole', 'rolcreatedb'] as const;
 
@@ -51,6 +58,14 @@ export function avaliar(d: DadosDoBanco): string[] {
   const aplicadas = new Set(d.migracoesAplicadas);
   const pendentes = d.migracoesDaPasta.filter((m) => !aplicadas.has(m));
   if (pendentes.length > 0) problemas.push(`Migrations pendentes (${pendentes.length}): ${pendentes.join(', ')}.`);
+  if (d.searchPath) {
+    const { banco, rolesSem } = d.searchPath;
+    for (const role of rolesSem) {
+      problemas.push(
+        `Role ${role} sem search_path = app no banco ${banco}. Defina como neondb_owner: ALTER ROLE ${role} IN DATABASE ${banco} SET search_path = app;`,
+      );
+    }
+  }
   return problemas;
 }
 
@@ -89,11 +104,25 @@ export async function lerBanco(c: pg.Client, pasta: string): Promise<DadosDoBanc
   const aplicadas = existe.rows[0]?.existe
     ? (await c.query<{ name: string }>('select name from public.pgmigrations')).rows.map((r) => r.name)
     : [];
+  // Configuração por banco (ALTER ROLE ... IN DATABASE ... SET): pg_db_role_setting, com setdatabase do banco atual.
+  // Role inexistente também conta como "sem search_path".
+  const searchPath = await c.query<{ banco: string; roles_sem: string[] }>(
+    `select current_database() as banco,
+            coalesce(array_agg(n.rolname order by n.rolname) filter (where not exists (
+              select 1 from pg_db_role_setting s join pg_roles r on r.oid = s.setrole
+               where r.rolname = n.rolname
+                 and s.setdatabase = (select oid from pg_database where datname = current_database())
+                 and 'search_path=app' = any(s.setconfig))), '{}') as roles_sem
+       from unnest($1::text[]) as n(rolname)`,
+    [ROLES_COM_SEARCH_PATH],
+  );
+  const sp = searchPath.rows[0];
   return {
     roles: roles.rows,
     tabelasComPolitica: tabelas.rows,
     migracoesAplicadas: aplicadas,
     migracoesDaPasta: migracoesDaPasta(pasta),
+    searchPath: { banco: sp?.banco ?? '', rolesSem: sp?.roles_sem ?? [] },
   };
 }
 

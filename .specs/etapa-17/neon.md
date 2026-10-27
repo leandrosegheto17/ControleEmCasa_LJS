@@ -39,7 +39,8 @@ Esperado: `false` em todas as colunas, nas 3 linhas. **Se algum `rolbypassrls` v
 ## 3. Banco `controle` com dono `controle_owner`
 
 - Console: Databases, novo banco `controle`, **owner `controle_owner`** (em SQL `CREATE DATABASE` não deixa escolher o dono na documentação).
-- As migrations criam o schema `app`, as extensões `pgcrypto` e `citext` (no schema `app`) e fazem `ALTER ROLE ... IN DATABASE ... SET search_path = app`. `[A VALIDAR]` que a role dona consegue tudo isso no Neon: o ensaio abaixo (passo 5) prova.
+- As migrations criam o schema `app`, as extensões `pgcrypto` e `citext` (no schema `app`) e tentam `ALTER ROLE ... IN DATABASE ... SET search_path = app`. `[A VALIDAR]` que a role dona consegue o schema e as extensões no Neon: o ensaio abaixo (passo 5) prova.
+- **Medido em 2026-10-27 (T3, branch `dev`):** o `ALTER ROLE` falha para o `controle_owner` (`permission denied to alter role`, 42501). O Postgres só deixa alterar outra role quem tem `CREATEROLE` e `ADMIN` sobre ela, e o owner é `NOCREATEROLE` por desenho (passo 2). A migration tolera (só um aviso) e o `search_path` é definido antes, como `neondb_owner` (passo 5).
 
 ## 4. Branch `dev` e strings de conexão
 
@@ -51,6 +52,15 @@ Esperado: `false` em todas as colunas, nas 3 linhas. **Se algum `rolbypassrls` v
 - Motivo da string direta: o pooler do Neon usa PgBouncer em transaction mode, e a API depende de `set_config(..., true)` dentro da transação; o Hyperdrive já faz o próprio pooling.
 
 ## 5. Ensaio na branch `dev` (antes de tocar na `main`)
+
+**Preparação, antes do `pnpm migrar`** (SQL Editor, branch `dev`, banco `controle`, como `neondb_owner`):
+
+```sql
+ALTER ROLE controle_app IN DATABASE controle SET search_path = app;
+ALTER ROLE controle_backup_ro IN DATABASE controle SET search_path = app;
+```
+
+Motivo: o `controle_owner` é `NOCREATEROLE` (passo 2) e não pode alterar outra role; a migration `20261024120000` só avisa ("O search_path de ... não foi definido pela migration") e segue. O `search_path` pode ser definido antes do schema `app` existir. A configuração é por branch: a `main` também precisa (passo 6). Sem ela, o `conferir-banco` reprova com a instrução acima.
 
 Na sua máquina, com a URL **direta do owner da branch `dev`** numa variável só do terminal:
 
@@ -68,7 +78,7 @@ Se algo falhar aqui, é o `[A VALIDAR]` do passo 3 e corrigimos antes de produç
 
 ## 6. Migrar a `main`
 
-Mesmo comando com a URL do owner da `main`. Só depois do ensaio verde. Ação irreversível sem restauração: confirmação própria.
+Antes, a mesma preparação do passo 5 (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;` como `neondb_owner`), agora no SQL Editor da branch **`main`**. Depois, mesmo comando com a URL do owner da `main` e o `conferir-banco`. Só depois do ensaio verde. Ação irreversível sem restauração: confirmação própria.
 
 ## 7. Hyperdrive (Cloudflare)
 

@@ -22,8 +22,18 @@ grant usage on schema app to controle_app, controle_backup_ro;
 do $$
 begin
   execute format('revoke temporary on database %I from public', current_database());
-  execute format('alter role controle_app in database %I set search_path = app', current_database());
-  execute format('alter role controle_backup_ro in database %I set search_path = app', current_database());
+  -- No Neon o controle_owner e NOCREATEROLE e nao pode alterar outra role (42501): o search_path e definido antes,
+  -- como neondb_owner (docs/runbook.md, secao 10; .specs/etapa-17/neon.md, passo 5), e o conferir-banco confere.
+  begin
+    execute format('alter role controle_app in database %I set search_path = app', current_database());
+  exception when insufficient_privilege then
+    raise notice 'O search_path de controle_app nao foi definido pela migration (sem privilegio). Defina como administrador: ALTER ROLE controle_app IN DATABASE % SET search_path = app; (ver docs/runbook.md, secao 10).', current_database();
+  end;
+  begin
+    execute format('alter role controle_backup_ro in database %I set search_path = app', current_database());
+  exception when insufficient_privilege then
+    raise notice 'O search_path de controle_backup_ro nao foi definido pela migration (sem privilegio). Defina como administrador: ALTER ROLE controle_backup_ro IN DATABASE % SET search_path = app; (ver docs/runbook.md, secao 10).', current_database();
+  end;
 end
 $$;
 

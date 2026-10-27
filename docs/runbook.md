@@ -137,6 +137,8 @@ Depois de restaurar: o Hyperdrive aponta para a `main`, então não muda. Rode a
    alter role controle_backup_ro in database <banco> set search_path = app;
    ```
 
+   No Neon, rode como `neondb_owner`: o `controle_owner` é `NOCREATEROLE` e não pode alterar outra role (seção 10).
+
 6. **Confira** (seção 4.3). Só depois troque o app para o banco restaurado: restaure a `main` a partir da branch
    restaurada (4.1) ou aponte o Hyperdrive para ela `[A VALIDAR NA ETAPA 17]`.
 7. Apague o `banco.dump` em claro e devolva a chave privada à guarda.
@@ -337,6 +339,19 @@ Ordem de ligar a produção pela primeira vez (feature 17b e 17c). Cada passo di
 (texto da saída ou captura, **sem** URL com senha, token nem cookie). O passo a passo do Neon e do Hyperdrive está em
 `.specs/etapa-17/neon.md`. Passo que muda conta externa pede a confirmação do Leandro, uma a uma. Falhou um passo: pare,
 não pule para o seguinte.
+
+**Preparação do banco, antes da primeira migração de cada branch do Neon (`dev` e `main`).** No SQL Editor da branch,
+banco `controle`, como `neondb_owner`:
+
+```sql
+ALTER ROLE controle_app IN DATABASE controle SET search_path = app;
+ALTER ROLE controle_backup_ro IN DATABASE controle SET search_path = app;
+```
+
+Motivo: o `controle_owner`, que roda as migrations, é `NOCREATEROLE` por desenho, e o Postgres só deixa alterar outra
+role quem tem `CREATEROLE` e `ADMIN` sobre ela (medido no Neon em 2026-10-27: `permission denied to alter role`,
+42501). A migration `20261024120000` tolera a falta de privilégio e só avisa; o `conferir-banco` (passo 1) reprova
+enquanto as duas roles não tiverem `search_path = app` no banco. Não dê `CREATEROLE` ao owner.
 
 | #   | Passo                            | Comando                                                                                                                                             | Evidência a guardar                                                                    |
 | --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |

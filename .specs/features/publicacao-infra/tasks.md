@@ -143,11 +143,11 @@ T16
 
 **Done when**:
 
-- [ ] Teste de banco novo: a parte do `ALTER ROLE` da migration roda como role SEM `CREATEROLE` (simulando o owner do Neon) e termina sem erro; como superusuário continua definindo o `search_path` (comportamento local e do CI intacto)
-- [ ] `conferir-banco` reprova quando `controle_app` ou `controle_backup_ro` não tem `search_path = app` no banco, e passa quando tem (testes novos; provados falhando sem a checagem)
-- [ ] `.specs/etapa-17/neon.md` e `docs/runbook.md` ganham o passo de preparação do `search_path` como `neondb_owner` (e o motivo)
-- [ ] Linha no Log de Alterações do `.md/GUARDRAILS.md` (aprovada por Leandro em 2026-10-27)
-- [ ] Nenhum teste existente alterado; `pnpm lint && pnpm typecheck` e gate full verdes
+- [x] Teste de banco novo: a parte do `ALTER ROLE` da migration roda como role SEM `CREATEROLE` (simulando o owner do Neon) e termina sem erro; como superusuário continua definindo o `search_path` (comportamento local e do CI intacto)
+- [x] `conferir-banco` reprova quando `controle_app` ou `controle_backup_ro` não tem `search_path = app` no banco, e passa quando tem (testes novos; provados falhando sem a checagem)
+- [x] `.specs/etapa-17/neon.md` e `docs/runbook.md` ganham o passo de preparação do `search_path` como `neondb_owner` (e o motivo)
+- [x] Linha no Log de Alterações do `.md/GUARDRAILS.md` (aprovada por Leandro em 2026-10-27)
+- [x] Nenhum teste existente alterado; `pnpm lint && pnpm typecheck` e gate full verdes
 
 **Tests**: integration
 **Gate**: full
