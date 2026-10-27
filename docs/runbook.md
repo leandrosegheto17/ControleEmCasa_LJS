@@ -8,32 +8,39 @@
 
 ## 1. Mapa
 
-| Peça                   | Onde                                                                                     | Observação                                                              |
-| ---------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| App (front + API)      | Worker `controle-em-casa` na Cloudflare                                                  | `https://controleemcasa.ljssoftware.com.br`; saúde em `/api/health`     |
-| Banco                  | Neon, projeto em `sa-east-1`, Postgres 17, branch `main`                                 | Acesso do Worker pelo Hyperdrive (cache desligado), role `controle_app` |
-| Roles                  | `controle_owner` (migrations e purga), `controle_app` (API), `controle_backup_ro` (dump) | Criadas à mão no Neon `[A VALIDAR NA ETAPA 17]`                         |
-| Deploy                 | `.github/workflows/deploy.yml`                                                           | Único lugar que publica o Worker (G-42)                                 |
-| Backup                 | `.github/workflows/backup.yml`                                                           | Diário, 04:00 de Brasília, artefato `.dump.age` por 30 dias             |
-| Purga                  | `.github/workflows/purga.yml`                                                            | Diária (ADR 013)                                                        |
-| Erros                  | Sentry: projetos do Worker e do front                                                    | Release = SHA do commit; sem DSN, desligado                             |
-| Environments do GitHub | `producao-aprovacao` (revisor, sem segredo) e `producao` (segredos, só da `main`)        |                                                                         |
+| Peça                  | Onde                                                                                     | Observação                                                              |
+| --------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| App (front + API)     | Worker `controle-em-casa` na Cloudflare                                                  | `https://controleemcasa.ljssoftware.com.br`; saúde em `/api/health`     |
+| Banco                 | Neon, projeto em `sa-east-1`, Postgres 17, branch `main`                                 | Acesso do Worker pelo Hyperdrive (cache desligado), role `controle_app` |
+| Roles                 | `controle_owner` (migrations e purga), `controle_app` (API), `controle_backup_ro` (dump) | Criadas à mão no Neon `[A VALIDAR NA ETAPA 17]`                         |
+| Deploy                | `.github/workflows/deploy.yml`                                                           | Único lugar que publica o Worker (G-42)                                 |
+| Backup                | `.github/workflows/backup.yml`                                                           | Diário, 04:00 de Brasília, artefato `.dump.age` por 30 dias             |
+| Purga                 | `.github/workflows/purga.yml`                                                            | Diária (ADR 013)                                                        |
+| Erros                 | Sentry: projetos do Worker e do front                                                    | Release = SHA do commit; sem DSN, desligado                             |
+| Environment do GitHub | `producao` (segredos, só da `main`, sem revisor)                                         | O deploy é disparado à mão (seção 2)                                    |
 
 ## 2. Deploy
 
 1. Abra o PR, espere o `ci` verde e faça o merge na `main`. O hook local bloqueia o push sem a suíte verde
    (`python .claude/scripts/trava-testes.py --rodar`).
-2. O `ci` roda de novo no push à `main`. Verde, o `deploy` começa e para no job `aprovar`, esperando o revisor do
-   environment `producao-aprovacao` (Actions → deploy → Review deployments).
-3. Aprovado, o job `publicar` segue a ordem fixa, e qualquer passo que falha para tudo:
+2. O `ci` roda de novo no push à `main`. Espere ficar verde: o deploy **não** começa sozinho.
+3. Dispare o deploy da `main` (ele publica a ponta da `main` naquele momento):
+   - terminal: `gh workflow run deploy --ref main` (acompanhe com `gh run watch`);
+   - ou Actions → deploy → Run workflow → branch `main` → Run workflow.
+
+   O job `conferir` consulta o run do `ci` do mesmo commit (push na `main`) e só segue se ele terminou com sucesso.
+   Sem CI, CI em andamento, vermelho ou cancelado: o run falha com o motivo na anotação; espere o CI ou corrija e
+   dispare de novo. Disparo a partir de outra branch não roda nada.
+
+4. O job `publicar` (environment `producao`) segue a ordem fixa, e qualquer passo que falha para tudo:
    build do front (com `VITE_SENTRY_DSN` e `VITE_SENTRY_RELEASE`) → cache do Hyperdrive desligado → branch
    `restauracao-<run>-<tentativa>` no Neon (ficam as 2 mais novas) → dump cifrado `dump-predeploy-<run>-<tentativa>`
    → migração com a role owner → publicação com `SENTRY_RELEASE` = SHA → `GET /api/health`.
-4. Depois do deploy, confira:
+5. Depois do deploy, confira:
    - `curl -fsS https://controleemcasa.ljssoftware.com.br/api/health` responde `{"ok":true}`;
    - no Sentry, o release novo (o SHA) aparece sem erro novo;
    - entrar no app e abrir o Início.
-5. Para publicar de novo o mesmo commit: "Re-run" no workflow `deploy` (não existe disparo manual).
+6. Para publicar de novo o mesmo commit: "Re-run" no run do `deploy`. Um disparo novo publica a ponta atual da `main`.
 
 Migrations são **aditivas** (G-43). O passo "Migrations aditivas (G-43)" do CI recusa `drop`, `rename`, troca de tipo,
 `NOT NULL` sem `default` em tabela existente, `SET NOT NULL` e `truncate`. A exceção é a anotação

@@ -5,8 +5,9 @@ import { PUBLICACAO } from './operacao/wrangler-deploy-unico';
 
 /**
  * Workflow do deploy (PLANO etapa 16; SDD 11.1, 11.2; G-02, G-09, G-42, G-43, G-44; TM-DB-02, TM-DB-05, TM-DB-07,
- * TM-GH-01 a TM-GH-04; ADR-015): só depois do CI verde num push à main, aprovação explícita, ordem fixa dos passos,
- * segredos só por referência e só no passo que precisa, ações fixadas por SHA e inerte sem DEPLOY_ATIVO.
+ * TM-GH-01 a TM-GH-04; ADR-015 e emenda de 2026-10-27): disparo manual só da main e só com o CI verde no commit
+ * disparado, ordem fixa dos passos, segredos só por referência e só no passo que precisa, ações fixadas por SHA e inerte
+ * sem DEPLOY_ATIVO.
  */
 const RAIZ = join(import.meta.dirname, '../../..');
 const texto = readFileSync(join(RAIZ, '.github/workflows/deploy.yml'), 'utf8');
@@ -35,41 +36,70 @@ function posicao(padrao: RegExp, rotulo: string): number {
 }
 
 describe('.github/workflows/deploy.yml', () => {
-  it('só dispara quando o workflow ci termina, e só para a main (sem push, PR, agenda ou disparo manual)', () => {
-    expect(semComentarios).toMatch(
-      /on:\s*\n\s*workflow_run:\s*\n\s*workflows: \[ci\]\s*\n\s*types: \[completed\]\s*\n\s*branches: \[main\]/,
-    );
+  it('só dispara à mão (workflow_dispatch, sem inputs): sem gatilho automático, PR, agenda ou chamada', () => {
+    expect(semComentarios).toMatch(/^on:\s*\n {2}workflow_dispatch:\s*\npermissions:/m);
+    expect(semComentarios).not.toMatch(/inputs:/);
     for (const gatilho of [
+      'workflow_run:',
       'pull_request',
       'pull_request_target',
       'push:',
       'schedule:',
-      'workflow_dispatch',
       'workflow_call',
+      'repository_dispatch',
     ]) {
       expect(semComentarios, gatilho).not.toContain(gatilho);
     }
   });
 
-  it('o job aprovar exige DEPLOY_ATIVO, CI verde, evento push, branch main e o próprio repositório', () => {
-    const aprovar = job('aprovar');
-    expect(aprovar).toContain("vars.DEPLOY_ATIVO == 'true'");
-    expect(aprovar).toContain("github.event.workflow_run.conclusion == 'success'");
-    expect(aprovar).toContain("github.event.workflow_run.event == 'push'");
-    expect(aprovar).toContain("github.event.workflow_run.head_branch == 'main'");
-    expect(aprovar).toContain('github.event.workflow_run.head_repository.full_name == github.repository');
-    expect(aprovar).toMatch(/environment: producao-aprovacao/);
-    expect(aprovar).not.toMatch(/secrets\./);
+  it('o job conferir exige DEPLOY_ATIVO e a main, sem segredo nem environment, só com actions: read', () => {
+    const conferir = job('conferir');
+    expect(conferir).toContain("if: ${{ vars.DEPLOY_ATIVO == 'true' && github.ref == 'refs/heads/main' }}");
+    expect(conferir).not.toMatch(/secrets\./);
+    expect(conferir).not.toMatch(/environment:/);
+    expect(conferir).not.toMatch(/needs:/);
+    expect(conferir).toMatch(/permissions:\s*\n\s*actions: read\s*\n\s*steps:/);
   });
 
-  it('o job publicar depende da aprovação, roda no environment producao e no commit exato que o CI testou', () => {
+  it('o job conferir só segue com o run do ci concluído com sucesso no SHA disparado (push na main), e falha claro', () => {
+    const conferir = job('conferir');
+    expect(conferir).toMatch(/GH_TOKEN: \$\{\{ github\.token \}\}/);
+    expect(conferir).toMatch(/SHA: \$\{\{ github\.sha \}\}/);
+    const consulta = conferir.split('\n').find((l) => l.includes('gh api'));
+    expect(consulta, 'consulta ao gh api').toBeDefined();
+    expect(consulta).toContain('/actions/workflows/ci.yml/runs?');
+    expect(consulta).toContain('head_sha=${SHA}');
+    expect(consulta).toContain('branch=main');
+    expect(consulta).toContain('event=push');
+    // Sem run do ci para o SHA: erro próprio.
+    expect(conferir).toMatch(/if \[ -z "\$\{?run_ci\}?" \]; then/);
+    // Precisa estar concluído E com sucesso (em andamento, vermelho ou cancelado falham).
+    expect(conferir).toMatch(/"\$\{?estado\}?" != "completed"/);
+    expect(conferir).toMatch(/"\$\{?conclusao\}?" != "success"/);
+    expect(conferir.match(/::error title=/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(conferir.match(/exit 1/g)?.length).toBeGreaterThanOrEqual(2);
+    // Nunca interpola contexto do evento dentro do run (G-40).
+    expect(conferir).not.toMatch(/github\.event\./);
+  });
+
+  it('o job publicar depende do conferir, roda no environment producao e no commit disparado (ponta da main)', () => {
     const publicar = job('publicar');
-    expect(publicar).toMatch(/needs: aprovar/);
+    expect(publicar).toMatch(/needs: conferir/);
     expect(publicar).toContain("if: ${{ vars.DEPLOY_ATIVO == 'true' }}");
     expect(publicar).toMatch(/environment:\s*\n\s*name: producao\s*\n/);
-    expect(publicar).toMatch(/ref: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+    expect(publicar).toMatch(/ref: \$\{\{ github\.sha \}\}/);
     expect(publicar).toMatch(/persist-credentials: false/);
-    expect(publicar).toMatch(/SHA: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+    expect(publicar).toMatch(/SHA: \$\{\{ github\.sha \}\}/);
+    expect(semComentarios).not.toMatch(/github\.event\.workflow_run/);
+  });
+
+  it('o deploy tem só os jobs conferir e publicar (o de aprovação e o environment producao-aprovacao saíram)', () => {
+    const jobs = linhas
+      .slice(linhas.indexOf('jobs:') + 1)
+      .filter((l) => /^ {2}[\w-]+:\s*$/.test(l))
+      .map((l) => l.trim().slice(0, -1));
+    expect(jobs).toEqual(['conferir', 'publicar']);
+    expect(texto).not.toContain('producao-aprovacao');
   });
 
   it('nunca dois deploys ao mesmo tempo, e o que está rodando não é cancelado', () => {

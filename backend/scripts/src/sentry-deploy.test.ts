@@ -12,11 +12,11 @@ const RAIZ = join(import.meta.dirname, '../../..');
 const deploy = readFileSync(join(RAIZ, '.github/workflows/deploy.yml'), 'utf8').replace(/^\s*#.*$/gm, '');
 
 describe('deploy.yml e o Sentry do front', () => {
-  it('o build do front recebe o DSN da variável do environment e o release = SHA do commit que o CI testou', () => {
+  it('o build do front recebe o DSN da variável do environment e o release = SHA do commit publicado', () => {
     const inicio = deploy.indexOf('- name: 1. Build do front');
     const passo = deploy.slice(inicio, deploy.indexOf('- name: 2.', inicio));
     expect(passo).toMatch(/VITE_SENTRY_DSN: \$\{\{ vars\.VITE_SENTRY_DSN \}\}/);
-    expect(passo).toMatch(/VITE_SENTRY_RELEASE: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+    expect(passo).toMatch(/VITE_SENTRY_RELEASE: \$\{\{ github\.sha \}\}/);
     expect(passo).toMatch(/run: pnpm --filter @controle\/web build/);
   });
 });

@@ -1,6 +1,6 @@
 # ADR-015: Deploy e backup
 
-- **Status:** Aceito em 2026-10-27, com a ressalva de que a restauração com a role owner do Neon e o primeiro backup real só são validados na etapa 17 (ligar em produção só na etapa 17)
+- **Status:** Aceito em 2026-10-27, com a ressalva de que a restauração com a role owner do Neon e o primeiro backup real só são validados na etapa 17 (ligar em produção só na etapa 17). **Emendado em 2026-10-27**: gatilho e aprovação (decisões 1 e 2) substituídos pelo disparo manual com guarda de CI verde (seção "Emenda de 2026-10-27")
 - **Data:** 2026-10-27
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** PLANO etapa 16; PRD-TECNICO RNF-09 e CA-26.5; SDD §3.7, §4, §5.3, §11.1, §11.2, D-06; GUARDRAILS G-02, G-04, G-09, G-32, G-40, G-42, G-43, G-44; THREAT-MODEL TM-DB-02, TM-DB-05, TM-DB-07, TM-GH-01 a TM-GH-06, E-12; ADR-002, ADR-005 e ADR-013
@@ -15,8 +15,8 @@
 
 ## Decisão
 
-1. **Gatilho do deploy**: `workflow_run` do `ci` concluído, só na `main`. O job só segue com `conclusion == 'success'`, `event == 'push'`, `head_branch == 'main'` e o repositório de origem igual ao próprio (fork nunca publica). O checkout usa o `head_sha` que o CI testou, e o `SENTRY_RELEASE` é esse SHA. Não há `workflow_dispatch`: para publicar de novo, usa-se "Re-run". A suíte verde é a do `ci.yml` (lint, typecheck, test, banco, e2e, gitleaks), a mesma que a trava local exige antes do push.
-2. **Aprovação separada dos segredos**: o job `aprovar` usa o environment `producao-aprovacao` (revisor obrigatório, nenhum segredo). O `publicar` depende dele e roda no environment `producao` (segredos, só da `main`, **sem** revisor). Se o `producao` tivesse revisor obrigatório, o backup e a purga diários, que leem dele, ficariam esperando aprovação todo dia.
+1. **Gatilho do deploy** (substituída pela emenda de 2026-10-27): `workflow_run` do `ci` concluído, só na `main`. O job só segue com `conclusion == 'success'`, `event == 'push'`, `head_branch == 'main'` e o repositório de origem igual ao próprio (fork nunca publica). O checkout usa o `head_sha` que o CI testou, e o `SENTRY_RELEASE` é esse SHA. Não há `workflow_dispatch`: para publicar de novo, usa-se "Re-run". A suíte verde é a do `ci.yml` (lint, typecheck, test, banco, e2e, gitleaks), a mesma que a trava local exige antes do push.
+2. **Aprovação separada dos segredos** (substituída pela emenda de 2026-10-27): o job `aprovar` usa o environment `producao-aprovacao` (revisor obrigatório, nenhum segredo). O `publicar` depende dele e roda no environment `producao` (segredos, só da `main`, **sem** revisor). Se o `producao` tivesse revisor obrigatório, o backup e a purga diários, que leem dele, ficariam esperando aprovação todo dia.
 3. **Ordem fixa** no job `publicar`, um passo depois do outro, sem `continue-on-error` e com `bash -eo pipefail`:
    1. build do front;
    2. cache do Hyperdrive conferido pela API da Cloudflare (`caching.disabled === true`; qualquer outra resposta falha). O id vem do `wrangler.jsonc`; o id fictício (só zeros) falha;
@@ -40,9 +40,9 @@
 
 ## Alternativas consideradas
 
-- **Deploy por `workflow_dispatch` (como no GestaodaPelada)**: não garante que o commit publicado passou no CI. Descartado.
+- **Deploy por `workflow_dispatch` (como no GestaodaPelada)**: não garante que o commit publicado passou no CI. Descartado na versão original; adotado na emenda de 2026-10-27, com o job `conferir` garantindo o CI verde do commit.
 - **`deploy.yml` chamando o `ci.yml` como workflow reutilizável**: garante o mesmo SHA, mas roda a suíte duas vezes por push (o CI do GitHub já está limitado por cobrança). Descartado.
-- **Um único environment `producao` com revisor**: travaria o backup e a purga diários à espera de aprovação. A alternativa sem revisor nenhum deixaria o deploy automático a cada push na `main`. Preferido o environment de aprovação separado.
+- **Um único environment `producao` com revisor**: travaria o backup e a purga diários à espera de aprovação. A alternativa sem revisor nenhum deixaria o deploy automático a cada push na `main`. Preferido o environment de aprovação separado (inviável no GitHub Free em repositório privado; ver a emenda).
 - **Dump com o `owner`**: sai vazio com RLS FORCE (decisão 4).
 - **Dump em shell, como no GP**: não seria testável no Windows nem no CI sem `bash`, docker e age. A lógica em TypeScript com comandos injetáveis é testada com scripts falsos.
 - **Dump só do schema `app` (`--schema=app`)**: perderia `public.pgmigrations`, e o banco restaurado não saberia quais migrations já rodaram.
@@ -51,7 +51,7 @@
 ## Consequências
 
 **Positivas**
-- Nada é publicado sem a suíte verde do commit exato e sem aprovação humana. Toda migração tem antes uma branch do Neon (restauração rápida) e um dump cifrado (restauração independente do Neon).
+- Nada é publicado sem a suíte verde do commit exato e sem uma decisão humana (desde a emenda, o próprio disparo manual). Toda migração tem antes uma branch do Neon (restauração rápida) e um dump cifrado (restauração independente do Neon).
 - Os scripts de operação são testados sem rede e sem credencial. Uma segunda publicação em qualquer arquivo quebra o teste.
 - O backup passou a funcionar de verdade com o `backup_ro`. Um ensaio local (dump cifrado → `age -d` → `pg_restore` num banco vazio) restaurou as 27 tabelas e as 12 migrations. Isso não substitui o ensaio em produção.
 
@@ -67,5 +67,15 @@
 ## Pendências
 
 - Lote 2 desta etapa (feito em 2026-10-27): Sentry (`SENTRY_RELEASE` no Worker e `VITE_SENTRY_RELEASE` no build do front), README, `docs/runbook.md` (restauração pela branch e pelo dump, ensaio local registrado na seção 9, guarda da chave `age`, conferência do último backup), e2e críticos na pilha real e Lighthouse. O ensaio mostrou que o `pg_dump` não leva o `ALTER ROLE ... IN DATABASE ... SET search_path`: a restauração pelo dump refaz esse passo (runbook 4.2, passo 5).
-- Etapa 17: criar o Neon (branches `main`/`dev`), o Hyperdrive com cache desligado (o id real substitui o fictício do `wrangler.jsonc`), os environments `producao` e `producao-aprovacao`, os segredos e as variáveis (lista no `.env.example`), o par de chaves `age` e ligar `BACKUP_ATIVO`, `DEPLOY_ATIVO` e `PURGA_ATIVA`.
-- G-43 cita um passo de CI que detecta migration não aditiva: feito no lote 2 (`backend/scripts/src/operacao/migracao-aditiva.ts`, passo "Migrations aditivas (G-43)" no job `base` do `ci.yml`). A exceção é a anotação `-- migracao-nao-aditiva: expand=<arquivo>.sql | <justificativa>` (fase expand já no commit de base) ou `log | <justificativa>` (linha aprovada, com validade, no Log de Alterações do GUARDRAILS). Limite: "publicada" é conferido como "já estava na `main` antes deste push"; um deploy recusado na aprovação não é detectado.
+- Etapa 17: criar o Neon (branches `main`/`dev`), o Hyperdrive com cache desligado (o id real substitui o fictício do `wrangler.jsonc`), o environment `producao` (sem revisor, só da `main`), os segredos e as variáveis (lista no `.env.example`), o par de chaves `age` e ligar `BACKUP_ATIVO`, `DEPLOY_ATIVO` e `PURGA_ATIVA`.
+- G-43 cita um passo de CI que detecta migration não aditiva: feito no lote 2 (`backend/scripts/src/operacao/migracao-aditiva.ts`, passo "Migrations aditivas (G-43)" no job `base` do `ci.yml`). A exceção é a anotação `-- migracao-nao-aditiva: expand=<arquivo>.sql | <justificativa>` (fase expand já no commit de base) ou `log | <justificativa>` (linha aprovada, com validade, no Log de Alterações do GUARDRAILS). Limite: "publicada" é conferido como "já estava na `main` antes deste push"; um commit que nunca foi publicado (deploy não disparado) não é detectado.
+
+## Emenda de 2026-10-27: deploy manual com guarda de CI verde
+
+- **Motivo:** o GitHub Free não permite environment com revisor obrigatório em repositório privado. O `producao-aprovacao` não pausaria nada, e o deploy ficaria automático a cada push na `main`.
+- **Decisão do usuário (2026-10-27):** o deploy passa a ser **manual**, por `workflow_dispatch` sem inputs, e sem gatilho automático depois do CI. Substitui as decisões 1 e 2:
+  1. **Gatilho:** só `workflow_dispatch`, disparado com `gh workflow run deploy --ref main` ou pela aba Actions ("Run workflow"). Publica a ponta da `main` no momento do disparo (`github.sha`): checkout, `SENTRY_RELEASE` e `VITE_SENTRY_RELEASE` usam esse SHA. Sem input de SHA: para voltar atrás, usa-se o rollback (runbook, seção 3) ou um revert na `main`.
+  2. **Guarda (job `conferir`, sem segredo, sem environment, só `actions: read`):** roda só com `vars.DEPLOY_ATIVO == 'true'` e `github.ref == 'refs/heads/main'`. Pela API do GitHub (`gh api .../actions/workflows/ci.yml/runs?head_sha=<sha>&branch=main&event=push`), exige o run do `ci` desse SHA com `status == completed` e `conclusion == success`. Sem run, em andamento, vermelho ou cancelado, falha com `::error` explicando o motivo. O `publicar` depende do `conferir`.
+  3. **Environment:** só o `producao` (segredos, regra de branch só da `main`, sem revisor). O `producao-aprovacao` sai do desenho e não é criado na etapa 17.
+- **Inalterado:** a ordem fixa, o rollback, a concorrência, a inércia por `DEPLOY_ATIVO`, os segredos só nos passos, as ações fixadas por SHA e o `wrangler deploy` único (G-42).
+- **Consequência:** a decisão humana agora é o próprio disparo. Quem tem permissão de escrita no repositório pode publicar, desde que o CI do commit esteja verde (RA-07: o projeto tem uma pessoa só). Um push na `main` não publica mais nada sozinho.

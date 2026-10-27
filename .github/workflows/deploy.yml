@@ -1,25 +1,23 @@
 # Deploy de produção (etapa 16; PLANO; SDD 11.1, 11.2; G-02, G-09, G-42, G-43, G-44; TM-DB-02, TM-DB-05, TM-DB-07,
 # TM-GH-01 a TM-GH-04; ADR-015). ÚNICO lugar com `wrangler deploy` (teste operacao/wrangler-deploy-unico.test.ts).
 #
-# Gatilho: só depois do workflow `ci` terminar VERDE num push à `main` (workflow_run), no commit exato que o CI
-# testou (head_sha). Pull request, outra branch, fork e CI vermelho ou cancelado nunca publicam. Para publicar de novo
-# o mesmo commit, use "Re-run" neste workflow.
+# Gatilho: só manual (workflow_dispatch, sem inputs), a partir da `main`; publica a ponta da `main` no momento do
+# disparo (github.sha). O job `conferir` (sem segredo e sem environment) só deixa seguir se o workflow `ci` desse SHA,
+# num push à `main`, terminou com sucesso; CI em andamento, vermelho, cancelado ou inexistente falha com erro claro.
+# Disparo: `gh workflow run deploy --ref main` ou Actions -> deploy -> Run workflow (runbook, seção 2).
 #
 # Ordem fixa (G-43): build -> cache do Hyperdrive conferido -> branch de restauração no Neon (mantém 2) -> dump
 # cifrado com age -> migração com a role owner -> wrangler deploy -> saúde. Qualquer passo que falha para tudo.
 #
-# Aprovação: o job `aprovar` usa o environment `producao-aprovacao` (revisor obrigatório, sem segredo nenhum); o
-# `publicar` só começa depois dele, no environment `producao` (segredos, só da main). Assim o backup e a purga, que
-# também leem o `producao`, não ficam esperando aprovação todo dia.
+# Environment: o `publicar` roda no `producao` (segredos, só da main, sem revisor). Emenda de 2026-10-27 ao ADR-015: o
+# GitHub Free não permite revisor obrigatório em repositório privado, então a pausa de aprovação deu lugar ao disparo
+# manual; o backup e a purga, que também leem o `producao`, continuam sem esperar ninguém.
 #
 # Inerte até a etapa 17: enquanto a variável DEPLOY_ATIVO do repositório não for 'true', nenhum job roda.
 name: deploy
 
 on:
-  workflow_run:
-    workflows: [ci]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,24 +31,32 @@ defaults:
     shell: bash
 
 jobs:
-  aprovar:
-    if: >-
-      ${{ vars.DEPLOY_ATIVO == 'true' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.head_repository.full_name == github.repository }}
+  conferir:
+    if: ${{ vars.DEPLOY_ATIVO == 'true' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    environment: producao-aprovacao
     timeout-minutes: 5
+    permissions:
+      actions: read
     steps:
-      - name: Commit aprovado para produção
+      - name: Conferir o CI verde no commit disparado
         env:
-          SHA: ${{ github.event.workflow_run.head_sha }}
-        run: echo "Publicando ${SHA}"
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          run_ci=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${SHA}&branch=main&event=push&per_page=1" --jq '.workflow_runs[0] // empty | "\(.status) \(.conclusion) \(.html_url)"')
+          if [ -z "$run_ci" ]; then
+            echo "::error title=Sem CI para este commit::Nenhum run do workflow ci num push à main para ${SHA}. Espere o CI do push terminar e dispare de novo."
+            exit 1
+          fi
+          read -r estado conclusao url <<< "$run_ci"
+          if [ "$estado" != "completed" ] || [ "$conclusao" != "success" ]; then
+            echo "::error title=CI não está verde::O ci de ${SHA} está ${estado}/${conclusao} (${url}). Só se publica commit com o CI concluído com sucesso."
+            exit 1
+          fi
+          echo "CI verde para ${SHA}: ${url}"
 
   publicar:
-    needs: aprovar
+    needs: conferir
     if: ${{ vars.DEPLOY_ATIVO == 'true' }}
     runs-on: ubuntu-latest
     environment:
@@ -58,13 +64,13 @@ jobs:
       url: https://controleemcasa.ljssoftware.com.br
     timeout-minutes: 30
     env:
-      SHA: ${{ github.event.workflow_run.head_sha }}
+      SHA: ${{ github.sha }}
       URL_PUBLICA: https://controleemcasa.ljssoftware.com.br
       ASAAS_API_URL: https://api.asaas.com/v3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -78,7 +84,7 @@ jobs:
           # Sentry do front (etapa 16): DSN por variável do environment (sem ela, o Sentry fica desligado) e
           # release = SHA do commit publicado.
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-          VITE_SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha }}
+          VITE_SENTRY_RELEASE: ${{ github.sha }}
         run: pnpm --filter @controle/web build
 
       - name: 2. Conferir o cache do Hyperdrive desligado
