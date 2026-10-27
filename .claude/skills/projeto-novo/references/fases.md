@@ -11,6 +11,7 @@ Princípio: **reduzir incerteza o mais barato possível antes de gastar com cons
 | 5 | Viabilidade de negócio (opcional) | Os números fecham? | `plano-comercial.md` | Veredito explícito; se não fecha, o usuário decide seguir ou não | Opus |
 | — | Decisão | Seguir, esclarecer ou matar? | `decisao.md` | Veredito `seguir` com entrada do MVP | Opus |
 | 6 | Definição do MVP | O que entra, o que fica de fora, como saber se deu certo? | `features/<mvp>/spec.md` | Spec aprovada e aceita pelo `validate_spec.py` | Opus |
+| 6b | Roteiro (só se o escopo não cabe em uma feature) | Quais features, em que ordem e de que tamanho? | `.specs/projeto/roadmap.md`, decisão `AD-NNN` em `STATE.md` | Features fatiadas na vertical, com ordem e requisitos aprovados; só a primeira segue para o Desenho | Opus |
 | 7 | Desenho | Como será estruturado e como vai parecer? | `design.md`; com interface, `.specs/mockup/` (direção, `tokens.css`, guia, 2 a 3 telas-chave) | Arquitetura e decisões aprovadas; com interface, guia de estilo e telas-chave aprovados na galeria | Opus |
 | 8 | Preparação | Como vamos trabalhar? | `tasks.md`; repositório, ambiente, esqueleto, CI (com checagem de tokens, se houver interface) | Tarefas aprovadas e aceitas pelo `validate_tasks.py`; esqueleto rodando | Sonnet |
 | 9 | Construção | Cada fatia entrega valor? | código, testes, um commit por tarefa | Todas as tarefas concluídas com o gate passando | Sonnet (trabalhadores por lote) |

@@ -74,6 +74,8 @@ Se o usuário descreveu o que quer em texto livre (ex.: "o login quebrou"), esco
 | 30 | Automação de processo | `automacao`, `automatizar` | **Pronto** | skill `automacao` |
 | 32 | Suporte ao cliente | `suporte`, `atendimento` | **Pronto** | skill `suporte` |
 
+O roteiro (fase 6b do fluxo 1, fase 3b do fluxo 2) é conduzido pela skill `roteiro`, dentro desses fluxos.
+
 Ao construir um fluxo novo, atualize a coluna "Situação" e a skill aqui.
 
 Tudo em português.

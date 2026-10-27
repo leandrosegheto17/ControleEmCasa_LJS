@@ -34,7 +34,7 @@ Projeto: Faltam 45 de 180 tarefas: 75% concluído
 
 As duas primeiras linhas só existem em projeto com `.specs/projeto/roadmap.md` ([formato e vocabulário](references/roadmap.md)); sem ele, só as duas últimas. O **Plano** conta as etapas ou features do roteiro, inclusive as ainda sem tarefas; o **Projeto** conta só as tarefas já detalhadas em `tasks.md`. Por isso os dois percentuais diferem, e isso é esperado.
 
-Só acrescente algo nestes casos, em **uma linha**:
+Linhas começadas por `Aviso:` (tarefa acima de 2h ou sem **Estimativa**) também são do script: copie-as. Só acrescente algo nestes casos, em **uma linha**:
 
 - **"Sem tarefas ainda" sem linha de Plano:** o projeto não usa `tasks.md` nem tem roadmap. Diga isso, sugira criar `.specs/projeto/roadmap.md` e pare; não invente percentual a partir de outros arquivos. Se a Retomada não existir, descubra a fase pelos arquivos do item (a skill do fluxo explica como).
 - **Item atual sem tarefas, projeto com tarefas:** diga que o item ainda não tem `tasks.md`.

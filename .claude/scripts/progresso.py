@@ -17,6 +17,9 @@ Uma tarefa é o título `### T<n>:` do `tasks.md`. Conta como concluída quando 
 `- [ ]` dela estão marcadas; sem caixas, quando a linha `**Status**:` diz concluída (Done,
 Concluída, Complete ou ✅). Caixa aberta vence o status. Checklists fora das tarefas não contam.
 
+Avisos: tarefa com `**Estimativa**` acima de 2h (LIMITE_HORAS) e, em tasks.md que já usa o campo,
+tarefa sem estimativa. Não há limite de quantidade de tarefas; o limite é o tamanho de cada uma.
+
 Item atual: o argumento --item; senão o `**Item**` da seção `## Retomada` de `.specs/STATE.md`;
 senão o único item com tarefas em aberto. Sem tarefas, mostra a fase do fluxo da Retomada.
 
@@ -35,8 +38,11 @@ import sys
 from pathlib import Path
 
 ROADMAP = ".specs/projeto/roadmap.md"
+LIMITE_HORAS = 2.0  # tarefa acima disso é grande demais: avise e peça para dividir (não há limite de quantidade)
 PASTAS_FORA = {"node_modules", "evidencias", "codigo", ".git", "__pycache__"}
-TITULO_TAREFA = re.compile(r"^(#{2,4})\s+T\d+\s*:", re.IGNORECASE)
+TITULO_TAREFA = re.compile(r"^(#{2,4})\s+(T\d+)\s*:", re.IGNORECASE)
+ESTIMATIVA = re.compile(r"^\s*\*\*Estimativa\*\*\s*:\s*(.*?)\s*$", re.IGNORECASE)
+DURACAO = re.compile(r"(\d+(?:[.,]\d+)?)\s*(h(?:oras?)?|min(?:utos?)?)\b", re.IGNORECASE)
 TITULO = re.compile(r"^(#{1,6})\s")
 CAIXA = re.compile(r"^\s*[-*]\s+\[([ xX])\]")
 STATUS = re.compile(r"^\s*\*\*Status\*\*\s*:\s*(.*)$", re.IGNORECASE)
@@ -44,16 +50,16 @@ STATUS_FEITO = re.compile(r"✅|\b(done|complete|completed|conclu[ií]d[oa]s?)\b
 CAMPO_RETOMADA = re.compile(r"^\s*-\s+\*\*(Fluxo|Item|Fase aprovada|Próxima fase)\*\*\s*:\s*(.+?)\s*$")
 
 
-def contar_tarefas(texto: str) -> tuple[int, int]:
-    """(total, feitas) das tarefas `### T<n>:` de um tasks.md."""
-    blocos: list[list[str]] = []
+def _blocos(texto: str) -> list[tuple[str, list[str]]]:
+    """Cada tarefa `### T<n>:` de um tasks.md: (id, linhas do bloco)."""
+    blocos: list[tuple[str, list[str]]] = []
     atual: list[str] | None = None
     nivel = 0
     for linha in texto.splitlines():
         achou = TITULO_TAREFA.match(linha)
         if achou:
             atual = []
-            blocos.append(atual)
+            blocos.append((achou.group(2).upper(), atual))
             nivel = len(achou.group(1))
             continue
         titulo = TITULO.match(linha)
@@ -61,7 +67,36 @@ def contar_tarefas(texto: str) -> tuple[int, int]:
             atual = None
         if atual is not None:
             atual.append(linha)
-    return len(blocos), sum(1 for b in blocos if _tarefa_feita(b))
+    return blocos
+
+
+def contar_tarefas(texto: str) -> tuple[int, int]:
+    """(total, feitas) das tarefas `### T<n>:` de um tasks.md."""
+    blocos = _blocos(texto)
+    return len(blocos), sum(1 for _, b in blocos if _tarefa_feita(b))
+
+
+def ler_estimativa(valor: str) -> float | None:
+    """Horas de trabalho humano de um campo `**Estimativa**` (ex.: 2h, 1,5h, 90 min); None se ilegível."""
+    achou = DURACAO.search(valor or "")
+    if not achou:
+        return None
+    numero = float(achou.group(1).replace(",", "."))
+    return numero / 60 if achou.group(2).lower().startswith("min") else numero
+
+
+def estimativas(texto: str) -> list[tuple[str, float | None]]:
+    """(id, horas ou None) de cada tarefa do tasks.md."""
+    resultado = []
+    for id_, linhas in _blocos(texto):
+        horas = None
+        for linha in linhas:
+            achou = ESTIMATIVA.match(linha)
+            if achou:
+                horas = ler_estimativa(achou.group(1))
+                break
+        resultado.append((id_, horas))
+    return resultado
 
 
 def _tarefa_feita(linhas: list[str]) -> bool:
@@ -85,9 +120,14 @@ def coletar(raiz: Path) -> list[dict]:
         relativo = arquivo.relative_to(raiz)
         if PASTAS_FORA & set(relativo.parts):
             continue
-        total, feitas = contar_tarefas(arquivo.read_text(encoding="utf-8", errors="replace"))
+        texto = arquivo.read_text(encoding="utf-8", errors="replace")
+        total, feitas = contar_tarefas(texto)
         if total:
-            itens.append({"item": relativo.parent.as_posix(), "total": total, "feitas": feitas})
+            horas = estimativas(texto)
+            adotou = any(h is not None for _, h in horas)
+            itens.append({"item": relativo.parent.as_posix(), "total": total, "feitas": feitas,
+                          "acima": [i for i, h in horas if h is not None and h > LIMITE_HORAS],
+                          "sem_estimativa": [i for i, h in horas if h is None] if adotou else []})
     return itens
 
 
@@ -201,11 +241,32 @@ def relatorio(raiz: Path, item: str | None = None) -> dict:
 
     total = sum(i["total"] for i in itens)
     feitas = sum(i["feitas"] for i in itens)
+    avisos = []
+    for i in itens:
+        for tipo in ("acima", "sem_estimativa"):
+            if i[tipo]:
+                avisos.append({"item": i["item"], "tipo": tipo, "tarefas": i[tipo]})
     return {"plano": plano, "item": atual, "projeto": {"total": total, "feitas": feitas},
-            "retomada": retomada, "itens": itens}
+            "retomada": retomada, "itens": itens, "avisos": avisos}
 
 
 def formatar(rel: dict) -> str:
+    texto = _formatar_linhas(rel)
+    avisos = [_aviso(a) for a in rel.get("avisos", [])]
+    return "\n".join([texto, *avisos])
+
+
+def _aviso(a: dict) -> str:
+    ids = a["tarefas"]
+    lista = ", ".join(ids[:5]) + (f" e mais {len(ids) - 5}" if len(ids) > 5 else "")
+    n = len(ids)
+    if a["tipo"] == "acima":
+        return (f"Aviso: {a['item']}: {n} tarefa{'s' if n > 1 else ''} acima de {LIMITE_HORAS:g}h ({lista}); "
+                f"divida em tarefas de até {LIMITE_HORAS:g}h.")
+    return f"Aviso: {a['item']}: {n} tarefa{'s' if n > 1 else ''} sem **Estimativa** ({lista})."
+
+
+def _formatar_linhas(rel: dict) -> str:
     projeto = rel["projeto"]
     plano = rel.get("plano")
     linhas = []

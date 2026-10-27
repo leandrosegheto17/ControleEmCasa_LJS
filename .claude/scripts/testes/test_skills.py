@@ -118,6 +118,43 @@ class TestSkills(unittest.TestCase):
         self.assertIn("python .claude/scripts/progresso.py", skill)
         self.assertTrue((CLAUDE / "scripts" / "progresso.py").exists())
 
+    def test_roteiro_acima_da_feature(self):
+        """A quebra do produto em features é uma fase própria e o vocabulário é único."""
+        def ler(*partes):
+            return SKILLS.joinpath(*partes).read_text(encoding="utf-8")
+
+        self.assertIn("6b", ler("projeto-novo", "references", "fases.md"))
+        self.assertIn("skill `roteiro`", ler("projeto-novo", "SKILL.md"))
+        self.assertIn("3b", ler("uso-proprio", "references", "fases.md"))
+        self.assertIn("skill `roteiro`", ler("uso-proprio", "SKILL.md"))
+        for fluxo in ("feature", "legado"):
+            with self.subTest(fluxo=fluxo):
+                self.assertIn("skill `roteiro`", ler(fluxo, "SKILL.md"))
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("## Vocabulário", claude_md)
+        self.assertIn("**Roteiro**", claude_md)
+        self.assertIn("roteiro", (CLAUDE / "rules" / "artefatos.md").read_text(encoding="utf-8"))
+        self.assertTrue((SKILLS / "roteiro" / "references" / "criterios.md").exists())
+        self.assertTrue((SKILLS / "roteiro" / "references" / "modelo.md").exists())
+
+    def test_tarefa_pequena_e_sem_limite_de_quantidade(self):
+        """O limite é o tamanho da tarefa (até 2 horas de trabalho humano), nunca a quantidade."""
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("## Tarefas", claude_md)
+        self.assertIn("**Estimativa**", claude_md)
+        self.assertIn("2 horas", claude_md)
+        for arquivo in (CLAUDE / "CLAUDE.md", SKILLS / "roteiro" / "SKILL.md",
+                        SKILLS / "roteiro" / "references" / "criterios.md",
+                        SKILLS / "roteiro" / "references" / "modelo.md",
+                        SKILLS / "feature" / "SKILL.md", SKILLS / "legado" / "SKILL.md"):
+            with self.subTest(arquivo=arquivo.name):
+                texto = arquivo.read_text(encoding="utf-8")
+                self.assertIsNone(re.search(r"(?<!\d)80 tarefas", texto), "sobrou o limite de 80 tarefas")
+                self.assertNotIn("LIMITE_TAREFAS", texto)
+        for nome in ("feature", "legado", "projeto-novo", "uso-proprio"):
+            with self.subTest(skill=nome):
+                self.assertIn("Estimativa", (SKILLS / nome / "SKILL.md").read_text(encoding="utf-8"))
+
     def test_trava_de_modelo(self):
         """A sessão compara o próprio modelo com o da fase e pergunta antes de trabalhar."""
         claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")

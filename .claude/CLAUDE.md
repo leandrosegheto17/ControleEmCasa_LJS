@@ -33,6 +33,28 @@ Este projeto usa **fluxos de trabalho** em `.claude/skills/`. O ponto de entrada
 - **Exceção nos exercícios do fluxo 8 (aprendizado):** a pergunta continua na caixa de `AskUserQuestion`, mas as opções são palpites possíveis em ordem qualquer, sem "(Recomendado)" e sem indicar a certa; pedidos de explicação oferecem ações (explicar agora, quero uma dica, ainda não sei).
 - Nunca faça pergunta só em texto corrido esperando resposta digitada.
 
+## Vocabulário
+
+Os mesmos termos em todo projeto, para que o progresso e o planejamento sejam comparáveis:
+
+| Termo | Significa |
+|---|---|
+| **Roteiro** | Lista ordenada das features do produto, em `.specs/projeto/roadmap.md` (skill `roteiro`) |
+| **Feature** | Unidade do roteiro: entrega de valor com spec, design e tarefas próprios em `.specs/features/<slug>/` |
+| **Fase do fluxo** | Passo do processo (1 a 11 no fluxo 1; 1 a 9 no fluxo 2); a fase de roteiro é a 6b (fluxo 1) ou 3b (fluxo 2) |
+| **Phase** | Agrupamento de tarefas dentro de um `tasks.md` (termo do `tlc-spec-driven`) |
+| **Tarefa** | `T<n>` do `tasks.md`: atômica, com teste |
+
+Só a próxima feature do roteiro recebe spec, design e tarefas; as outras ficam como linhas do roteiro. Projeto que já usa outro nome (ex.: "etapa") pode mantê-lo no rótulo da coluna do roadmap.
+
+## Tarefas
+
+Vale para todo `tasks.md`, de qualquer fluxo, e tem precedência sobre o tamanho de tarefa sugerido pelo `tlc-spec-driven`:
+
+- **Não há limite de quantidade de tarefas.** O limite é o **tamanho de cada uma**: a menor tarefa possível, com meta de **até 2 horas de trabalho humano** (o tempo que uma pessoa levaria, qualquer que seja quem executa). Continua sendo uma entrega verificável, com teste.
+- Toda tarefa leva a linha **`**Estimativa**: <N>h`** (ou `<N> min`), logo depois de **What**. Estimativa acima de 2h: divida a tarefa, não aumente o prazo. Em dúvida entre uma tarefa e duas, faça duas.
+- O `progresso.py` avisa tarefa acima de 2h e, em `tasks.md` que já usa o campo, tarefa sem estimativa. O aviso não bloqueia: dividir é decisão de quem planeja.
+
 ## Aprovação
 
 - Cada fase termina com um resumo curto e a pergunta de aprovação (via `AskUserQuestion`) com as opções **seguir / ajustar / parar**. Nada avança para a fase seguinte sem aprovação explícita.

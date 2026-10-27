@@ -2,6 +2,8 @@
 
 O `tasks.md` só cobre o que já foi detalhado em tarefas. O roadmap cobre o resto: uma linha por **unidade** do plano (etapa, feature, marco), mesmo antes de ela ter spec ou tarefas. É o que faz o `/progresso` dizer "Faltam 6 de 18 etapas" em vez de "Sem tarefas ainda".
 
+O roteiro é criado e mantido pela skill `roteiro` (quebra do produto em features, com ordem, tamanho e requisitos), que usa este mesmo formato.
+
 ## Formato
 
 Uma tabela com a coluna **Situação**. As outras colunas são livres; o rótulo da primeira coluna que não seja `#` vira o nome da unidade na frase (`Etapa` → "etapas", `Feature` → "features").

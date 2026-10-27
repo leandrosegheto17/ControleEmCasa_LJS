@@ -9,7 +9,7 @@ paths:
   - `.specs/produto/`: avaliação antes de construir. Projeto novo: `ideia.md`, `pesquisa.md`, `problema.md`, `solucao.md`, `viabilidade-tecnica.md`, `plano-comercial.md`, `decisao.md`. Uso próprio: `necessidade.md`.
   - `.specs/projeto/inventario.md`: o que o projeto já tem pronto para reaproveitar, com o commit em que foi levantado (skill `inventario`).
   - Em projeto existente, cada feature ganha também `reconhecimento.md`, `protecao.md` e `integracao.md` (e `arqueologia.md`, no legado) na sua pasta de `.specs/features/<feature>/`, mais `mockup/` quando a feature cria ou muda telas e o mockup foi feito (skill `mockup-visual`, modo módulo; promovido para `.specs/mockup/` na integração).
-  - `.specs/projeto/roadmap.md`: roteiro do projeto, uma linha por etapa ou feature com a **Situação** (`Concluída`, `Em andamento`, `Não começada`); alimenta a linha **Plano** do `/progresso` (skill `progresso`, `references/roadmap.md`). Quem aprova a unidade troca a Situação no mesmo commit.
+  - `.specs/projeto/roadmap.md`: roteiro do projeto, uma linha por etapa ou feature com a **Situação** (`Concluída`, `Em andamento`, `Não começada`); é o roteiro do produto (skill `roteiro`, `references/modelo.md`) e alimenta a linha **Plano** do `/progresso` (skill `progresso`, `references/roadmap.md`). Quem aprova a unidade troca a Situação no mesmo commit.
   - `.specs/projeto/testes.json`: comando da suíte, usado pela checagem final e pela trava de testes.
   - `.specs/liberacao.md`: histórico de liberações em produção (skill `liberacao`), uma entrada por liberação.
   - `.specs/implantacao.md`: destino, comandos de implantar e voltar, backup e histórico (skill `implantacao`).

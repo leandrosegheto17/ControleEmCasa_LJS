@@ -11,9 +11,12 @@ pr = carregar("progresso.py")
 pr_caminho = Path(__file__).resolve().parents[1] / "progresso.py"
 
 
-def tarefa(numero, caixas, status=None):
+def tarefa(numero, caixas, status=None, estimativa=None):
     """Bloco de tarefa no formato do tasks.md do tlc-spec-driven; caixas = lista de True/False."""
-    linhas = [f"### T{numero}: Tarefa {numero}", "", "**What**: algo", "**Where**: `src/a.py`", ""]
+    linhas = [f"### T{numero}: Tarefa {numero}", "", "**What**: algo", "**Where**: `src/a.py`"]
+    if estimativa:
+        linhas.append(f"**Estimativa**: {estimativa}")
+    linhas.append("")
     if status:
         linhas += [f"**Status**: {status}", ""]
     linhas += ["**Done when**:", ""]
@@ -298,6 +301,71 @@ class TestRelatorioComRoadmap(unittest.TestCase):
         escrever(self.raiz, ".specs/projeto/roadmap.md", ROADMAP)
         plano = pr.relatorio(self.raiz)["plano"]
         self.assertEqual((plano["total"], plano["feitas"], plano["nome"]), (6, 3, "etapas"))
+
+
+class TestEstimativa(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def feature(self, *blocos):
+        escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(*blocos))
+        return pr.relatorio(self.raiz)
+
+    def test_le_horas_e_minutos(self):
+        self.assertEqual(pr.ler_estimativa("2h"), 2.0)
+        self.assertEqual(pr.ler_estimativa("1,5h"), 1.5)
+        self.assertEqual(pr.ler_estimativa("0.5 h"), 0.5)
+        self.assertEqual(pr.ler_estimativa("90 min"), 1.5)
+        self.assertEqual(pr.ler_estimativa("30min"), 0.5)
+        self.assertEqual(pr.ler_estimativa("2 horas"), 2.0)
+
+    def test_valor_ilegivel_e_ausente(self):
+        self.assertIsNone(pr.ler_estimativa("depende"))
+        self.assertIsNone(pr.ler_estimativa(""))
+
+    def test_tarefa_acima_de_2h_avisa(self):
+        rel = self.feature(tarefa(1, [False], estimativa="1h"), tarefa(2, [False], estimativa="3h"),
+                           tarefa(3, [False], estimativa="2h"))
+        self.assertEqual(rel["avisos"], [{"item": ".specs/features/a", "tipo": "acima", "tarefas": ["T2"]}])
+        linha = pr.formatar(rel).splitlines()[-1]
+        self.assertEqual(linha, "Aviso: .specs/features/a: 1 tarefa acima de 2h (T2); divida em tarefas de até 2h.")
+
+    def test_exatamente_2h_nao_avisa(self):
+        rel = self.feature(tarefa(1, [False], estimativa="2h"), tarefa(2, [False], estimativa="120 min"))
+        self.assertEqual(rel["avisos"], [])
+        self.assertNotIn("Aviso", pr.formatar(rel))
+
+    def test_muitas_tarefas_pequenas_nao_avisam(self):
+        rel = self.feature(*[tarefa(i, [False], estimativa="1h") for i in range(1, 171)])
+        self.assertEqual(rel["avisos"], [])
+
+    def test_lista_so_as_primeiras_e_conta_o_resto(self):
+        rel = self.feature(*[tarefa(i, [False], estimativa="4h") for i in range(1, 8)])
+        linha = pr.formatar(rel).splitlines()[-1]
+        self.assertIn("7 tarefas acima de 2h (T1, T2, T3, T4, T5 e mais 2)", linha)
+
+    def test_sem_estimativa_so_avisa_quando_o_arquivo_ja_adotou_o_campo(self):
+        rel = self.feature(tarefa(1, [False], estimativa="1h"), tarefa(2, [False]))
+        self.assertEqual(rel["avisos"], [{"item": ".specs/features/a", "tipo": "sem_estimativa", "tarefas": ["T2"]}])
+        self.assertIn("Aviso: .specs/features/a: 1 tarefa sem **Estimativa** (T2)", pr.formatar(rel))
+
+    def test_tasks_md_antigo_sem_nenhuma_estimativa_fica_quieto(self):
+        rel = self.feature(tarefa(1, [False]), tarefa(2, [False]))
+        self.assertEqual(rel["avisos"], [])
+        self.assertNotIn("Aviso", pr.formatar(rel))
+
+    def test_estimativa_ilegivel_conta_como_sem_estimativa(self):
+        rel = self.feature(tarefa(1, [False], estimativa="1h"), tarefa(2, [False], estimativa="depende"))
+        self.assertEqual(rel["avisos"][0]["tipo"], "sem_estimativa")
+        self.assertEqual(rel["avisos"][0]["tarefas"], ["T2"])
+
+    def test_cada_item_e_avaliado_sozinho(self):
+        escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(tarefa(1, [False], estimativa="5h")))
+        escrever(self.raiz, ".specs/features/b/tasks.md", tasks_md(tarefa(1, [False], estimativa="1h")))
+        itens = [a["item"] for a in pr.relatorio(self.raiz)["avisos"]]
+        self.assertEqual(itens, [".specs/features/a"])
 
 
 class TestMain(unittest.TestCase):

@@ -7,6 +7,7 @@ Princípio: **isso vale o meu tempo e funciona na minha infraestrutura, com cust
 | 1 | Necessidade | Que dor isso resolve? Já existe algo pronto? | `necessidade.md` §1 e §2 | Necessidade clara; alternativas prontas avaliadas | Opus |
 | 2 | Escopo pessoal | O que é o essencial para eu usar de verdade? | `necessidade.md` §3 | Lista curta e critério de "bom o bastante" | Opus |
 | 3 | Restrições e viabilidade | Onde roda, quanto custa, e os dados? | `necessidade.md` §4 a §6, veredito | Cabe no ambiente e no custo zero; backup definido; veredito `construir` | Opus |
+| 3b | Roteiro (só se o escopo não cabe em uma feature) | Quais features, em que ordem? | `.specs/projeto/roadmap.md` | Features fatiadas na vertical e aprovadas; só a primeira segue | Opus |
 | 4 | Desenho enxuto | Qual a estrutura mais simples que serve? | `features/<app>/spec.md` (e `design.md`, se precisar) | Spec aprovada, com backup, restauração e (se na internet) autenticação e HTTPS como critérios | Opus |
 | 5 | Preparação | Como vou trabalhar? | ambiente Docker, esqueleto, scripts de backup e restauração | Esqueleto rodando no destino | Sonnet |
 | 6 | Construção | Cada fatia já é usável? | código, testes, commits | Tarefas concluídas com o gate passando | Sonnet |

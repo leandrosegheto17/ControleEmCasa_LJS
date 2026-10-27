@@ -21,6 +21,7 @@ Liste `.specs/produto/` e `.specs/features/`. A **primeira linha que se aplica**
 | `decisao.md` com veredito `matar` | Encerrado: mostre o motivo e pare |
 | `decisao.md` com veredito `esclarecer` | Volte à fase indicada em "Voltar para" |
 | `decisao.md` com `seguir`, sem `features/*/spec.md` | 6 MVP |
+| `spec.md` de escopo grande (mais de uma feature), sem `.specs/projeto/roadmap.md` | 6b Roteiro (a skill pula se o escopo cabe em uma feature) |
 | `spec.md`, sem `design.md` e sem `tasks.md` | 7 Desenho (o tlc pode pular, se a feature for simples) |
 | `design.md`, projeto com interface, sem `.specs/mockup/tokens.css` | 7 Desenho: mockup visual |
 | `design.md` (e mockup, se houver interface) ou spec simples, sem `tasks.md` | 8 Preparação |
@@ -52,8 +53,9 @@ Se a fase pede outro modelo, avise:
 | 5 | pergunte: "Quer fazer o plano comercial agora? (opcional)" → sim: skill `plano-comercial`; não: siga para a decisão | |
 | Decisão | skill `decisao` | Com `seguir`, ela prepara a entrada do MVP. |
 | 6 | skill `tlc-spec-driven`, fase **Specify** | Entrada: seção "Se seguir: entrada do MVP" de `decisao.md`. Projeto novo costuma ser de tamanho Complex. |
+| 6b | skill `roteiro` | Quebra o MVP em features ordenadas e grava `.specs/projeto/roadmap.md`. Pula sozinha se o escopo cabe em uma feature. Depois dela, as fases 7 a 11 valem para **uma feature por vez**, começando pela primeira do roteiro. |
 | 7 | `tlc-spec-driven`, fase **Design**; depois, se houver interface, skill `mockup-visual` (etapas 1 e 2) | O desenho define telas e fluxos; o mockup define a aparência (direção, guia de estilo, 2 a 3 telas-chave). A fase só fecha com os dois aprovados. Use `leitor-codigo` se já houver código. Escolha de stack difícil de reverter (linguagem, banco, hospedagem) com alternativas reais: skill `escolha-tecnologia`, com `escolha.md` gravado a partir da stack candidata de `viabilidade-tecnica.md`; o Design referencia o `AD-NNN` que ela registra. |
-| 8 | `tlc-spec-driven`, fase **Tasks** | Peça que as **primeiras tarefas** sejam: repositório e estrutura, ambiente local reproduzível, esqueleto que roda ponta a ponta e CI com os testes. Com interface, inclua: copiar `.specs/mockup/tokens.css` sem alterar, criar os componentes do guia antes das telas, e rodar `python .claude/scripts/checar-tokens.py <pasta da interface>` no CI. |
+| 8 | `tlc-spec-driven`, fase **Tasks** | Cada tarefa é a menor possível, com **Estimativa** de até 2h de trabalho humano (regra de Tarefas do `CLAUDE.md`). Peça que as **primeiras tarefas** sejam: repositório e estrutura, ambiente local reproduzível, esqueleto que roda ponta a ponta e CI com os testes. Com interface, inclua: copiar `.specs/mockup/tokens.css` sem alterar, criar os componentes do guia antes das telas, e rodar `python .claude/scripts/checar-tokens.py <pasta da interface>` no CI. |
 | 9 | `tlc-spec-driven`, fase **Execute** | Trabalhadores: `implementador` (lote mecânico) ou `implementador-dominio` (lote de domínio). Isole com `using-git-worktrees`. |
 | 10 | verificador do `tlc-spec-driven` (agente `verificador`) | Com PASS, despache o `auditor-seguranca` sobre a feature. Com interface, rode a etapa 3 do `mockup-visual` (prints do app ao lado do mockup + checagem de tokens) e peça o aceite visual ao usuário. Achado crítico ou alto de segurança, ou diferença visual rejeitada, vira tarefa de correção e volta à fase 9. Antes de fechar, a checagem final de testes do `CLAUDE.md` (suíte inteira, resultado mostrado). Ao final, `finishing-a-development-branch`. |
 | 11 | skill `liberacao` | Confere antes as validações pendentes marcadas como condição para lançamento. |
