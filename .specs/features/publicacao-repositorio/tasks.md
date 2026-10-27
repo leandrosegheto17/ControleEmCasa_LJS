@@ -87,9 +87,9 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Teste novo falha antes da mudança e passa depois: exatamente uma rota, `custom_domain: true`, host `controleemcasa.ljssoftware.com.br`, nenhuma rota com `*`
-- [ ] O `URL_PUBLICA` injetado no `deploy.yml` bate com o host da rota (asserção no mesmo teste)
-- [ ] Gate quick verde
+- [x] Teste novo falha antes da mudança e passa depois: exatamente uma rota, `custom_domain: true`, host `controleemcasa.ljssoftware.com.br`, nenhuma rota com `*`
+- [x] O `URL_PUBLICA` injetado no `deploy.yml` bate com o host da rota (asserção no mesmo teste)
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick

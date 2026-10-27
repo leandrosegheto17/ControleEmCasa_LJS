@@ -12,6 +12,8 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"],
   },
+  // Domínio custom (ADR-015): uma rota só, sem curinga; o URL_PUBLICA do deploy.yml usa o mesmo host.
+  "routes": [{ "pattern": "controleemcasa.ljssoftware.com.br", "custom_domain": true }],
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
