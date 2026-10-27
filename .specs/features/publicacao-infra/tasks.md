@@ -166,11 +166,11 @@ T16
 
 **Done when**:
 
-- [ ] Passo de preparação feito como `neondb_owner`: `ALTER ROLE controle_app IN DATABASE controle SET search_path = app;` e o mesmo para `controle_backup_ro`
-- [ ] `pnpm migrar` aplica todas as migrations; rodar de novo diz "No migrations to run"
-- [ ] `conferir-banco` sai com código 0 na `dev` (sem `IGNORAR_ROLES`: o owner do Neon é `NOSUPERUSER`)
+- [x] Passo de preparação feito como `neondb_owner`: `ALTER ROLE controle_app IN DATABASE controle SET search_path = app;` e o mesmo para `controle_backup_ro`
+- [x] `pnpm migrar` aplica todas as migrations; rodar de novo diz "No migrations to run"
+- [x] `conferir-banco` sai com código 0 na `dev` (sem `IGNORAR_ROLES`: o owner do Neon é `NOSUPERUSER`)
 - [ ] Como `controle_app`: sem contexto devolve 0 linhas, e `CREATE TABLE` é negado
-- [ ] Se algo falhar (extensão, `ALTER ROLE ... IN DATABASE`, schema), o erro vai ao Claude e vira ajuste antes de produção
+- [x] Se algo falhar (extensão, `ALTER ROLE ... IN DATABASE`, schema), o erro vai ao Claude e vira ajuste antes de produção
 - [ ] Evidência registrada em `evidencias.md`
 
 **Tests**: integration
@@ -190,13 +190,13 @@ T16
 
 **Done when**:
 
-- [ ] Teste: sem `DATABASE_URL_OWNER` no ambiente, o comando falha com mensagem clara e NÃO usa o `.env`
-- [ ] Testes: recusa `localhost`, `127.0.0.1`, `55432`, host que não termine em `.neon.tech` e host com `-pooler`
-- [ ] Teste: a saída traz usuário, host e banco com a senha mascarada, nunca a URL inteira
-- [ ] Teste: só prossegue com a confirmação digitada igual ao nome do banco (ou `--sim` explícito para automação); qualquer outra resposta cancela sem migrar
-- [ ] Script `migrar-neon` no `backend/scripts/package.json` e no `package.json` da raiz; o `migrar` existente não muda
-- [ ] `docs/runbook.md` e `.specs/etapa-17/neon.md` passam a mandar usar `migrar-neon` para o Neon
-- [ ] Nenhum teste existente alterado; gate quick verde
+- [x] Teste: sem `DATABASE_URL_OWNER` no ambiente, o comando falha com mensagem clara e NÃO usa o `.env`
+- [x] Testes: recusa `localhost`, `127.0.0.1`, `55432`, host que não termine em `.neon.tech` e host com `-pooler`
+- [x] Teste: a saída traz usuário, host e banco com a senha mascarada, nunca a URL inteira
+- [x] Teste: só prossegue com a confirmação digitada igual ao nome do banco (ou `--sim` explícito para automação); qualquer outra resposta cancela sem migrar
+- [x] Script `migrar-neon` no `backend/scripts/package.json` e no `package.json` da raiz; o `migrar` existente não muda
+- [x] `docs/runbook.md` e `.specs/etapa-17/neon.md` passam a mandar usar `migrar-neon` para o Neon
+- [x] Nenhum teste existente alterado; gate quick verde
 
 **Tests**: unit
 **Gate**: quick

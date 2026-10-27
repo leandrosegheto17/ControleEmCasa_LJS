@@ -53,7 +53,7 @@ Esperado: `false` em todas as colunas, nas 3 linhas. **Se algum `rolbypassrls` v
 
 ## 5. Ensaio na branch `dev` (antes de tocar na `main`)
 
-**Preparação, antes do `pnpm migrar`** (SQL Editor, branch `dev`, banco `controle`, como `neondb_owner`):
+**Preparação, antes do `pnpm migrar-neon`** (SQL Editor, branch `dev`, banco `controle`, como `neondb_owner`):
 
 ```sql
 ALTER ROLE controle_app IN DATABASE controle SET search_path = app;
@@ -66,11 +66,13 @@ Na sua máquina, com a URL **direta do owner da branch `dev`** numa variável s�
 
 ```powershell
 $env:DATABASE_URL_OWNER = '<url direta owner, branch dev>'
-pnpm migrar
+pnpm migrar-neon
 ```
 
+Use `pnpm migrar-neon` (não `pnpm migrar`) para o Neon. O `.env` local aponta para o Postgres do Docker, e o `pnpm migrar` o carrega: num terminal sem a variável, ele migraria o banco local em silêncio. O `migrar-neon` não lê o `.env`, exige a variável no terminal, recusa destino local, fora de `.neon.tech` ou `-pooler`, mostra usuário, host e banco (senha mascarada) e só migra depois de você digitar o nome do banco. `pnpm migrar` fica só para o local.
+
 Conferir (SQL Editor, branch `dev`, banco `controle`):
-- 12 migrations aplicadas e `pnpm migrar` de novo diz "No migrations to run";
+- 12 migrations aplicadas e `pnpm migrar-neon` de novo diz "No migrations to run";
 - 20 tabelas com RLS ligada e forçada: `SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='app' AND c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity;`;
 - como `controle_app`: sem contexto devolve 0 linhas, e `CREATE TABLE` é negado.
 
@@ -78,7 +80,7 @@ Se algo falhar aqui, é o `[A VALIDAR]` do passo 3 e corrigimos antes de produç
 
 ## 6. Migrar a `main`
 
-Antes, a mesma preparação do passo 5 (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;` como `neondb_owner`), agora no SQL Editor da branch **`main`**. Depois, mesmo comando com a URL do owner da `main` e o `conferir-banco`. Só depois do ensaio verde. Ação irreversível sem restauração: confirmação própria.
+Antes, a mesma preparação do passo 5 (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;` como `neondb_owner`), agora no SQL Editor da branch **`main`**. Depois, `pnpm migrar-neon` (ver o porquê no passo 5) com a URL do owner da `main` e o `conferir-banco`. Só depois do ensaio verde. Ação irreversível sem restauração: confirmação própria.
 
 ## 7. Hyperdrive (Cloudflare)
 
