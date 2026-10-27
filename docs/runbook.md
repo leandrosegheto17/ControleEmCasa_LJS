@@ -330,3 +330,25 @@ O 9.1 fica como registro do Postgres 17. Desde o ADR-016 a versão é a 18; o en
 - Restaurar a partir de uma `restauracao-*` criada por um deploy real (seção 4.1) e registrar o caminho que funcionou.
 - Medir o tempo total (do alerta ao app de volta) para ter a referência de RTO, e o intervalo de dados perdidos (RPO:
   até 24 h pelo backup diário; o instante do deploy pela branch).
+
+## 10. Roteiro de ativação da produção
+
+Ordem de ligar a produção pela primeira vez (feature 17b e 17c). Cada passo diz o comando e a evidência a guardar
+(texto da saída ou captura, **sem** URL com senha, token nem cookie). O passo a passo do Neon e do Hyperdrive está em
+`.specs/etapa-17/neon.md`. Passo que muda conta externa pede a confirmação do Leandro, uma a uma. Falhou um passo: pare,
+não pule para o seguinte.
+
+| #   | Passo                            | Comando                                                                                                                                             | Evidência a guardar                                                                    |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | Conferir roles e RLS do banco    | `DATABASE_URL_OWNER` (da produção) no ambiente e `pnpm --filter @controle/scripts conferir-banco`                                                   | A linha `Banco conforme: ...` (só contagens); migrations pendentes são aplicadas antes |
+| 2   | Criar o Hyperdrive e trocar o id | Passo do `neon.md`; trocar o id fictício no `wrangler.jsonc` e commitar                                                                             | Id novo no commit; `cache-hyperdrive` verde no passo 2 do deploy                       |
+| 3   | Ligar o deploy                   | Variável de repositório `DEPLOY_ATIVO=true` e o workflow `deploy` (Actions, disparo manual na `main`)                                               | Link da execução do `deploy.yml` verde                                                 |
+| 4   | Fumaça                           | Passo 7 do `deploy.yml`: `/api/health`, `/`, `/app/` e os cabeçalhos CSP, HSTS e `Cache-Control: no-store`                                          | Log do passo 7 verde                                                                   |
+| 5   | Medir a CPU do Worker publicado  | `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no ambiente e `pnpm --filter @controle/scripts medir-cpu-publicado` (`JANELA_HORAS` opcional)      | O relatório (p50, p99 e veredito contra 10 ms); falhou o teto: abrir ajuste de CPU     |
+| 6   | Medir a retomada a frio          | App parado além do tempo de suspensão do Neon, `URL_PUBLICA` e `MEDIR_COOKIE` no ambiente e `pnpm --filter @controle/scripts medir-retomada-a-frio` | O relatório (primeira contra a mediana das seguintes)                                  |
+| 7   | Ligar o backup diário            | Variável de repositório `BACKUP_ATIVO=true`; conferir a execução (seção 5 deste runbook)                                                            | Link da primeira execução do `backup.yml` e o ensaio da seção 9.3                      |
+| 8   | Ligar a purga diária             | Variável de repositório `PURGA_ATIVA=true`                                                                                                          | Link da primeira execução do `purga.yml`                                               |
+
+`[A VALIDAR NA 17C]`: o conjunto de dados e os campos da API de análise usados no passo 5 (veja o cabeçalho de
+`backend/scripts/src/operacao/medir-cpu-publicado.ts`) e a rota que o passo 6 usa com a produção real (`/api/sessao`
+exige sessão válida para tocar o banco).

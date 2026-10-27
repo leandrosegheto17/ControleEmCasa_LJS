@@ -221,9 +221,9 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Cada comando citado existe no `package.json` ou no workflow (conferido)
-- [ ] Prettier verde
-- [ ] Gate build verde e trava de testes registrada no commit final da feature
+- [x] Cada comando citado existe no `package.json` ou no workflow (conferido)
+- [x] Prettier verde
+- [x] Gate build verde e trava de testes registrada no commit final da feature
 
 **Tests**: none
 **Gate**: build
