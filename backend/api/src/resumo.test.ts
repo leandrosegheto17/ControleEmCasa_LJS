@@ -141,16 +141,11 @@ describe.skipIf(!bancoDisponivel)('GET /api/resumo: bloco individual e privacida
     });
     expect(b.conjunto.total_centavos).toBe(1_000);
     const texto = JSON.stringify(b);
-    for (const segredo of [
-      '5000',
-      '1500',
-      '3500',
-      'Lazer pessoal',
-      'Salário',
-      l.ana.conta,
-      l.ana.credito,
-      l.ana.lazer,
-    ]) {
+    // Números inteiros, não pedaços de UUID aleatório (ex.: `2bd55000-…` continha '5000' e fazia o teste falhar).
+    for (const numero of ['5000', '1500', '3500']) {
+      expect(texto, numero).not.toMatch(new RegExp(`(?<![0-9a-fA-F-])${numero}(?![0-9a-fA-F-])`));
+    }
+    for (const segredo of ['Lazer pessoal', 'Salário', l.ana.conta, l.ana.credito, l.ana.lazer]) {
       expect(texto, segredo).not.toContain(segredo);
     }
     expect(b.individual.contas.map((c) => c.conta_id)).toEqual([l.bruno.conta]);
