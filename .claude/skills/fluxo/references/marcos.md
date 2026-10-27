@@ -38,6 +38,7 @@ Na pergunta de fim de fase (via `AskUserQuestion`), as opções passam a ser:
    - **Fase aprovada**: <N, nome> em <AAAA-MM-DD>
    - **Próxima fase**: <N, nome> — modelo indicado: <opus | sonnet>
    - **Construção** (se no meio): lote <x> de <y> concluído; o tlc retoma pelo `## Handoff`
+   - **Progresso**: <linhas "Plano: ..." e "Projeto: ..." de `python .claude/scripts/progresso.py`, ou "sem tarefas ainda">, conferida em <AAAA-MM-DD>
    - **Combinado na conversa e não registrado em artefato**: <itens | nenhum>
    - **Gravada em**: <AAAA-MM-DD HH:MM>
    ```

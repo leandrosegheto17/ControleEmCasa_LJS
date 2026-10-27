@@ -37,6 +37,7 @@ Este projeto usa **fluxos de trabalho** em `.claude/skills/`. O ponto de entrada
 
 - Cada fase termina com um resumo curto e a pergunta de aprovação (via `AskUserQuestion`) com as opções **seguir / ajustar / parar**. Nada avança para a fase seguinte sem aprovação explícita.
 - Parar é um resultado válido e fica registrado.
+- **Progresso no resumo:** antes da pergunta de aprovação, rode `python .claude/scripts/progresso.py` e ponha no resumo as linhas que ele mostra (ex.: "Faltam 45 de 180 tarefas: 75% concluído"). Antes da fase de tarefas ainda não há tarefas: diga só em que fase do fluxo o trabalho está. Projeto com `.specs/projeto/roadmap.md` (uma linha por etapa ou feature, com a Situação) traz também a linha **Plano**; ao aprovar uma etapa ou integrar uma feature, troque a Situação dela no roadmap no mesmo commit. Detalhes na skill `progresso` (`/progresso` mostra a qualquer momento).
 - Nos marcos de troca de sessão (seção abaixo), a pergunta ganha a opção **seguir numa sessão nova**.
 - Ação externa ou difícil de desfazer (push, deploy, banco de produção, apagar dados, publicar) exige confirmação específica para aquela ação, mesmo com a fase aprovada.
 

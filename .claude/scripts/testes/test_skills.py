@@ -107,6 +107,17 @@ class TestSkills(unittest.TestCase):
         self.assertIn("## Retomada", menu)
         self.assertIn("references/marcos.md", menu)
 
+    def test_progresso_no_resumo_de_fase_e_na_retomada(self):
+        """O status de tarefas aparece no fim de cada fase e ao retomar a sessão."""
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("python .claude/scripts/progresso.py", claude_md)
+        marcos = (SKILLS / "fluxo" / "references" / "marcos.md").read_text(encoding="utf-8")
+        self.assertIn("**Progresso**", marcos)
+        self.assertIn("progresso.py", (SKILLS / "fluxo" / "SKILL.md").read_text(encoding="utf-8"))
+        skill = (SKILLS / "progresso" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("python .claude/scripts/progresso.py", skill)
+        self.assertTrue((CLAUDE / "scripts" / "progresso.py").exists())
+
     def test_trava_de_modelo(self):
         """A sessão compara o próprio modelo com o da fase e pergunta antes de trabalhar."""
         claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")

@@ -10,7 +10,7 @@ Argumento recebido: `$ARGUMENTS`
 
 ## 0. Retomada
 
-Antes de tudo, sem texto antes, procure a seção `## Retomada` em `.specs/STATE.md` (gravada num marco de troca de sessão; procedimento em [references/marcos.md](references/marcos.md)). Se existir e o item ainda estiver em andamento (a skill do fluxo diz pelos arquivos), e o argumento não pedir outro fluxo, a primeira pergunta (via `AskUserQuestion`) é: **Retomar <fluxo> <item> na fase <N> (Recomendado)** ou **Outro trabalho** (segue para os passos 1 e 2). Ao retomar, acione a skill do fluxo, diga em uma linha o que estava combinado na conversa (campo da retomada) e aplique a trava de modelo do `CLAUDE.md` com o modelo indicado para a fase.
+Antes de tudo, sem texto antes, procure a seção `## Retomada` em `.specs/STATE.md` (gravada num marco de troca de sessão; procedimento em [references/marcos.md](references/marcos.md)). Se existir e o item ainda estiver em andamento (a skill do fluxo diz pelos arquivos), e o argumento não pedir outro fluxo, a primeira pergunta (via `AskUserQuestion`) é: **Retomar <fluxo> <item> na fase <N> (Recomendado)** ou **Outro trabalho** (segue para os passos 1 e 2). Ao retomar, acione a skill do fluxo, rode `python .claude/scripts/progresso.py` e mostre as linhas dele (o campo **Progresso** da retomada é só a foto do marco; vale o número de agora), diga em uma linha o que estava combinado na conversa (campo da retomada) e aplique a trava de modelo do `CLAUDE.md` com o modelo indicado para a fase.
 
 ## 1. Com argumento: atalho
 
