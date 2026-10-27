@@ -398,10 +398,10 @@ T14
 
 **Done when**:
 
-- [ ] Os 3 DSNs são recusados com aviso e o `connect-src` fica `'self'`
-- [ ] Cada teste falha com o estrago correspondente (regex sem âncora; aceitar aspas; aceitar vírgula), provado na cópia
-- [ ] Nenhum teste existente alterado
-- [ ] Gate quick verde (pacote web)
+- [x] Os 3 DSNs são recusados com aviso e o `connect-src` fica `'self'`
+- [x] Cada teste falha com o estrago correspondente (regex sem âncora; aceitar aspas; aceitar vírgula), provado na cópia
+- [x] Nenhum teste existente alterado
+- [x] Gate quick verde (pacote web)
 
 **Tests**: unit
 **Gate**: quick

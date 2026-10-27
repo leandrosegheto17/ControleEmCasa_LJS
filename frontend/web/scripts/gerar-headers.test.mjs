@@ -50,6 +50,19 @@ describe('gerarHeaders', () => {
   });
 });
 
+describe('host do DSN: âncora inicial, aspas e vírgula', () => {
+  it.each([
+    ['lixo antes de um sufixo de host válido', 'https://x@a;b.com/1'],
+    ['aspas duplas', 'https://x@a".com/1'],
+    ['vírgula', 'https://x@a,b.com/1'],
+  ])('recusa %s: aviso e connect-src continua só com self', (_, dsn) => {
+    const { conteudo, aviso } = gerarHeaders(original, dsn);
+    expect(aviso).toMatch(/VITE_SENTRY_DSN ignorado/);
+    expect(conteudo).toBe(original);
+    expect(cspDe(conteudo)).toContain("connect-src 'self';");
+  });
+});
+
 describe('codificação do public/_headers', () => {
   const bytes = readFileSync(new URL('../public/_headers', import.meta.url));
 
