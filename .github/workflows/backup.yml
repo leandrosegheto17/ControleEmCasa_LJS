@@ -1,0 +1,57 @@
+# Backup diário (etapa 16; PRD-TECNICO RNF-09; SDD 3.7, 11.2, D-06; G-09, G-44; TM-GH-03, TM-GH-06, TM-DB-05;
+# ADR-015): pg_dump -Fc com a role controle_backup_ro (sem BYPASSRLS, --enable-row-security), cifrado com age no
+# runner e guardado como artefato do Actions por 30 dias (THREAT-MODEL E-12). Só a chave PÚBLICA age (variável
+# AGE_RECIPIENT); a identidade privada fica offline, fora do GitHub. Segredos só por referência ao environment
+# `producao` (criado na etapa 17). Enquanto a variável BACKUP_ATIVO do repositório não for 'true', o job não roda.
+# Falha em qualquer passo deixa o job vermelho: o GitHub avisa por e-mail e o resumo do run diz o que fazer.
+name: backup
+
+on:
+  schedule:
+    # 07:00 UTC = 04:00 em Brasília (UTC-3, sem horário de verão desde 2019). A purga roda depois, às 08:00 UTC.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  backup:
+    if: ${{ vars.BACKUP_ATIVO == 'true' }}
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Data do backup (São Paulo)
+        id: data
+        run: echo "dia=$(TZ=America/Sao_Paulo date +%F)" >> "$GITHUB_OUTPUT"
+      - name: Dump cifrado do banco de produção
+        uses: ./.github/actions/dump-cifrado
+        with:
+          url: ${{ secrets.DATABASE_URL_BACKUP }}
+          destinatario: ${{ vars.AGE_RECIPIENT }}
+          nome-artefato: backup-${{ steps.data.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Alertar a falha do backup
+        if: ${{ failure() }}
+        run: |
+          echo "::error title=Backup falhou::O backup cifrado de hoje não foi gerado. Rode de novo pelo Actions e, se repetir, siga o runbook."
+          echo "### Backup falhou" >> "$GITHUB_STEP_SUMMARY"
+          echo "O dump cifrado de hoje não foi gerado. Rode de novo (Actions, backup, Run workflow) e veja o runbook." >> "$GITHUB_STEP_SUMMARY"
+          exit 1

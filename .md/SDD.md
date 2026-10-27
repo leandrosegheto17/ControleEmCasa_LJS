@@ -527,7 +527,7 @@ Toda tabela recebe `create policy backup_leitura on app.<t> for select to contro
 | push_subscription | sim | sim | `ultimo_envio_em`, `falhas` | sim |
 | preferencia_notificacao | sim | sim | todas, exceto as chaves | — |
 
-`backup_ro`: `grant usage on schema app` e `grant select on all tables in schema app`, mais a política `backup_leitura`. Nada além disso.
+`backup_ro`: `grant usage on schema app` e `grant select on all tables in schema app`, mais a política `backup_leitura`. Desde a etapa 16 (ADR-015), também `SELECT` nas sequências de `app` e leitura de `public.pgmigrations` (o `pg_dump` falhava sem elas, e o banco restaurado precisa saber quais migrations rodaram). Só leitura; nada além disso.
 
 ---
 
@@ -1098,6 +1098,8 @@ O Worker Free tem **10 ms de CPU** por requisição. O tempo esperando o banco n
 ```
 
 - O deploy injeta `--var URL_PUBLICA:https://controleemcasa.ljssoftware.com.br --var AMBIENTE:producao --var ASAAS_API_URL:https://api.asaas.com/v3 --var SENTRY_RELEASE:<sha>`. Só existe um `wrangler deploy`, no `deploy.yml`, garantido por teste (padrão GP).
+- `deploy.yml` (etapa 16, ADR-015): dispara só quando o `ci` termina verde num push à `main` (`workflow_run`, no `head_sha` testado), passa por um job de aprovação (environment `producao-aprovacao`, revisor obrigatório, sem segredo) e publica no environment `producao`. Ordem fixa: build do front → cache do Hyperdrive conferido (`caching.disabled`) → branch `restauracao-<run>-<tentativa>` no Neon a partir da `main`, mantendo as 2 mais novas → dump cifrado (`backup_ro`, `age`, artefato de 30 dias) → migração com o `owner` → `wrangler deploy` → `GET /api/health`. Falha depois da migração faz `wrangler rollback` (se o Worker já tinha sido publicado) e aponta a branch e o dump. Inerte até `DEPLOY_ATIVO = true` (etapa 17).
+- `backup.yml` (etapa 16, ADR-015): todo dia às 07:00 UTC (04:00 BRT), `pg_dump --format=custom --enable-row-security` como `backup_ro`, com o cliente do Postgres 17 (imagem fixada por digest), em pipe para `age -r $AGE_RECIPIENT`; só o `.age` sai do runner, como artefato do Actions de 30 dias. Inerte até `BACKUP_ATIVO = true` (etapa 17).
 - O cron `30 6 * * *` (03:30 BRT) faz a limpeza:
   - sessões expiradas;
   - tentativas com mais de 24 h;
@@ -1126,10 +1128,12 @@ O Worker Free tem **10 ms de CPU** por requisição. O tempo esperando o banco n
 | `SENTRY_RELEASE` | `--var` no deploy | não | SHA do commit | não |
 | `VITE_SENTRY_DSN` | build do web | não | URL DSN | não (vai para o bundle) |
 | `DATABASE_URL_OWNER` | `.env` local e GitHub `producao` | sim para migrar, seed e purga | `postgres://controle_owner:…` | **sim** |
-| `DATABASE_URL_BACKUP` | GitHub `producao` | sim para o backup | `postgres://controle_backup_ro:…` | **sim** |
-| `AGE_RECIPIENT` | GitHub `producao` | sim para o backup | chave pública `age1…` | não |
-| `NEON_API_KEY`, `NEON_PROJECT_ID` | GitHub `producao` | sim para o deploy (branch de restauração) | — | **sim** / não |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub `producao` | sim para o deploy | — | **sim** / não |
+| `DATABASE_URL_BACKUP` | GitHub `producao` | sim para o backup e o dump do deploy | `postgres://controle_backup_ro:…` | **sim** |
+| `AGE_RECIPIENT` | GitHub `producao` (variável) | sim para o backup e o deploy | chave pública `age1…` | não (a identidade privada fica offline, fora do GitHub) |
+| `NEON_API_KEY`, `NEON_PROJECT_ID` | GitHub `producao` (secret / variável) | sim para o deploy (branch de restauração) | — | **sim** / não |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub `producao` (secret / variável) | sim para o deploy | — | **sim** / não |
+| `DEPLOY_ATIVO`, `BACKUP_ATIVO`, `PURGA_ATIVA` | variáveis do repositório no GitHub | `true` liga o `deploy.yml`, o `backup.yml` e o `purga.yml` (etapa 17); sem elas, nada roda | `true` | não |
+| `ASAAS_API_URL` | GitHub `producao` (variável, para a purga) | sim para a purga | URL de produção | não |
 | `SENTRY_AUTH_TOKEN` | GitHub `producao` | não (upload de sourcemaps) | — | **sim** |
 
 O `config/index.ts` valida tudo com Zod na 1ª requisição e falha fechado (`ConfigInvalida`, sem logar o valor). O `.env.example` traz cada variável comentada. No local, os segredos ficam em `.dev.vars`, que está no `.gitignore` e é coberto pelo gitleaks.

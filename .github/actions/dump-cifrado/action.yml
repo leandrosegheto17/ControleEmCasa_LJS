@@ -1,0 +1,40 @@
+# Dump do Postgres cifrado com age e guardado como artefato do Actions por 30 dias (etapa 16; SDD 3.7, D-06; G-44;
+# TM-GH-03, TM-GH-06; ADR-002, ADR-015). Usada pelo backup.yml (diário) e pelo deploy.yml (antes da migração).
+# A lógica fica em backend/scripts/src/operacao/dump-cifrado.ts (testada): pg_dump -Fc --enable-row-security da imagem
+# do Postgres 17 em pipe para `age -r`; o dump em claro nunca vai para disco nem para artefato. Só o destinatário
+# público age entra aqui; a identidade privada fica offline, fora do GitHub. Exige o pnpm install feito antes.
+name: Dump cifrado
+description: pg_dump -Fc cifrado com age e enviado como artefato de 30 dias (nunca em claro).
+
+inputs:
+  url:
+    description: Conexão com o Postgres (secret; no backup e no deploy, a role controle_backup_ro).
+    required: true
+  destinatario:
+    description: Destinatário público age (age1...). Nunca a identidade privada.
+    required: true
+  nome-artefato:
+    description: Nome do artefato (o arquivo é <nome>.dump.age).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Instalar o age
+      shell: bash
+      run: sudo apt-get update -qq && sudo apt-get install -y -qq age
+    - name: Gerar o dump cifrado
+      shell: bash
+      env:
+        URL_BANCO: ${{ inputs.url }}
+        AGE_RECIPIENT: ${{ inputs.destinatario }}
+        SAIDA: ${{ runner.temp }}/${{ inputs.nome-artefato }}.dump.age
+      run: pnpm --filter @controle/scripts dump-cifrado
+    - name: Guardar o artefato cifrado (30 dias)
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ inputs.nome-artefato }}
+        path: ${{ runner.temp }}/${{ inputs.nome-artefato }}.dump.age
+        retention-days: 30
+        if-no-files-found: error
+        compression-level: 0

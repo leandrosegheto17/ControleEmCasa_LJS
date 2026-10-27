@@ -13,7 +13,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "massa": "tsx --env-file-if-exists=../../.env src/massa-dois-anos.ts",
-    "medir-cpu": "tsx src/medir-cpu.ts"
+    "medir-cpu": "tsx src/medir-cpu.ts",
+    "cache-hyperdrive": "tsx src/operacao/cache-hyperdrive.ts",
+    "restauracao-neon": "tsx src/operacao/restauracao-neon.ts",
+    "dump-cifrado": "tsx src/operacao/dump-cifrado.ts"
   },
   "dependencies": {
     "node-pg-migrate": "^9.0.0",

@@ -1,0 +1,126 @@
+# Deploy de produção (etapa 16; PLANO; SDD 11.1, 11.2; G-02, G-09, G-42, G-43, G-44; TM-DB-02, TM-DB-05, TM-DB-07,
+# TM-GH-01 a TM-GH-04; ADR-015). ÚNICO lugar com `wrangler deploy` (teste operacao/wrangler-deploy-unico.test.ts).
+#
+# Gatilho: só depois do workflow `ci` terminar VERDE num push à `main` (workflow_run), no commit exato que o CI
+# testou (head_sha). Pull request, outra branch, fork e CI vermelho ou cancelado nunca publicam. Para publicar de novo
+# o mesmo commit, use "Re-run" neste workflow.
+#
+# Ordem fixa (G-43): build -> cache do Hyperdrive conferido -> branch de restauração no Neon (mantém 2) -> dump
+# cifrado com age -> migração com a role owner -> wrangler deploy -> saúde. Qualquer passo que falha para tudo.
+#
+# Aprovação: o job `aprovar` usa o environment `producao-aprovacao` (revisor obrigatório, sem segredo nenhum); o
+# `publicar` só começa depois dele, no environment `producao` (segredos, só da main). Assim o backup e a purga, que
+# também leem o `producao`, não ficam esperando aprovação todo dia.
+#
+# Inerte até a etapa 17: enquanto a variável DEPLOY_ATIVO do repositório não for 'true', nenhum job roda.
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  aprovar:
+    if: >-
+      ${{ vars.DEPLOY_ATIVO == 'true' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    environment: producao-aprovacao
+    timeout-minutes: 5
+    steps:
+      - name: Commit aprovado para produção
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: echo "Publicando ${SHA}"
+
+  publicar:
+    needs: aprovar
+    if: ${{ vars.DEPLOY_ATIVO == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: producao
+      url: https://controleemcasa.ljssoftware.com.br
+    timeout-minutes: 30
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      URL_PUBLICA: https://controleemcasa.ljssoftware.com.br
+      ASAAS_API_URL: https://api.asaas.com/v3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: 1. Build do front (antes de tocar em qualquer coisa de produção)
+        run: pnpm --filter @controle/web build
+
+      - name: 2. Conferir o cache do Hyperdrive desligado
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --filter @controle/scripts cache-hyperdrive
+
+      - name: 3. Branch de restauração no Neon (mantém as 2 mais novas)
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: pnpm --filter @controle/scripts restauracao-neon
+
+      - name: 4. Dump cifrado antes da migração
+        uses: ./.github/actions/dump-cifrado
+        with:
+          url: ${{ secrets.DATABASE_URL_BACKUP }}
+          destinatario: ${{ vars.AGE_RECIPIENT }}
+          nome-artefato: dump-predeploy-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: 5. Migrar com a role owner
+        id: migrar
+        env:
+          DATABASE_URL_OWNER: ${{ secrets.DATABASE_URL_OWNER }}
+        run: pnpm --filter @controle/scripts migrar
+
+      - name: 6. Publicar o Worker
+        id: publicar
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --filter @controle/api exec wrangler deploy -c ../../wrangler.jsonc --var "URL_PUBLICA:${URL_PUBLICA}" --var AMBIENTE:producao --var "ASAAS_API_URL:${ASAAS_API_URL}" --var "SENTRY_RELEASE:${SHA}"
+
+      - name: 7. Conferir a saúde do app publicado
+        run: curl -fsS --retry 5 --retry-all-errors --retry-delay 3 "${URL_PUBLICA}/api/health"
+
+      - name: Desfazer o Worker e orientar a restauração
+        if: ${{ failure() && steps.migrar.outcome == 'success' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          RESULTADO_PUBLICACAO: ${{ steps.publicar.outcome }}
+          RUN: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          if [ "$RESULTADO_PUBLICACAO" = "success" ]; then
+            pnpm --filter @controle/api exec wrangler rollback -c ../../wrangler.jsonc --message "Saude falhou no deploy ${RUN}"
+          fi
+          echo "::error title=Deploy falhou depois da migração::A migração já foi aplicada. Para voltar o banco, use a branch restauracao-${RUN} do Neon ou o artefato dump-predeploy-${RUN} (runbook)."
+          exit 1
