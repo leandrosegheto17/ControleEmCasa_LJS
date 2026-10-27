@@ -269,3 +269,4 @@
 |---|---|---|---|---|---|
 | 2026-10-24 | segurança (agente) | — (pendente) | Versão inicial G-01…G-55 | Etapa 0 do PLANO | — |
 | 2026-10-27 | implementador (agente) | Leandro (2026-10-27) | G-42 cumprida por deploy manual (`workflow_dispatch` só da `main`, job `conferir` exige o `ci` verde no mesmo SHA); sai o environment `producao-aprovacao`. A regra não muda nem afrouxa | GitHub Free não permite revisor obrigatório em repositório privado (emenda ao ADR-015) | Permanente (até nova decisão sobre o deploy) |
+| 2026-10-27 | sessão principal | Leandro (2026-10-27) | `.gitleaks.toml`: allowlist por caminho de 3 arquivos `observabilidade.test.ts` (contrato, api, web) | O CI sinalizou como `generic-api-key` a constante `TOKEN` de exemplo, valor falso de propósito nos testes de scrubbing do Sentry | Enquanto os testes usarem valor falso |
