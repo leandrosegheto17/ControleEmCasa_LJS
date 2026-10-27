@@ -322,9 +322,9 @@ T11
 
 **Done when**:
 
-- [ ] Teste novo falha quando uma das três entradas some ou aponta para outro arquivo (provado na cópia)
-- [ ] O arquivo apontado existe
-- [ ] Gate quick verde
+- [x] Teste novo falha quando uma das três entradas some ou aponta para outro arquivo (provado na cópia)
+- [x] O arquivo apontado existe
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
