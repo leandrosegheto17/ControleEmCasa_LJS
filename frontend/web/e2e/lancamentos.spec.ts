@@ -87,6 +87,26 @@ test('excluir: o diálogo confirma, o DELETE sai uma vez e a lista volta', async
   expect(detalhes.has(ID_LANCAMENTO)).toBe(false);
 });
 
+test('excluir com sucesso não relê o detalhe apagado, nem mostra "não existe mais" na volta à lista', async ({
+  page,
+}) => {
+  await simularApi(page);
+  const chamadas: string[] = [];
+  page.on('request', (r) => {
+    if (r.url().includes(`/api/lancamentos/${ID_LANCAMENTO}`)) chamadas.push(r.method());
+  });
+  await page.goto(`/app/lancamentos/${ID_LANCAMENTO}`);
+  await expect(page.getByRole('region', { name: 'Resumo' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Excluir' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click();
+  await expect(page).toHaveURL(/\/app\/lancamentos$/);
+  await expect(page.getByText('Excluído', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ele pode ter sido excluído.')).toHaveCount(0);
+
+  expect(chamadas).toEqual(['GET', 'DELETE']);
+});
+
 test('Início mostra o resumo do mês com o gasto do cartão', async ({ page }) => {
   await simularApi(page);
   await page.goto('/app');

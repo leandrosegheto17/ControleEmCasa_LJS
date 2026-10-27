@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
 import type { ErroDados } from '../../comum/erros';
@@ -7,12 +7,21 @@ import { mensagemErro } from '../../rotulos/mensagensErro';
 
 /** Excluir o lançamento: avisa e volta à lista; "já não existe" troca a tela; o resto vira erro no topo. */
 export function useExcluirLancamento(id: string, destino: string) {
-  const { excluir } = useComandosLancamento();
+  const { excluir, esquecer } = useComandosLancamento();
   const { mostrar } = useAviso();
   const navegar = useNavigate();
   const [erro, setErro] = useState<string | undefined>();
   const [naoExiste, setNaoExiste] = useState(false);
   const emCurso = useRef<Promise<void> | null>(null);
+  const excluido = useRef(false);
+
+  // Ao sair da tela, o detalhe apagado deixa o cache: nenhum observador o pede de novo.
+  useEffect(
+    () => () => {
+      if (excluido.current) esquecer(id);
+    },
+    [esquecer, id],
+  );
 
   async function tentar() {
     setErro(undefined);
@@ -24,6 +33,7 @@ export function useExcluirLancamento(id: string, destino: string) {
       else setErro(mensagemErro(falha));
       return;
     }
+    excluido.current = true;
     mostrar('sucesso', 'Excluído');
     navegar(destino);
   }
