@@ -87,33 +87,3 @@ describe('wrangler.jsonc (PLANO etapa 3; G-32)', () => {
     expect(wranglerBruto).not.toMatch(/"[A-Z_]*(API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE_KEY|DSN)[A-Z_]*"\s*:/);
   });
 });
-
-describe('CSP da API e o host de ingestão do Sentry (exceção registrada no GUARDRAILS; RNF-06, RNF-08)', () => {
-  const SEM_DSN = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
-  const csp = async (dsn?: string) => {
-    const r = await chamar(criarApp(), '/api/health', undefined, dsn === undefined ? {} : { SENTRY_DSN: dsn });
-    return { status: r.status, csp: r.headers.get('Content-Security-Policy') };
-  };
-
-  it('com DSN válido, connect-src ganha só https://<host do DSN> e o resto não muda', async () => {
-    const r = await csp('https://chavepublica@o1.ingest.us.sentry.io/123');
-    expect(r.status).toBe(200);
-    expect(r.csp).toBe(
-      `default-src 'none'; connect-src https://o1.ingest.us.sentry.io; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`,
-    );
-  });
-
-  it('sem DSN (ausente ou vazio), a CSP não muda', async () => {
-    expect((await csp()).csp).toBe(SEM_DSN);
-    expect((await csp('')).csp).toBe(SEM_DSN);
-  });
-
-  it.each(['isto-nao-e-url', 'http://chave@o1.ingest.sentry.io/1', "https://x@a.com; script-src *'/1", 'ftp://x@h/1'])(
-    'DSN malformado ou fora de https (%s) não muda a CSP nem derruba a resposta',
-    async (dsn) => {
-      const r = await csp(dsn);
-      expect(r.status).toBe(200);
-      expect(r.csp).toBe(SEM_DSN);
-    },
-  );
-});

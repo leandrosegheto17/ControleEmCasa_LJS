@@ -256,9 +256,9 @@ T11
 
 **Done when**:
 
-- [ ] `cabecalhos.ts` e `saude-e-cabecalhos.test.ts` voltam ao estado anterior à T2; nenhum teste de antes da T2 alterado (confirmado com `git diff 5ad1f0f -- backend/api/src/saude-e-cabecalhos.test.ts`)
-- [ ] A linha da T2 no Log do GUARDRAILS sai junto, e o motivo fica no corpo do commit
-- [ ] Gate quick verde
+- [x] `cabecalhos.ts` e `saude-e-cabecalhos.test.ts` voltam ao estado anterior à T2; nenhum teste de antes da T2 alterado (confirmado com `git diff 5ad1f0f -- backend/api/src/saude-e-cabecalhos.test.ts`)
+- [x] A linha da T2 no Log do GUARDRAILS sai junto, e o motivo fica no corpo do commit
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
