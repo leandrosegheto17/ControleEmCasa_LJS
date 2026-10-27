@@ -28,6 +28,10 @@ export interface Bindings {
   VAPID_PRIVATE_KEY?: string;
   /** Contato do operador no JWT VAPID (`mailto:`). */
   VAPID_SUBJECT?: string;
+  /** Segredo (`wrangler secret`; no local, `.dev.vars`): DSN do Sentry. Sem ele, o Sentry fica desligado (SDD 11.2). */
+  SENTRY_DSN?: string;
+  /** SHA do commit publicado, injetado pelo deploy (`--var SENTRY_RELEASE:<sha>`). */
+  SENTRY_RELEASE?: string;
 }
 
 /** Identidade que a sessão entrega ao middleware de transação. O lar NUNCA vem daqui (G-03). */

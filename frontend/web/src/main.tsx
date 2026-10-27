@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { clienteConsulta } from './clienteConsulta';
+import { aoErroCapturado, iniciarSentry } from './configuracao/observabilidade';
 import { iniciarEnvioAutomatico } from './dados/fila/envioAutomatico';
 import { iniciarInstalacao } from './pwa/instalacao';
 import { registrarSW } from './pwa/registrarSW';
@@ -14,6 +15,8 @@ import './estilo/global.css';
 const raiz = document.getElementById('raiz');
 if (!raiz) throw new Error('elemento #raiz ausente no index.html');
 
+// Sentry só com VITE_SENTRY_DSN no build (etapa 16); sem ele, o SDK nem é carregado.
+void iniciarSentry();
 iniciarInstalacao();
 registrarSW();
 
@@ -21,7 +24,7 @@ const roteador = createBrowserRouter(rotas);
 ligarPerdaDeSessao(clienteConsulta, roteador);
 iniciarEnvioAutomatico();
 
-createRoot(raiz).render(
+createRoot(raiz, { onCaughtError: aoErroCapturado }).render(
   <StrictMode>
     <QueryClientProvider client={clienteConsulta}>
       <RouterProvider router={roteador} />

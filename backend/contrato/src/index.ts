@@ -23,6 +23,7 @@ export * from './orcamento-metas';
 export * from './plano';
 export * from './conta';
 export * from './push';
+export * from './observabilidade';
 
 /** Schemas de entrada e saída de todas as rotas (SDD 6: `entrada.X` / `saida.X`). */
 export const entrada = {

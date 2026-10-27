@@ -74,6 +74,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: 1. Build do front (antes de tocar em qualquer coisa de produção)
+        env:
+          # Sentry do front (etapa 16): DSN por variável do environment (sem ela, o Sentry fica desligado) e
+          # release = SHA do commit publicado.
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha }}
         run: pnpm --filter @controle/web build
 
       - name: 2. Conferir o cache do Hyperdrive desligado

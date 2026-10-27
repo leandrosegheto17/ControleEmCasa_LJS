@@ -6,6 +6,7 @@ import { criarDb } from '../infraestrutura/db/cliente';
 import { enviarPush } from '../infraestrutura/push';
 import { relogioDoSistema, type Relogio } from '../infraestrutura/relogio';
 import { logar } from '../log';
+import { relatarErro } from '../observabilidade';
 
 /**
  * Handler `scheduled` do Worker (SDD 8.6 e 11.1; `triggers.crons` do wrangler.jsonc):
@@ -47,6 +48,7 @@ export async function executarAgendada(cron: string, env: Bindings, opcoes: Opco
     }
   } catch (erro) {
     logar('error', 'cron_falhou', { tarefa, erro: erro instanceof Error ? erro.name : 'desconhecido' });
+    relatarErro(env, erro);
   } finally {
     await db.destroy();
   }

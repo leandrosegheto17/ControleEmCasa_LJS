@@ -19,6 +19,7 @@ import type { Versoes } from './infraestrutura/db/repositorios/aceites';
 import type { TransporteEmail } from './infraestrutura/email';
 import { relogioDoSistema, type Relogio } from './infraestrutura/relogio';
 import { logar } from './log';
+import { relatarErro } from './observabilidade';
 import { cabecalhosDeSeguranca } from './middleware/cabecalhos';
 import { conexaoDaRequisicao } from './middleware/conexao';
 import { protecaoCsrf } from './middleware/csrf';
@@ -128,6 +129,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Hono<AppEnv> {
       return c.json({ code: 'indisponivel', message: 'Serviço indisponível. Tente novamente em instantes.' }, 503);
     }
     logar('error', 'erro_interno', { id, erro: erro.name });
+    relatarErro(c.env, erro, id);
     return c.json({ code: 'erro_interno', message: 'Erro interno. Tente novamente.', id }, 500);
   });
 

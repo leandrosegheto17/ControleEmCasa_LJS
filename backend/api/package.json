@@ -12,6 +12,7 @@
   "dependencies": {
     "@controle/contrato": "workspace:*",
     "@controle/dominio": "workspace:*",
+    "@sentry/cloudflare": "^11.9.0",
     "hono": "^4.13.13",
     "kysely": "^0.29.7",
     "pg": "^8.23.1",
