@@ -1,6 +1,6 @@
 # ADR-014: Push nativo por VAPID
 
-- **Status:** Proposto em 2026-10-26 (etapa 15, lote 1: backend). Aceitar ao fechar a etapa 15, depois do lote 2 (service worker, Ajustes, aviso do iOS) e de um envio real a um navegador.
+- **Status:** Aceito em 2026-10-27 (fechamento do código da etapa 15, lotes 1 e 2), com a ressalva de que o envio real a um navegador (FCM, Mozilla, APNs) ainda não foi validado; se contradisser alguma premissa, este ADR é revisto.
 - **Data:** 2026-10-26
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** RN-27 do `PRD-TECNICO.md` (CA-27.1 a CA-27.8); decisão P8; SDD §2.2 (módulo `push`), §3.6, §4, §5.3, §6.2 "Push", §8.6, §11.1 e §11.2; GUARDRAILS G-02, G-04, G-32, G-36, G-39, G-46, G-49, G-50; THREAT-MODEL TM-PUSH-01 a TM-PUSH-06, E-07, E-15; ADR-005, ADR-010, ADR-011 e ADR-013
