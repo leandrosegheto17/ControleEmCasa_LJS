@@ -14,7 +14,7 @@ import {
 
 /**
  * Assinatura e webhook_evento no banco (PLANO etapa 13; SDD 3.3, 3.4, 4; RN-24; G-01, G-04, G-29, G-31, G-50;
- * CA-T1.5). Postgres 17 real, banco descartável, tudo como `controle_app` com a identidade em GUC local, como a API
+ * CA-T1.5). Postgres 18 real, banco descartável, tudo como `controle_app` com a identidade em GUC local, como a API
  * grava. Teste negativo: o lar B não lê nem escreve a assinatura do lar A; o convidado lê, mas não escreve; o
  * `webhook_evento` só existe no contexto de sistema (webhook).
  */
@@ -82,7 +82,7 @@ async function comoSistema<T extends pg.QueryResultRow>(c: pg.Client, sql: strin
   }
 }
 
-describe.skipIf(!temBanco)('assinatura e webhook_evento (Postgres 17 real, role app)', () => {
+describe.skipIf(!temBanco)('assinatura e webhook_evento (Postgres 18 real, role app)', () => {
   let banco: BancoDescartavel;
   let app: pg.Client;
   let owner: pg.Client;

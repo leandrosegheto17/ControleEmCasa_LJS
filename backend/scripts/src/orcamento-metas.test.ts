@@ -14,7 +14,7 @@ import {
 
 /**
  * Orçamento, meta e movimento de meta no banco (PLANO etapa 10; SDD 3.5, 4; RN-08, RN-09, RN-16, RN-18; G-01, G-04,
- * G-10; CA-T1.1, CA-T1.5, CA-08.5, CA-09.1 a CA-09.4). Postgres 17 real, banco descartável, tudo como
+ * G-10; CA-T1.1, CA-T1.5, CA-08.5, CA-09.1 a CA-09.4). Postgres 18 real, banco descartável, tudo como
  * `controle_app` com a identidade em GUC local, como a API grava. Teste negativo POR TABELA: o lar B não lê nem
  * escreve nada do lar A; e o membro B não vê o individual de A (orçamento e meta) nem a conta do movimento de A.
  */
@@ -161,7 +161,7 @@ async function montarLar(c: pg.Client, prefixo: string): Promise<Lar> {
   };
 }
 
-describe.skipIf(!temBanco)('orçamento, meta e movimento de meta (Postgres 17 real, role app)', () => {
+describe.skipIf(!temBanco)('orçamento, meta e movimento de meta (Postgres 18 real, role app)', () => {
   let banco: BancoDescartavel;
   let app: pg.Client;
   let owner: pg.Client;

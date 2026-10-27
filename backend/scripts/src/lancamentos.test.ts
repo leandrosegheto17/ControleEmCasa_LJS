@@ -15,7 +15,7 @@ import {
 
 /**
  * Lançamento, parte privada do pagamento e parcela no banco (PLANO etapa 8; SDD 3.5, 4; RN-01, RN-04, RN-06,
- * RN-07, RN-14; G-01, G-04, G-10; CA-T1.1, CA-T1.2, CA-T1.5, CA-06.8). Postgres 17 real, banco descartável,
+ * RN-07, RN-14; G-01, G-04, G-10; CA-T1.1, CA-T1.2, CA-T1.5, CA-06.8). Postgres 18 real, banco descartável,
  * tudo como `controle_app` com a identidade em GUC local, como a API grava.
  * Teste negativo POR TABELA: o lar B não lê nem escreve nada do lar A; o membro não vê o individual do outro
  * nem a parte privada (`lancamento_pagamento`) da conjunta que o outro pagou.
@@ -142,7 +142,7 @@ async function montarLar(c: pg.Client, prefixo: string): Promise<Lar> {
   };
 }
 
-describe.skipIf(!temBanco)('lançamento, parte privada e parcela (Postgres 17 real, role app)', () => {
+describe.skipIf(!temBanco)('lançamento, parte privada e parcela (Postgres 18 real, role app)', () => {
   let banco: BancoDescartavel;
   let app: pg.Client;
   let owner: pg.Client;

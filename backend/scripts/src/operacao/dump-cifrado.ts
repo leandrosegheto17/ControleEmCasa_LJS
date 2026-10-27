@@ -3,12 +3,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync, rmSync, statSync } from 'node:fs';
 
 /**
- * Dump do Postgres cifrado em fluxo (etapa 16; SDD 3.7, D-06; G-44; TM-GH-03, TM-GH-06; ADR-002, ADR-015). Usado pelo
+ * Dump do Postgres cifrado em fluxo (etapa 16; SDD 3.7, D-06; G-44; TM-GH-03, TM-GH-06; ADR-016, ADR-015). Usado pelo
  * `backup.yml` (role `backup_ro`, todo dia) e pelo `deploy.yml` (role `owner`, antes da migração), pela action
  * `.github/actions/dump-cifrado`.
  *
  * - `pg_dump --format=custom --enable-row-security` (o `backup_ro` não tem BYPASSRLS; lê pela política
- *   `backup_leitura`) com o cliente da MESMA versão maior do servidor (17, ADR-002): a versão do servidor é conferida
+ *   `backup_leitura`) com o cliente da MESMA versão maior do servidor (18, ADR-016): a versão do servidor é conferida
  *   antes e outra versão derruba o passo;
  * - a saída do pg_dump vai por pipe direto para `age -r <destinatário público>`: o dump em claro nunca toca o disco;
  * - só aceita destinatário público `age1...`; uma identidade privada (`AGE-SECRET-KEY-...`) é recusada;
@@ -17,9 +17,9 @@ import { readFileSync, rmSync, statSync } from 'node:fs';
  *   é descartado e a falha sai com mensagem fixa. Em qualquer falha o arquivo parcial é apagado e o código é 1.
  */
 
-/** Postgres 17 (ADR-002), fixado por digest como as ações por SHA (G-40). Atualizar = trocar tag e digest juntos. */
-export const IMAGEM_PG = 'postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b';
-export const VERSAO_MAIOR = 17;
+/** Postgres 18 (ADR-016, que substitui o ADR-002), fixado por digest como as ações por SHA (G-40). Atualizar = trocar tag e digest juntos. */
+export const IMAGEM_PG = 'postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5';
+export const VERSAO_MAIOR = 18;
 export const CABECALHO_AGE = 'age-encryption.org/v1\n';
 
 const DESTINATARIO = /^age1[02-9ac-hj-np-z]{58}$/;
@@ -100,7 +100,9 @@ export async function gerarDumpCifrado(opcoes: OpcoesDump): Promise<ResultadoDum
   if (versao.codigo !== 0 || !/^\d{5,6}$/.test(numero)) throw new Error('Falha ao consultar a versão do servidor.');
   const maior = Math.floor(Number(numero) / 10_000);
   if (maior !== versaoMaior) {
-    throw new Error(`Servidor Postgres ${maior}, cliente ${versaoMaior}: reveja o ADR-002 e a imagem do dump.`);
+    throw new Error(
+      `Servidor Postgres ${maior}, cliente ${versaoMaior}: reveja o ADR-016 (substitui o ADR-002) e a imagem do dump.`,
+    );
   }
 
   const [codigoDump, codigoCifra] = await dumpEmPipe(opcoes.dump, opcoes.cifrar(destinatario, saida), ambiente);
@@ -125,7 +127,7 @@ export async function gerarDumpCifrado(opcoes: OpcoesDump): Promise<ResultadoDum
   }
 }
 
-/** Comandos reais do runner: `psql`/`pg_dump` da imagem do Postgres 17 e o `age` instalado pela action. */
+/** Comandos reais do runner: `psql`/`pg_dump` da imagem do Postgres 18 e o `age` instalado pela action. */
 export function comandosDoRunner(imagem = IMAGEM_PG): Pick<OpcoesDump, 'versao' | 'dump' | 'cifrar'> {
   // `-e URL_BANCO` (sem valor) repassa a variável do ambiente: a URL não aparece em argv nem no log.
   const noContainer = (script: string): Comando => ({

@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: controle
           POSTGRES_USER: controle_owner
@@ -74,9 +74,9 @@ jobs:
         run: psql -h localhost -U controle_owner -d controle -v ON_ERROR_STOP=1 -f backend/scripts/init-local.sql
       - name: Migrations do zero
         run: pnpm migrar
-      - name: Testes de banco (Postgres 17 real)
+      - name: Testes de banco (Postgres 18 real)
         run: pnpm --filter @controle/scripts test
-      - name: Testes da API no Workers (workerd + Postgres 17 real, banco descartável)
+      - name: Testes da API no Workers (workerd + Postgres 18 real, banco descartável)
         run: pnpm --filter @controle/api test
 
   e2e-web:
@@ -98,12 +98,12 @@ jobs:
         env:
           CI: 'true'
 
-  # e2e críticos contra a pilha real (etapa 16): Worker no `wrangler dev` + Postgres 17 + Asaas simulado.
+  # e2e críticos contra a pilha real (etapa 16): Worker no `wrangler dev` + Postgres 18 + Asaas simulado.
   e2e-pilha:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: controle
           POSTGRES_USER: controle_owner

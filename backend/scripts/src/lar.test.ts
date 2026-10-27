@@ -17,7 +17,7 @@ import {
 
 /**
  * Lar, membro, convite e categoria no banco (PLANO etapa 6; SDD 3.4, 3.5, 4, 12.2; ADR-004, ADR-009;
- * G-01, G-04, G-07, G-14; CA-T1.5, CA-11.1, CA-23.6). Postgres 17 real, banco descartável.
+ * G-01, G-04, G-07, G-14; CA-T1.5, CA-11.1, CA-23.6). Postgres 18 real, banco descartável.
  * Tudo como `controle_app` (sem BYPASSRLS), com a identidade em GUC local, como a API grava.
  * Teste negativo POR TABELA: o lar B não lê nem escreve nada do lar A, e o membro não vê o individual do outro.
  */
@@ -127,7 +127,7 @@ async function montarLar(c: pg.Client, titular: Usuario, convidado: Usuario | nu
   return resultado;
 }
 
-describe.skipIf(!temBanco)('lar, membro, convite e categoria (Postgres 17 real, role app)', () => {
+describe.skipIf(!temBanco)('lar, membro, convite e categoria (Postgres 18 real, role app)', () => {
   let banco: BancoDescartavel;
   let app: pg.Client;
   let A: Lar;

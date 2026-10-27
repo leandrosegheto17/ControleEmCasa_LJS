@@ -66,7 +66,7 @@ function opcoes(extra: Partial<OpcoesDump> = {}): OpcoesDump {
   return {
     destinatario: DESTINATARIO,
     saida,
-    versao: versao('170004\n'),
+    versao: versao('180004\n'),
     dump: dump(),
     cifrar: cifrador(),
     ...extra,
@@ -119,7 +119,7 @@ describe('gerarDumpCifrado', () => {
       `process.getBuiltinModule('node:fs').writeFileSync(${JSON.stringify(join(pasta, 'rodou'))}, '1');`,
     );
     await expect(gerarDumpCifrado(opcoes({ versao: versao('160008'), dump: dumpEspiao }))).rejects.toThrow(/ADR-002/);
-    await expect(gerarDumpCifrado(opcoes({ versao: versao('180001'), dump: dumpEspiao }))).rejects.toThrow(/ADR-002/);
+    await expect(gerarDumpCifrado(opcoes({ versao: versao('190001'), dump: dumpEspiao }))).rejects.toThrow(/ADR-002/);
     expect(existsSync(join(pasta, 'rodou'))).toBe(false);
     // controle positivo: com a versão certa, o mesmo espião roda
     await gerarDumpCifrado(opcoes({ dump: dumpEspiao })).catch(() => {});
@@ -128,7 +128,7 @@ describe('gerarDumpCifrado', () => {
 
   it('versão ilegível ou consulta que falha: mensagem fixa', async () => {
     await expect(gerarDumpCifrado(opcoes({ versao: versao('abc') }))).rejects.toThrow(/versão do servidor/);
-    await expect(gerarDumpCifrado(opcoes({ versao: versao('170004', 2) }))).rejects.toThrow(/versão do servidor/);
+    await expect(gerarDumpCifrado(opcoes({ versao: versao('180004', 2) }))).rejects.toThrow(/versão do servidor/);
   });
 
   it('pg_dump que falha: apaga o parcial e não repassa o stderr (host, senha)', async () => {
@@ -172,8 +172,8 @@ describe('gerarDumpCifrado', () => {
 });
 
 describe('comandos do runner', () => {
-  it('usam o Postgres 17 fixado por digest, pg_dump -Fc com --enable-row-security e a URL só pelo ambiente', () => {
-    expect(IMAGEM_PG).toMatch(/^postgres:17[-\w]*@sha256:[0-9a-f]{64}$/);
+  it('usam o Postgres 18 fixado por digest, pg_dump -Fc com --enable-row-security e a URL só pelo ambiente', () => {
+    expect(IMAGEM_PG).toMatch(/^postgres:18[-\w]*@sha256:[0-9a-f]{64}$/);
     const c = comandosDoRunner();
     const tudo = [c.versao, c.dump].flatMap((x) => [x.cmd, ...x.args]).join(' ');
     expect(c.dump.args).toContain(IMAGEM_PG);

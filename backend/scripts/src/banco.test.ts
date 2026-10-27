@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 /**
  * Testes de banco da etapa 2 (PLANO etapa 2; SDD 4 e 12.2; GUARDRAILS G-04, G-43).
- * Rodam contra um Postgres 17 real, num banco descartável criado a cada execução.
+ * Rodam contra um Postgres 18 real, num banco descartável criado a cada execução.
  * Sem DATABASE_URL_OWNER/APP/BACKUP localmente, pulam com aviso; no CI (EXIGIR_BANCO=1) falham.
  */
 try {
@@ -70,7 +70,7 @@ async function codigoDoErro(c: pg.Client, sql: string): Promise<string | null> {
 
 const NEGADO = '42501'; // insufficient_privilege
 
-describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 17 real)', () => {
+describe.skipIf(!temBanco)('banco: migrations, roles e GUC (Postgres 18 real)', () => {
   let urlOwner: string;
   let urlApp: string;
   let urlBackup: string;

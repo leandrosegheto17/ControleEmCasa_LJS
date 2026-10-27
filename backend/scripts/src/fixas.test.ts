@@ -15,7 +15,7 @@ import {
 
 /**
  * Despesa fixa e ocorrência no banco (PLANO etapa 9; SDD 3.5, 4; RN-15, RN-28; G-01, G-04; CA-T1.1, CA-T1.5,
- * CA-15.1, CA-15.3, CA-15.9). Postgres 17 real, banco descartável, tudo como `controle_app` com a identidade em GUC
+ * CA-15.1, CA-15.3, CA-15.9). Postgres 18 real, banco descartável, tudo como `controle_app` com a identidade em GUC
  * local, como a API grava. Teste negativo POR TABELA: o lar B não lê nem escreve nada do lar A. As duas tabelas são
  * do lar: os dois membros as veem (não há dado individual nelas).
  */
@@ -126,7 +126,7 @@ async function montarLar(c: pg.Client, prefixo: string): Promise<Lar> {
   };
 }
 
-describe.skipIf(!temBanco)('despesa fixa e ocorrência (Postgres 17 real, role app)', () => {
+describe.skipIf(!temBanco)('despesa fixa e ocorrência (Postgres 18 real, role app)', () => {
   let banco: BancoDescartavel;
   let app: pg.Client;
   let owner: pg.Client;

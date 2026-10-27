@@ -1,6 +1,6 @@
 services:
   banco:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: controle
       POSTGRES_USER: controle_owner
@@ -9,7 +9,8 @@ services:
     # Porta do host configurável (PORTA_POSTGRES no .env) para não colidir com outro Postgres local.
     ports: ['127.0.0.1:${PORTA_POSTGRES:-5432}:5432']
     volumes:
-      - dados-banco:/var/lib/postgresql/data
+      # Postgres 18: PGDATA em /var/lib/postgresql/18/docker; o volume vai no pai (/var/lib/postgresql), não em /data.
+      - dados-banco:/var/lib/postgresql
       - ./backend/scripts/init-local.sql:/docker-entrypoint-initdb.d/01-roles.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U controle_owner -d controle']

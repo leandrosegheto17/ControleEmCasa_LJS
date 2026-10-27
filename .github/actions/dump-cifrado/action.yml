@@ -1,7 +1,7 @@
 # Dump do Postgres cifrado com age e guardado como artefato do Actions por 30 dias (etapa 16; SDD 3.7, D-06; G-44;
 # TM-GH-03, TM-GH-06; ADR-002, ADR-015). Usada pelo backup.yml (diário) e pelo deploy.yml (antes da migração).
 # A lógica fica em backend/scripts/src/operacao/dump-cifrado.ts (testada): pg_dump -Fc --enable-row-security da imagem
-# do Postgres 17 em pipe para `age -r`; o dump em claro nunca vai para disco nem para artefato. Só o destinatário
+# do Postgres 18 em pipe para `age -r`; o dump em claro nunca vai para disco nem para artefato. Só o destinatário
 # público age entra aqui; a identidade privada fica offline, fora do GitHub. Exige o pnpm install feito antes.
 name: Dump cifrado
 description: pg_dump -Fc cifrado com age e enviado como artefato de 30 dias (nunca em claro).

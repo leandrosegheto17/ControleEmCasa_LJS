@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { URL_PILHA } from './e2e-pilha/apoio/pilha';
 
 /**
- * e2e críticos contra a pilha real (etapa 16): Worker no `wrangler dev` + Postgres 17 + Asaas simulado
+ * e2e críticos contra a pilha real (etapa 16): Worker no `wrangler dev` + Postgres 18 + Asaas simulado
  * (`e2e-pilha/global.ts`). Precisa do front construído e do Postgres no ar: `pnpm --filter @controle/web e2e:pilha`.
  * Os e2e com a API simulada (`e2e/`, `playwright.config.ts`) continuam separados e não precisam de banco.
  */

@@ -4,7 +4,7 @@ import { linhasDoLog, linkDoEmail, pagarPrimeiraCobranca, pedidosAoAsaas } from 
 
 /**
  * e2e críticos contra a pilha real (PLANO etapa 16; SDD 12.1 "Críticos: cadastro → confirmar → entrar → criar lar;
- * lançar; assinar"): o navegador fala com o Worker de verdade (`wrangler dev`), que grava no Postgres 17; só o Asaas é
+ * lançar; assinar"): o navegador fala com o Worker de verdade (`wrangler dev`), que grava no Postgres 18; só o Asaas é
  * simulado (como nas etapas 13), por um servidor local que também manda o webhook do pagamento.
  * Critérios: RN-17 a RN-20 (cadastro aberto com confirmação por e-mail, sessão por cookie `__Host-sid`), CA-19.x,
  * RN-24 e CA-24.6/24.7 (o titular assina; a cobrança Pix aparece; o CPF só vai ao Asaas) e RN-01 (lançar uma despesa).

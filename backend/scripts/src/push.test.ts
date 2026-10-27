@@ -14,7 +14,7 @@ import {
 
 /**
  * Tabelas do push no banco (etapa 15; SDD 3.6, 4; RN-27; CA-27.4, CA-27.5, CA-27.6; G-01, G-04; TM-PUSH-01,
- * TM-PUSH-04; ADR-014). Postgres 17 real, banco descartável, como `controle_app` com a identidade em GUC local.
+ * TM-PUSH-04; ADR-014). Postgres 18 real, banco descartável, como `controle_app` com a identidade em GUC local.
  * Teste negativo: um usuário nunca vê nem mexe na inscrição ou na preferência de outro (do mesmo lar ou de outro lar);
  * o "já avisado" só existe para o cron; o cron (e só ele) lê inscrições de todos e marca convite vencido.
  */

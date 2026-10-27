@@ -14,7 +14,7 @@ import { purgar, TABELAS_DO_LAR, type CancelamentoAsaas, type OpcoesPurga, type 
 
 /**
  * Purga (RN-26: CA-26.3, CA-26.4, CA-26.8, CA-26.10; CA-19.8; CA-23.12 e as pendências das etapas 8 e 10; SDD D-05,
- * E-1, E-2; G-49; TM-PUSH-01; ADR-013). Postgres 17 real, banco descartável.
+ * E-1, E-2; G-49; TM-PUSH-01; ADR-013). Postgres 18 real, banco descartável.
  *
  * A purga roda com uma role de LOGIN que é membro de `controle_owner`, sem SUPERUSER nem BYPASSRLS: é o owner como
  * será no Neon (no docker local o owner é superusuário e passaria por cima da RLS, escondendo a falta das políticas).
@@ -321,7 +321,7 @@ const ZERADO = {
 const usuarioExiste = async (u: Usuario) =>
   (await n(`select count(*)::int as n from app.usuario where id = $1`, [u.id])) === 1;
 
-describe.skipIf(!temBanco)('purgar.ts (Postgres 17 real, role owner sem BYPASSRLS)', () => {
+describe.skipIf(!temBanco)('purgar.ts (Postgres 18 real, role owner sem BYPASSRLS)', () => {
   beforeAll(async () => {
     banco = await criarBancoDescartavel('controle_purga');
     rolePurga = `controle_purga_teste_${randomBytes(4).toString('hex')}`;

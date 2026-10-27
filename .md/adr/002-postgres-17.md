@@ -1,6 +1,6 @@
 # ADR-002: Postgres 17 em local, CI e produção (diverge do Postgres 16 do padrão)
 
-- **Status:** Aceito em 2026-10-24 (etapa 0 aprovada; antes: Proposto) (escolha do usuário na análise, P6)
+- **Status:** Substituído pelo ADR-016 em 2026-10-27 (antes: Aceito em 2026-10-24, etapa 0 aprovada; escolha do usuário na análise, P6)
 - **Data:** 2026-10-24
 - **Decisores:** Leandro (stakeholder)
 

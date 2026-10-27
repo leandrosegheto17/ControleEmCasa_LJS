@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Os e2e críticos da pilha real (PLANO etapa 16: cadastro, login, assinar e lançar) rodam no CI, com Postgres 17 e o
+ * Os e2e críticos da pilha real (PLANO etapa 16: cadastro, login, assinar e lançar) rodam no CI, com Postgres 18 e o
  * mesmo teto de workers dos outros e2e.
  */
 const WEB = join(import.meta.dirname, '..');
@@ -30,11 +30,11 @@ describe('e2e da pilha real', () => {
     }
   });
 
-  it('o CI tem o job e2e-pilha com Postgres 17, as roles locais e o script', () => {
+  it('o CI tem o job e2e-pilha com Postgres 18, as roles locais e o script', () => {
     const inicio = ci.indexOf('  e2e-pilha:');
     expect(inicio).toBeGreaterThan(-1);
     const job = ci.slice(inicio, ci.indexOf('\n  gitleaks:'));
-    expect(job).toMatch(/image: postgres:17-alpine/);
+    expect(job).toMatch(/image: postgres:18-alpine/);
     expect(job).toMatch(/-f backend\/scripts\/init-local\.sql/);
     expect(job).toMatch(/playwright install --with-deps chromium/);
     expect(job).toMatch(/run: pnpm --filter @controle\/web e2e:pilha/);

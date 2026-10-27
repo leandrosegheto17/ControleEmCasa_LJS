@@ -10,7 +10,7 @@ import {
 } from './apoio-banco-teste';
 
 /**
- * Tabela `exclusao_conta` (etapa 14; SDD 3.3 e 4; RN-26, CA-26.2; G-04, G-49). Postgres 17 real, banco descartável,
+ * Tabela `exclusao_conta` (etapa 14; SDD 3.3 e 4; RN-26, CA-26.2; G-04, G-49). Postgres 18 real, banco descartável,
  * como `controle_app`: insere e confirma o pedido, mas não apaga nem marca a purga (só o owner, no `purgar.ts`).
  */
 avisarSemBanco();

@@ -9,7 +9,7 @@ import { iniciarAsaasFalso } from './apoio/asaasFalso';
 import { PORTA_PILHA, URL_PILHA } from './apoio/pilha';
 
 /**
- * Pilha real dos e2e críticos (PLANO etapa 16; SDD 12.1): Postgres 17 (banco descartável, migrations do zero), o Worker
+ * Pilha real dos e2e críticos (PLANO etapa 16; SDD 12.1): Postgres 18 (banco descartável, migrations do zero), o Worker
  * de verdade no `wrangler dev` servindo o front construído (`dist/`) e a API, e o Asaas simulado por um servidor local.
  * O e-mail usa o transporte de console de `AMBIENTE=local`: o link de confirmação sai no log do wrangler, que vai para
  * um arquivo lido pelos testes. Nenhum segredo real: chave HMAC, chave e token do Asaas são aleatórios a cada execução.
