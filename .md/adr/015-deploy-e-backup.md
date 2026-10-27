@@ -1,6 +1,6 @@
 # ADR-015: Deploy e backup
 
-- **Status:** Proposto (etapa 16, lote 1; aceitar no fim da etapa 16; ligar em produção só na etapa 17)
+- **Status:** Aceito em 2026-10-27, com a ressalva de que a restauração com a role owner do Neon e o primeiro backup real só são validados na etapa 17 (ligar em produção só na etapa 17)
 - **Data:** 2026-10-27
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** PLANO etapa 16; PRD-TECNICO RNF-09 e CA-26.5; SDD §3.7, §4, §5.3, §11.1, §11.2, D-06; GUARDRAILS G-02, G-04, G-09, G-32, G-40, G-42, G-43, G-44; THREAT-MODEL TM-DB-02, TM-DB-05, TM-DB-07, TM-GH-01 a TM-GH-06, E-12; ADR-002, ADR-005 e ADR-013
