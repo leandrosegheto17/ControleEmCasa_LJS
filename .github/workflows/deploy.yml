@@ -119,8 +119,18 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: pnpm --filter @controle/api exec wrangler deploy -c ../../wrangler.jsonc --var "URL_PUBLICA:${URL_PUBLICA}" --var AMBIENTE:producao --var "ASAAS_API_URL:${ASAAS_API_URL}" --var "SENTRY_RELEASE:${SHA}"
 
-      - name: 7. Conferir a saúde do app publicado
-        run: curl -fsS --retry 5 --retry-all-errors --retry-delay 3 "${URL_PUBLICA}/api/health"
+      - name: 7. Conferir a saúde e a fumaça do app publicado
+        run: |
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 3 "${URL_PUBLICA}/api/health"
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 3 -o /dev/null "${URL_PUBLICA}/"
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 3 -o /dev/null "${URL_PUBLICA}/app/"
+          cabecalhos="$(curl -fsS --retry 5 --retry-all-errors --retry-delay 3 -D - -o /dev/null "${URL_PUBLICA}/api/health")"
+          for exigido in '^content-security-policy:' '^strict-transport-security:' '^cache-control:.*no-store'; do
+            if ! grep -qi -- "${exigido}" <<< "${cabecalhos}"; then
+              echo "::error title=Fumaça falhou::A API publicada não traz o cabeçalho esperado: ${exigido}"
+              exit 1
+            fi
+          done
 
       - name: Desfazer o Worker e orientar a restauração
         if: ${{ failure() && steps.migrar.outcome == 'success' }}

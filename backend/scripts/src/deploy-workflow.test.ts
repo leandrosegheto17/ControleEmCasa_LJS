@@ -186,3 +186,43 @@ describe('.github/workflows/deploy.yml', () => {
     for (const uso of usos.filter((u) => !u.startsWith('./'))) expect(uso, uso).toMatch(/@[0-9a-f]{40}$/);
   });
 });
+
+describe('.github/workflows/deploy.yml: fumaça ampliada (PLANO etapa 17; RNF-06; ADR-015)', () => {
+  const fumaca = () => {
+    const i = linhas.findIndex((l) => /name: 7\./.test(l));
+    expect(i, 'passo 7').toBeGreaterThan(-1);
+    const fim = linhas.findIndex((l, k) => k > i && /^ {6}- name:/.test(l));
+    return linhas.slice(i, fim === -1 ? linhas.length : fim).join('\n');
+  };
+
+  it('confere /api/health, a landing (/) e o app (/app/), cada um com falha em qualquer status que não seja 2xx', () => {
+    const passo = fumaca();
+    for (const rota of ['/api/health', '/', '/app/']) {
+      const alvo = '"${URL_PUBLICA}' + rota + '"';
+      expect(
+        passo.split(/\r?\n/).some((l) => l.includes('curl -fsS ') && l.includes(alvo)),
+        rota,
+      ).toBe(true);
+    }
+  });
+
+  it('confere que a API traz CSP, HSTS e Cache-Control: no-store, e falha com ::error se faltar algum', () => {
+    const passo = fumaca();
+    expect(passo).toMatch(/curl [^\n]*-D -[^\n]*"\$\{URL_PUBLICA\}\/api\/health"/);
+    for (const cabecalho of ['content-security-policy', 'strict-transport-security', 'cache-control:.*no-store']) {
+      expect(passo, cabecalho).toContain(cabecalho);
+    }
+    expect(passo).toMatch(/::error title=/);
+    expect(passo).toMatch(/exit 1/);
+  });
+
+  it('continua depois da publicação e antes do bloco de rollback (que dispara com qualquer falha dele)', () => {
+    const publicacao = posicao(PUBLICACAO, 'publicação');
+    const passo7 = posicao(/name: 7\./, 'passo 7');
+    const rollback = posicao(/name: Desfazer o Worker/, 'rollback');
+    expect(publicacao).toBeLessThan(passo7);
+    expect(passo7).toBeLessThan(rollback);
+    expect(fumaca()).not.toMatch(/if:|continue-on-error/);
+    expect(linhas[rollback + 1]).toContain("failure() && steps.migrar.outcome == 'success'");
+  });
+});

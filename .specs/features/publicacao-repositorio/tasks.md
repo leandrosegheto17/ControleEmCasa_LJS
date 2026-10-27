@@ -199,10 +199,10 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Testes novos no `deploy-workflow.test.ts` afirmam as rotas e os cabeçalhos conferidos e que o passo continua antes do bloco de rollback
-- [ ] Nenhuma asserção existente do `deploy-workflow.test.ts` alterada
-- [ ] Ações continuam fixadas por SHA
-- [ ] Gate quick verde
+- [x] Testes novos no `deploy-workflow.test.ts` afirmam as rotas e os cabeçalhos conferidos e que o passo continua antes do bloco de rollback
+- [x] Nenhuma asserção existente do `deploy-workflow.test.ts` alterada
+- [x] Ações continuam fixadas por SHA
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
