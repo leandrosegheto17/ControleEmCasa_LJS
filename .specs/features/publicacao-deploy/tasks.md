@@ -268,6 +268,29 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 ---
 
+#### T17: Endereço do Asaas do deploy vindo da variável, só produção ou sandbox
+
+**What**: O `deploy.yml` passa a ler `ASAAS_API_URL` de `vars.ASAAS_API_URL` (hoje fixo em produção) e um passo antes de publicar recusa qualquer valor que não seja `https://api.asaas.com/v3` ou `https://api-sandbox.asaas.com/v3`. Permite apontar o app publicado ao sandbox do Asaas enquanto não há conta de produção, e voltar sem editar código.
+**Estimativa**: 1h
+**Risco**: alto
+**Where**: `.github/workflows/deploy.yml`; `backend/scripts/src/deploy-workflow.test.ts`
+**Depends on**: T3
+**Reuses**: `purga.yml` (já lê `vars.ASAAS_API_URL`); `segredos-workflows.test.ts`
+**Requirement**: ADR 012; ADR 015
+
+**Done when**:
+
+- [ ] `deploy.yml` lê `ASAAS_API_URL` de `vars.ASAAS_API_URL` e falha antes de qualquer passo de produção se o valor não for um dos dois permitidos (também se a variável estiver vazia)
+- [ ] O teste existente `deploy-workflow.test.ts:122-130` é alterado só no que muda (endereço fixo vira "vem da variável, só dois valores"), com o motivo no commit; motivo e aprovação do usuário em 2026-10-28
+- [ ] Testes novos: valores aceitos (produção e sandbox) e recusados (vazio, `http://`, host diferente, barra final)
+- [ ] Suíte dos scripts verde; trava de testes verde com tudo commitado
+
+**Tests**: unit
+**Gate**: Quick
+**Commit**: `feat(deploy): endereço do asaas vem da variável com lista permitida`
+
+---
+
 ### Phase 3: Medições e monitoramento
 
 #### T8: Medir a CPU do Worker publicado
