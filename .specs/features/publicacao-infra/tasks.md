@@ -478,9 +478,9 @@ T16
 
 **Done when**:
 
-- [ ] A zona aparece como ativa na mesma conta Cloudflare do token da T11
-- [ ] Nenhum registro DNS manual conflita com `controleemcasa` (consulta DNS sem registro prévio)
-- [ ] Evidência registrada em `evidencias.md`
+- [x] A zona aparece como ativa na mesma conta Cloudflare do token da T11
+- [x] Nenhum registro DNS manual conflita com `controleemcasa` (consulta DNS sem registro prévio)
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: none
 **Gate**: evidência registrada
