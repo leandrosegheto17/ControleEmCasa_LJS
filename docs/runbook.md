@@ -220,6 +220,32 @@ issue, PR ou log.
 
 `[A VALIDAR NA ETAPA 17]`: os escopos mínimos do `CLOUDFLARE_API_TOKEN` e da `NEON_API_KEY` usados de fato.
 
+### Lista do environment `producao` lida pelos workflows
+
+Os segredos do Worker (`CHAVE_HMAC`, `VAPID_*`, `RESEND_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `SENTRY_DSN`) não são lidos
+por workflow e ficam fora desta lista. A tabela abaixo é conferida por teste contra `deploy.yml`, `backup.yml` e
+`purga.yml` (`segredos-workflows.test.ts`): mexeu num workflow, atualize a tabela.
+
+<!-- segredos-workflows:inicio -->
+
+| Tipo     | Nome                    |
+| -------- | ----------------------- |
+| secret   | `ASAAS_API_KEY`         |
+| secret   | `CLOUDFLARE_API_TOKEN`  |
+| secret   | `DATABASE_URL_BACKUP`   |
+| secret   | `DATABASE_URL_OWNER`    |
+| secret   | `NEON_API_KEY`          |
+| variável | `AGE_RECIPIENT`         |
+| variável | `ASAAS_API_URL`         |
+| variável | `BACKUP_ATIVO`          |
+| variável | `CLOUDFLARE_ACCOUNT_ID` |
+| variável | `DEPLOY_ATIVO`          |
+| variável | `NEON_PROJECT_ID`       |
+| variável | `PURGA_ATIVA`           |
+| variável | `VITE_SENTRY_DSN`       |
+
+<!-- segredos-workflows:fim -->
+
 ## 8. Incidentes
 
 1. **Detectar e registrar:** abra `.specs/incidentes/<AAAA-MM-DD>-<slug>/incidente.md` (fluxo de incidente). Evidência

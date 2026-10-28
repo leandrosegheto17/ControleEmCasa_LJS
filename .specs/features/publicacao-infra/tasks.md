@@ -391,9 +391,9 @@ T16
 
 **Done when**:
 
-- [ ] Teste novo falha quando um workflow passa a ler um secret ou variável fora da lista documentada, e quando o runbook cita um que nenhum workflow lê (provado na cópia)
-- [ ] Nenhum teste existente alterado
-- [ ] Gate quick verde
+- [x] Teste novo falha quando um workflow passa a ler um secret ou variável fora da lista documentada, e quando o runbook cita um que nenhum workflow lê (provado na cópia)
+- [x] Nenhum teste existente alterado
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick
