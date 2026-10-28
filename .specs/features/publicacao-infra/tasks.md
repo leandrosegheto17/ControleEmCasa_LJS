@@ -414,10 +414,10 @@ T16
 
 **Done when**:
 
-- [ ] O domínio aparece como verificado no Resend
-- [ ] `wrangler secret list` mostra `RESEND_API_KEY` (só o nome)
-- [ ] Um e-mail de teste do Resend chega na caixa do usuário com o remetente "Controle em Casa" (sem dado financeiro)
-- [ ] Evidência registrada em `evidencias.md`
+- [x] O domínio aparece como verificado no Resend
+- [x] `wrangler secret list` mostra `RESEND_API_KEY` (só o nome)
+- [x] Um e-mail de teste do Resend chega na caixa do usuário com o remetente "Controle em Casa" (sem dado financeiro)
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: none
 **Gate**: evidência registrada
