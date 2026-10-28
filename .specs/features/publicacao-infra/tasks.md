@@ -349,9 +349,9 @@ T16
 
 **Done when**:
 
-- [ ] `gh secret list --env producao` e `gh variable list --env producao` mostram os nomes esperados (só nomes e datas)
-- [ ] `DATABASE_URL_OWNER` usa o host direto; `DATABASE_URL_BACKUP` usa a role `controle_backup_ro`
-- [ ] Evidência registrada em `evidencias.md` (só nomes)
+- [x] `gh secret list --env producao` e `gh variable list --env producao` mostram os nomes esperados (só nomes e datas)
+- [x] `DATABASE_URL_OWNER` usa o host direto; `DATABASE_URL_BACKUP` usa a role `controle_backup_ro`
+- [x] Evidência registrada em `evidencias.md` (só nomes)
 
 **Tests**: none
 **Gate**: evidência registrada
