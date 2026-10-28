@@ -328,9 +328,9 @@ T16
 
 **Done when**:
 
-- [ ] O environment `producao` existe, restrito à `main`
-- [ ] Não existe `producao-aprovacao`
-- [ ] Evidência registrada em `evidencias.md` (captura sem segredo ou descrição)
+- [x] O environment `producao` existe, restrito à `main`
+- [x] Não existe `producao-aprovacao`
+- [x] Evidência registrada em `evidencias.md` (captura sem segredo ou descrição)
 
 **Tests**: none
 **Gate**: evidência registrada
