@@ -122,9 +122,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Lista de nomes de secrets do Worker e do `producao` confere com o esperado (sem valores)
-- [ ] Resultado do `--dry-run` quanto ao `ratelimits` registrado; se recusado, a TC passa a valer
-- [ ] Evidência registrada
+- [x] Lista de nomes de secrets do Worker e do `producao` confere com o esperado (sem valores)
+- [x] Resultado do `--dry-run` quanto ao `ratelimits` registrado; se recusado, a TC passa a valer
+- [x] Evidência registrada
 
 **Tests**: none
 **Gate**: evidência registrada
