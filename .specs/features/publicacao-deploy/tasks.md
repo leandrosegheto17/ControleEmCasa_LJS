@@ -143,9 +143,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Execução do `deploy.yml` verde (link em `evidencias.md`), com os passos `conferir`, `cache-hyperdrive`, branch de restauração, dump cifrado, migração e `wrangler deploy`
-- [ ] Escopo do `CLOUDFLARE_API_TOKEN` provado pelo próprio deploy (ou o escopo faltante registrado e corrigido)
-- [ ] Falha em qualquer passo: parar, registrar a causa e corrigir antes de repetir; correção de código leva teste que a reproduz
+- [x] Execução do `deploy.yml` verde (link em `evidencias.md`), com os passos `conferir`, `cache-hyperdrive`, branch de restauração, dump cifrado, migração e `wrangler deploy`
+- [x] Escopo do `CLOUDFLARE_API_TOKEN` provado pelo próprio deploy (ou o escopo faltante registrado e corrigido)
+- [x] Falha em qualquer passo: parar, registrar a causa e corrigir antes de repetir; correção de código leva teste que a reproduz
 
 **Tests**: none (código só se um passo falhar, então unit)
 **Gate**: link da execução verde
@@ -164,8 +164,8 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Respostas e cabeçalhos esperados registrados em `evidencias.md`
-- [ ] Domínio custom responde com TLS válido
+- [x] Respostas e cabeçalhos esperados registrados em `evidencias.md`
+- [x] Domínio custom responde com TLS válido
 
 **Tests**: none
 **Gate**: evidência registrada
@@ -184,9 +184,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Teste automatizado que falha sem o plano B e passa com ele
-- [ ] ADR registrado e aprovado pelo usuário
-- [ ] Suíte verde pela trava
+- [x] (dispensada, o ratelimits foi aceito no Free; ver T3) Teste automatizado que falha sem o plano B e passa com ele
+- [x] (dispensada, o ratelimits foi aceito no Free; ver T3) ADR registrado e aprovado pelo usuário
+- [x] (dispensada, o ratelimits foi aceito no Free; ver T3) Suíte verde pela trava
 
 **Tests**: unit e integration
 **Gate**: Full

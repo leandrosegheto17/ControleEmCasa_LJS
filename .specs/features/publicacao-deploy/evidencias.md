@@ -18,3 +18,23 @@ Sem segredo: só links, nomes e resultados.
 - Variáveis de repositório: nenhuma. As flags `DEPLOY_ATIVO`, `BACKUP_ATIVO` e `PURGA_ATIVA` estão desligadas.
 - `wrangler deploy --dry-run` (wrangler 4.152.0): aceitou a configuração, com Hyperdrive `8ebd6378…` e os 3 `ratelimits` (`LIMITE_ENTRAR` 10/60 s, `LIMITE_PUBLICO` 30/60 s, `LIMITE_WEBHOOK` 60/60 s); pacote de 2264 KiB (419 KiB gzip). O dry-run é local: **não prova** que o plano Free aceita o binding `ratelimits`; essa prova fica para o deploy real (T3), e a TC só entra se ele recusar.
 - Os valores `URL_PUBLICA`, `AMBIENTE` e `ASAAS_API_URL` do `wrangler.jsonc` são de desenvolvimento (localhost, local, sandbox); o `deploy.yml` os troca por `--var` no deploy.
+
+## T3 — Primeiro deploy de produção (2026-10-28)
+
+- Confirmação específica do usuário para ligar `DEPLOY_ATIVO=true` (variável de repositório) e disparar `gh workflow run deploy --ref main`.
+- Execução verde, commit `725ab5c`, na primeira tentativa: https://github.com/leandrosegheto17/ControleEmCasa_LJS/actions/runs/40738869128
+  - `conferir` (CI verde no commit via `gh api`, `actions: read`) e `publicar` com os passos 1 a 7 verdes; o rollback foi pulado.
+  - Passo 2: `Cache do Hyperdrive desligado.` (fecha a ressalva da T6 da 17b: o Hyperdrive `8ebd6378…` existe na Cloudflare).
+  - Passo 3: `Branch de restauração criada: restauracao-40738869128-1; antigas apagadas: 1.`
+  - Passo 4: dump cifrado `dump-predeploy-40738869128-1` (artefato).
+  - Passo 5: `No migrations to run!` (a `main` do Neon já estava migrada na 17b).
+  - Passo 6: Worker `controle-em-casa` publicado, versão `9a2ade0e-970b-439c-ac81-f9305e021e0a`, com o domínio custom `controleemcasa.ljssoftware.com.br` e os crons `0 * * * *` e `30 6 * * *`.
+  - Passo 7: `/api/health` → `{"ok":true}`. A 1ª tentativa não resolveu o DNS (domínio novo) e a repetição automática passou.
+- **Prova do escopo do `CLOUDFLARE_API_TOKEN`:** o mesmo token fez o `cache-hyperdrive`, o `wrangler deploy` (Worker, assets, domínio custom e crons). Escopo declarado na 17b (Workers Scripts Edit, Hyperdrive Edit, Workers Routes Edit, Zone Read) é suficiente.
+- **Prova do `ratelimits` no Workers Free:** o `wrangler deploy` publicou com os 3 bindings (`LIMITE_ENTRAR` 10/60 s, `LIMITE_PUBLICO` 30/60 s, `LIMITE_WEBHOOK` 60/60 s). **A TC (plano B) é dispensada.** Ainda não provado: que o limite efetivamente recusa na produção (só o binding existe).
+
+## T4 — Fumaça no domínio publicado (2026-10-28, `curl` de fora do GitHub)
+
+- `https://controleemcasa.ljssoftware.com.br/api/health`: `200`, `{"ok":true}`, `Cache-Control: no-store`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`, `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`.
+- `/` → 200 `text/html`, verificação do TLS ok (`ssl_verify_result=0`); `/app/` → 200 `text/html`; `/termos` → 200.
+- `/api/sessao` sem cookie → 401 `sessao_expirada` (esperado). **Não prova** o caminho Worker → Hyperdrive → Neon; isso é provado pelo cadastro real da T6.
