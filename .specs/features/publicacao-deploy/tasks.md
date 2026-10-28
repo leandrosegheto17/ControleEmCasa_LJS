@@ -213,10 +213,10 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Token novo gravado nos dois lados (o usuário não passa o valor pela conversa)
-- [ ] Chamada de leitura com a chave de produção responde 200
-- [ ] Evento de teste do Asaas recebido e aceito pelo Worker; evento com token errado recusado (401)
-- [ ] Evidência registrada, sem valores
+- [x] Token novo gravado nos dois lados (o usuário não passa o valor pela conversa)
+- [x] Chamada de leitura com a chave de produção responde 200
+- [x] Evento de teste do Asaas recebido e aceito pelo Worker; evento com token errado recusado (401)
+- [x] Evidência registrada, sem valores
 
 **Tests**: none
 **Gate**: evidência registrada

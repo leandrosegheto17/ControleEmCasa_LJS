@@ -44,3 +44,11 @@ Sem segredo: só links, nomes e resultados.
 - Relato do usuário (ação manual no app publicado, e-mail dele; nenhum endereço, senha nem link registrado aqui): cadastro com aceite dos termos, e-mail de confirmação recebido e confirmado, lar criado, "esqueci minha senha" com e-mail de recuperação recebido, senha redefinida e novo login com a senha nova, tudo sem erro.
 - Os **dois e-mails chegaram na caixa de entrada**, não no spam. Isso melhora a ressalva da 17b (a T13 da 17b registrou um teste que caiu no spam); a reputação do domínio segue por observar quando houver mais envios e outros provedores de e-mail.
 - Prova indireta de que o caminho Worker → Hyperdrive → Neon funciona na produção: cadastro, confirmação, criação do lar e login gravam e leem no banco.
+
+## T5 — Webhook do Asaas e chave de produção (2026-10-28)
+
+- Rota `POST /api/webhooks/asaas` existe em produção e recusa sem token e com token errado: `401` nos dois casos (corpo `{"code":"token_invalido","message":"Não autorizado."}`), conferido de fora antes da troca.
+- Token novo do webhook (43 caracteres, gerado com `crypto.randomBytes(32)` em base64url) gravado pelo usuário, sem passar pela conversa: no Worker (`wrangler secret put ASAAS_WEBHOOK_TOKEN`) e no painel do Asaas de produção (URL `https://controleemcasa.ljssoftware.com.br/api/webhooks/asaas`, eventos de cobrança e de assinatura).
+- Prova do token novo: evento fictício `evt_teste_17c` (`PAYMENT_CREATED` de uma cobrança inexistente) enviado pelo usuário com o token novo → `200`. Fica um registro de idempotência de teste em `webhook_evento`, que a limpeza dos 12 meses remove.
+- Chave de produção do Asaas: `GET /v3/finance/balance` (só leitura) → `200`, relato do usuário. Prova que a chave é válida; **não prova** que é idêntica à gravada no Worker e no environment `producao` (a primeira cobrança real, na 17d, confirma).
+- Ainda não provado: entrega de um evento real do Asaas ao Worker (o Asaas só dispara eventos de cobranças reais; fica para a 17d).
