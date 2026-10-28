@@ -7,16 +7,21 @@ import { validarUrlNeon, type DestinoNeon } from './url-neon';
 /**
  * Migra o banco do Neon confirmando o destino (G-43; TM-DB-05; roteiro `.specs/etapa-17/neon.md`, passos 5 e 6).
  * O `.env` da raiz aponta para o Postgres local do Docker; por isso este comando NÃO carrega `.env`: a
- * `NEON_URL_OWNER` tem de vir do ambiente do terminal. Recusa destino local, fora de `.neon.tech`, host `-pooler`
+ * `NEON_URL_OWNER` (ou, com `--dev`, a `NEON_URL_DEV` da branch `dev`) tem de vir do ambiente do terminal. Recusa destino local, fora de `.neon.tech`, host `-pooler`
  * e URL sem TLS; mostra usuário, host e banco (senha nunca) e só migra com o nome do banco digitado (ou `--sim`).
  * Nunca imprime a URL nem o texto bruto de erro do driver.
  */
 
 export type Destino = DestinoNeon;
 
-/** Destino da migração: a validação única do Neon (ADR-017, decisão 4) aplicada a `NEON_URL_OWNER`. */
-export function avaliarDestino(url: string): Destino {
-  return validarUrlNeon(url, 'NEON_URL_OWNER');
+/** Variável da URL: `NEON_URL_OWNER` (branch `main`) ou, com `--dev`, `NEON_URL_DEV` (owner da branch `dev`; ADR-017). */
+export function variavelDoDestino(argv: string[]): 'NEON_URL_OWNER' | 'NEON_URL_DEV' {
+  return argv.includes('--dev') ? 'NEON_URL_DEV' : 'NEON_URL_OWNER';
+}
+
+/** Destino da migração: a validação única do Neon (ADR-017, decisão 4) aplicada à variável usada. */
+export function avaliarDestino(url: string, variavel: string = 'NEON_URL_OWNER'): Destino {
+  return validarUrlNeon(url, variavel);
 }
 
 /** Descrição do destino; a senha não entra nunca. */
@@ -29,8 +34,8 @@ export interface Dependencias {
   argv: string[];
   /** Pergunta ao usuário e devolve a resposta digitada. */
   perguntar: (pergunta: string) => Promise<string>;
-  /** Roda a migração; devolve o código de saída. */
-  migrar: (ambiente: NodeJS.ProcessEnv) => Promise<number>;
+  /** Roda a migração lendo a URL da variável indicada; devolve o código de saída. */
+  migrar: (ambiente: NodeJS.ProcessEnv, variavel: string) => Promise<number>;
   /** Lê o banco após migrar (mesma checagem do conferir-banco). */
   conferir: (url: string) => Promise<DadosDoBanco>;
   saida: (texto: string) => void;
@@ -38,15 +43,16 @@ export interface Dependencias {
 }
 
 export async function migrarNeon(dep: Dependencias): Promise<number> {
-  const url = dep.ambiente['NEON_URL_OWNER'];
+  const variavel = variavelDoDestino(dep.argv);
+  const url = dep.ambiente[variavel];
   if (!url) {
     dep.erro(
-      'NEON_URL_OWNER ausente no ambiente do terminal. Este comando não lê o .env (ele aponta para o banco local). ' +
+      `${variavel} ausente no ambiente do terminal. Este comando não lê o .env (ele aponta para o banco local). ` +
         'Defina a variável com a URL direta do owner do Neon e rode de novo.',
     );
     return 1;
   }
-  const destino = avaliarDestino(url);
+  const destino = avaliarDestino(url, variavel);
   if (!destino.ok) {
     dep.erro(destino.motivo);
     return 1;
@@ -59,7 +65,7 @@ export async function migrarNeon(dep: Dependencias): Promise<number> {
       return 1;
     }
   }
-  const codigo = await dep.migrar(dep.ambiente);
+  const codigo = await dep.migrar(dep.ambiente, variavel);
   if (codigo !== 0) {
     dep.erro('A migração falhou (código de saída diferente de 0).');
     return 1;
@@ -83,21 +89,26 @@ export async function migrarNeon(dep: Dependencias): Promise<number> {
 
 const RAIZ_SCRIPTS = join(import.meta.dirname, '../..');
 
-/** Argumentos do node-pg-migrate: lê a URL de `NEON_URL_OWNER` (a mesma variável validada acima), nunca de argv. */
-export const ARGUMENTOS_MIGRACAO = [
-  'node_modules/node-pg-migrate/bin/node-pg-migrate.js',
-  'up',
-  '-m',
-  'migracoes',
-  '--database-url-var',
-  'NEON_URL_OWNER',
-  '--no-single-transaction',
-] as const;
+/** Argumentos do node-pg-migrate: lê a URL da variável validada acima (nome, nunca o valor em argv). */
+export function argumentosDaMigracao(variavel: string): string[] {
+  return [
+    'node_modules/node-pg-migrate/bin/node-pg-migrate.js',
+    'up',
+    '-m',
+    'migracoes',
+    '--database-url-var',
+    variavel,
+    '--no-single-transaction',
+  ];
+}
+
+/** Os argumentos do caminho padrão (branch `main`, `NEON_URL_OWNER`). */
+export const ARGUMENTOS_MIGRACAO = argumentosDaMigracao('NEON_URL_OWNER');
 
 /** Mesmo comportamento do script `migrar`, sem carregar o arquivo de ambiente: o filho herda só o ambiente do processo. */
-export function migrarDeVerdade(ambiente: NodeJS.ProcessEnv): Promise<number> {
+export function migrarDeVerdade(ambiente: NodeJS.ProcessEnv, variavel: string): Promise<number> {
   return new Promise((resolve) => {
-    const filho = spawn(process.execPath, [...ARGUMENTOS_MIGRACAO], {
+    const filho = spawn(process.execPath, argumentosDaMigracao(variavel), {
       cwd: RAIZ_SCRIPTS,
       env: ambiente,
       stdio: 'inherit',

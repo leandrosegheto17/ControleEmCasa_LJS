@@ -33,6 +33,8 @@
    - `NEON_URL_OWNER` (role `controle_owner`): secret do environment `producao` para a migração do deploy e a purga, e
      variável só do terminal para o `migrar-neon` e o `conferir-banco` contra o Neon;
    - `NEON_URL_BACKUP` (role `controle_backup_ro`): secret do `producao` para o backup e o dump do deploy;
+   - `NEON_URL_DEV` (owner da branch `dev`, decisão do usuário em 2026-10-28, igual nos projetos dele): só no terminal,
+     para `migrar-neon --dev`, `conferir-banco` e a restauração na `dev`; nunca vai ao GitHub;
    - `NEON_URL_APP` (role `controle_app`): só no terminal, ao criar o Hyperdrive; o Worker usa o binding `HYPERDRIVE`;
    - `DATABASE_URL_OWNER`, `DATABASE_URL_APP` e `DATABASE_URL_BACKUP` ficam no `.env` local (Postgres do Docker) e nos
      testes, que criam a partir delas um banco descartável por execução, passado ao node-pg-migrate como
@@ -45,7 +47,8 @@
    host `-pooler` e URL sem `sslmode=require` (ou `verify-full`). É usada antes de conectar em todo caminho que toca o
    Neon: `migrar-neon` (manual e na migração do deploy), `dump-cifrado` (backup diário e dump do deploy), `purgar`,
    `conferir-banco` (com `NEON_URL_OWNER`; a `DATABASE_URL_OWNER` apontando para o Neon é recusada) e a restauração
-   (`pnpm --filter @controle/scripts conferir-url-neon NEON_URL_RESTAURACAO` antes do `pg_restore`, runbook 4.2).
+   (`pnpm --filter @controle/scripts conferir-url-neon NEON_URL_DEV` ou `NEON_URL_OWNER` antes do `pg_restore`,
+   runbook 4.2).
    Nenhuma mensagem traz a senha nem a URL.
 5. **Timeout de conexão no cliente de banco:** a API abre o pool do `pg` com `connectionTimeoutMillis: 8000` (8 s;
    `backend/api/src/infraestrutura/db/cliente.ts`), que cobre a retomada a frio do Neon pelo Hyperdrive sem prender a

@@ -49,6 +49,7 @@ O projeto tem só duas branches permanentes, `main` (produção) e `dev` (ADR-01
 - Criar a branch `dev` (filha da `main`) **depois** do passo 3, para herdar roles e banco. `[A VALIDAR]` o passo no console.
 - Anotar, para cada role, a string **direta** (host **sem** `-pooler`), com `sslmode=require`. As URLs:
   - owner: vai para o secret `NEON_URL_OWNER` (migrations e purga);
+  - owner da branch `dev`: `NEON_URL_DEV`, só no terminal (`pnpm migrar-neon --dev`, `conferir-banco`, ensaio de restauração);
   - backup: vai para `NEON_URL_BACKUP`;
   - app (`NEON_URL_APP`): **só** vai para o Hyperdrive.
 - Nomes (padrão do Neon, ADR-017): `NEON_URL_*` para o Neon; `DATABASE_URL_*` fica só para o banco local e de teste.
@@ -68,8 +69,8 @@ Motivo: o `controle_owner` é `NOCREATEROLE` (passo 2) e não pode alterar outra
 Na sua máquina, com a URL **direta do owner da branch `dev`** numa variável só do terminal:
 
 ```powershell
-$env:NEON_URL_OWNER = '<url direta owner, branch dev>'
-pnpm migrar-neon
+$env:NEON_URL_DEV = '<url direta owner, branch dev>'
+pnpm migrar-neon --dev
 ```
 
 Use `pnpm migrar-neon` (não `pnpm migrar`) para o Neon. O `.env` local aponta para o Postgres do Docker, e o `pnpm migrar` o carrega: num terminal sem a variável, ele migraria o banco local em silêncio. O `migrar-neon` não lê o `.env`, exige a variável no terminal, recusa destino local, fora de `.neon.tech` ou `-pooler`, mostra usuário, host e banco (senha mascarada) e só migra depois de você digitar o nome do banco. `pnpm migrar` fica só para o local.

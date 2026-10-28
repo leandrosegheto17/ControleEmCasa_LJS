@@ -3,7 +3,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import type { DadosDoBanco } from './conferir-banco';
-import { ARGUMENTOS_MIGRACAO, avaliarDestino, migrarNeon, type Dependencias } from './migrar-neon';
+import {
+  ARGUMENTOS_MIGRACAO,
+  argumentosDaMigracao,
+  avaliarDestino,
+  migrarNeon,
+  type Dependencias,
+} from './migrar-neon';
 
 /** G-43; TM-DB-05: o comando só migra o Neon, com o destino confirmado e sem cair no `.env` local. */
 const SENHA = 'segredo-super-secreto';
@@ -99,6 +105,40 @@ describe('migrarNeon', () => {
     expect(await migrarNeon(dep)).toBe(1);
     expect(migrar).not.toHaveBeenCalled();
     expect(erros.join('\n')).toContain('NEON_URL_OWNER ausente');
+  });
+
+  // Branch dev do Neon (decisão do usuário em 2026-10-28, ADR-017): NEON_URL_DEV, com a mesma validação única.
+  it('--dev migra pela NEON_URL_DEV e passa esse nome ao node-pg-migrate', async () => {
+    const { dep, migrar } = montar({ argv: ['--dev', '--sim'], ambiente: { NEON_URL_DEV: URL_OK } });
+    expect(await migrarNeon(dep)).toBe(0);
+    expect(migrar).toHaveBeenCalledWith({ NEON_URL_DEV: URL_OK }, 'NEON_URL_DEV');
+    const args = argumentosDaMigracao('NEON_URL_DEV');
+    expect(args[args.indexOf('--database-url-var') + 1]).toBe('NEON_URL_DEV');
+  });
+
+  it('--dev sem NEON_URL_DEV falha, mesmo com NEON_URL_OWNER (nunca cai na main)', async () => {
+    const { dep, migrar, erros } = montar({ argv: ['--dev', '--sim'], ambiente: { NEON_URL_OWNER: URL_OK } });
+    expect(await migrarNeon(dep)).toBe(1);
+    expect(migrar).not.toHaveBeenCalled();
+    expect(erros.join('\n')).toContain('NEON_URL_DEV ausente');
+  });
+
+  it('--dev recusa NEON_URL_DEV local ou com -pooler (validação única)', async () => {
+    for (const url of [
+      'postgresql://u:p@localhost:55432/controle?sslmode=require',
+      'postgresql://u:p@ep-a-pooler.sa-east-1.aws.neon.tech/controle?sslmode=require',
+    ]) {
+      const { dep, migrar, erros } = montar({ argv: ['--dev', '--sim'], ambiente: { NEON_URL_DEV: url } });
+      expect(await migrarNeon(dep)).toBe(1);
+      expect(migrar).not.toHaveBeenCalled();
+      expect(erros.join('\n')).toContain('NEON_URL_DEV');
+    }
+  });
+
+  it('sem --dev usa NEON_URL_OWNER e ignora a NEON_URL_DEV', async () => {
+    const { dep, migrar } = montar({ argv: ['--sim'], ambiente: { NEON_URL_DEV: URL_OK } });
+    expect(await migrarNeon(dep)).toBe(1);
+    expect(migrar).not.toHaveBeenCalled();
   });
 
   it('destino recusado não pergunta nem migra', async () => {

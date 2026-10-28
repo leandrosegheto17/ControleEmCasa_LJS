@@ -151,16 +151,25 @@ export async function main(
   ambiente: NodeJS.ProcessEnv = process.env,
   pasta: string = PASTA_MIGRACOES,
 ): Promise<number> {
-  // Padrão do Neon (ADR-017): `NEON_URL_OWNER` para o Neon (produção ou `dev`); `DATABASE_URL_OWNER` só para o banco
-  // local e de teste. Com as duas, vale a do Neon.
-  const variavel = ambiente['NEON_URL_OWNER'] ? 'NEON_URL_OWNER' : 'DATABASE_URL_OWNER';
+  // Padrão do Neon (ADR-017): `NEON_URL_OWNER` para a `main`, `NEON_URL_DEV` para a branch `dev` (owner) e
+  // `DATABASE_URL_OWNER` só para o banco local e de teste. Uma variável do Neon vale sobre a local; as duas do Neon
+  // juntas são recusadas (não dá para saber qual branch conferir).
+  if (ambiente['NEON_URL_OWNER'] && ambiente['NEON_URL_DEV']) {
+    console.error('NEON_URL_OWNER e NEON_URL_DEV definidas ao mesmo tempo: defina só a da branch que quer conferir.');
+    return 1;
+  }
+  const variavel = ambiente['NEON_URL_OWNER']
+    ? 'NEON_URL_OWNER'
+    : ambiente['NEON_URL_DEV']
+      ? 'NEON_URL_DEV'
+      : 'DATABASE_URL_OWNER';
   const url = ambiente[variavel];
   if (!url) {
     console.error('NEON_URL_OWNER (Neon) e DATABASE_URL_OWNER (banco local) ausentes.');
     return 1;
   }
   // Validação única do Neon (ADR-017, decisão 4). A DATABASE_URL_OWNER nunca aponta para o Neon.
-  if (variavel === 'NEON_URL_OWNER') {
+  if (variavel !== 'DATABASE_URL_OWNER') {
     const destino = validarUrlNeon(url, variavel);
     if (!destino.ok) {
       console.error(destino.motivo);

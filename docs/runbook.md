@@ -114,13 +114,14 @@ O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. 
    (a validação recusa outro nome). Restaure **primeiro na `dev`**: no console, apague e recrie o banco `controle` da
    branch `dev` com owner `controle_owner`. Só volte à `main` no passo 6.
 4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016). A URL
-   direta do owner do banco de destino fica numa variável só do terminal e passa antes pela validação única do Neon
-   (ADR-017: recusa local, `-pooler`, host fora de `.neon.tech` e URL sem TLS):
+   direta do owner do banco de destino fica numa variável só do terminal (`NEON_URL_DEV` para a branch `dev`,
+   `NEON_URL_OWNER` para a `main`) e passa antes pela validação única do Neon (ADR-017: recusa local, `-pooler`, host
+   fora de `.neon.tech`, URL sem TLS e banco que não seja `controle`). Na `dev`:
 
    ```bash
-   read -rs NEON_URL_RESTAURACAO && export NEON_URL_RESTAURACAO   # cole a URL; não fica no histórico
-   pnpm --filter @controle/scripts conferir-url-neon NEON_URL_RESTAURACAO
-   pg_restore --exit-on-error --no-owner --role=controle_owner -d "$NEON_URL_RESTAURACAO" restauracao/banco.dump
+   read -rs NEON_URL_DEV && export NEON_URL_DEV   # cole a URL do owner da dev; não fica no histórico
+   pnpm --filter @controle/scripts conferir-url-neon NEON_URL_DEV
+   pg_restore --exit-on-error --no-owner --role=controle_owner -d "$NEON_URL_DEV" restauracao/banco.dump
    ```
 
    Só rode o `pg_restore` se o `conferir-url-neon` disser "aceita" e mostrar o host e o banco esperados.
@@ -136,9 +137,11 @@ O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. 
 
    No Neon, rode como `neondb_owner`: o `controle_owner` é `NOCREATEROLE` e não pode alterar outra role (seção 10).
 
-6. **Confira na `dev`** (seção 4.3). Para voltar a produção, com as escritas paradas (seção 3.2): rode o `backup.yml`
+6. **Confira na `dev`** (seção 4.3; `NEON_URL_DEV` no ambiente e `pnpm --filter @controle/scripts conferir-banco`).
+   Para voltar a produção, com as escritas paradas (seção 3.2): rode o `backup.yml`
    à mão (cópia do estado atual, mesmo danificado), apague e recrie o banco `controle` da `main` com owner
-   `controle_owner` e repita os passos 4 e 5 com a URL da `main`; confira de novo. O Hyperdrive continua apontando para
+   `controle_owner` e repita os passos 4 e 5 com a `NEON_URL_OWNER` no lugar da `NEON_URL_DEV` (e sem a `NEON_URL_DEV`
+   no ambiente); confira de novo. O Hyperdrive continua apontando para
    o mesmo banco `controle` da `main`. `[A VALIDAR NA ETAPA 17]`: o tempo desse caminho no primeiro ensaio real.
 7. Apague o `banco.dump` em claro e devolva a chave privada à guarda.
 
