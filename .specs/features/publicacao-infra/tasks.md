@@ -169,9 +169,9 @@ T16
 - [x] Passo de preparação feito como `neondb_owner`: `ALTER ROLE controle_app IN DATABASE controle SET search_path = app;` e o mesmo para `controle_backup_ro`
 - [x] `pnpm migrar` aplica todas as migrations; rodar de novo diz "No migrations to run"
 - [x] `conferir-banco` sai com código 0 na `dev` (sem `IGNORAR_ROLES`: o owner do Neon é `NOSUPERUSER`)
-- [ ] Como `controle_app`: sem contexto devolve 0 linhas, e `CREATE TABLE` é negado
+- [x] Como `controle_app`: sem contexto devolve 0 linhas, e `CREATE TABLE` é negado
 - [x] Se algo falhar (extensão, `ALTER ROLE ... IN DATABASE`, schema), o erro vai ao Claude e vira ajuste antes de produção
-- [ ] Evidência registrada em `evidencias.md`
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: integration
 **Gate**: full
