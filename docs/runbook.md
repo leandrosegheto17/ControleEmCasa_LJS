@@ -110,9 +110,9 @@ O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. 
    age -d -i <arquivo da chave privada> -o restauracao/banco.dump restauracao/<nome>/<nome>.dump.age
    ```
 
-3. **Crie um banco vazio** para receber o dump, sem criar branch (ADR-017): um banco novo (ex.: `controle_restaurado`)
-   na branch `main`, quando for voltar a produção, ou na `dev`, num ensaio. Não restaure por cima do banco `controle`
-   da `main` em uso.
+3. **Prepare o banco vazio, sem criar branch** (ADR-017). O database do projeto no Neon tem sempre o nome `controle`
+   (a validação recusa outro nome). Restaure **primeiro na `dev`**: no console, apague e recrie o banco `controle` da
+   branch `dev` com owner `controle_owner`. Só volte à `main` no passo 6.
 4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016). A URL
    direta do owner do banco de destino fica numa variável só do terminal e passa antes pela validação única do Neon
    (ADR-017: recusa local, `-pooler`, host fora de `.neon.tech` e URL sem TLS):
@@ -130,14 +130,16 @@ O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. 
    restaurado):
 
    ```sql
-   alter role controle_app in database <banco> set search_path = app;
-   alter role controle_backup_ro in database <banco> set search_path = app;
+   alter role controle_app in database controle set search_path = app;
+   alter role controle_backup_ro in database controle set search_path = app;
    ```
 
    No Neon, rode como `neondb_owner`: o `controle_owner` é `NOCREATEROLE` e não pode alterar outra role (seção 10).
 
-6. **Confira** (seção 4.3). Só depois troque o app para o banco restaurado: aponte o Hyperdrive para ele
-   `[A VALIDAR NA ETAPA 17]`.
+6. **Confira na `dev`** (seção 4.3). Para voltar a produção, com as escritas paradas (seção 3.2): rode o `backup.yml`
+   à mão (cópia do estado atual, mesmo danificado), apague e recrie o banco `controle` da `main` com owner
+   `controle_owner` e repita os passos 4 e 5 com a URL da `main`; confira de novo. O Hyperdrive continua apontando para
+   o mesmo banco `controle` da `main`. `[A VALIDAR NA ETAPA 17]`: o tempo desse caminho no primeiro ensaio real.
 7. Apague o `banco.dump` em claro e devolva a chave privada à guarda.
 
 `[A VALIDAR NA ETAPA 17]`: no Neon a role owner não é superusuário. O ensaio local restaurou como superusuário (o
@@ -359,7 +361,7 @@ registro. Um ensaio novo usa o backup real (9.3); um ensaio só local roda o `pg
 ### 9.3 Pendente para a etapa 17 `[A VALIDAR NA ETAPA 17]`
 
 - Repetir o ensaio com o **primeiro backup real** (artefato do `backup.yml` baixado do GitHub), decifrado com a chave
-  privada da guarda offline, restaurado num banco novo da branch `dev` do Neon (sem criar branch; ADR-017) com a role
+  privada da guarda offline, restaurado no banco `controle` (recriado vazio) da branch `dev` do Neon (sem criar branch; ADR-017) com a role
   owner do Neon, e registrar aqui data, comandos e resultado.
 - Medir o tempo total (do alerta ao app de volta) para ter a referência de RTO, e o intervalo de dados perdidos (RPO:
   até 24 h pelo backup diário; o instante da migração pelo `dump-predeploy-*` do deploy).

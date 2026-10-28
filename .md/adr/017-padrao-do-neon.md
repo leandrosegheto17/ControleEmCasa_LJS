@@ -19,8 +19,8 @@
 1. **Branches:** o projeto Neon tem só duas branches permanentes, `main` (produção) e `dev`. Nada de branch por PR e
    nada de branch de restauração. O deploy não cria nem apaga branch; a `NEON_API_KEY` e a `NEON_PROJECT_ID` saem do
    GitHub (nenhum workflow chama a API do Neon). O ponto de retorno antes de cada migração é só o dump cifrado com `age`
-   (`dump-predeploy-<run>-<tentativa>`, G-44), e o diário é o `backup-<data>-...`. A restauração é pelo dump, num banco
-   novo da `main` (para voltar a produção) ou da `dev` (ensaio), sem criar branch (runbook 4.2).
+   (`dump-predeploy-<run>-<tentativa>`, G-44), e o diário é o `backup-<data>-...`. A restauração é pelo dump, primeiro no banco
+   `controle` recriado da `dev` e, conferido, no da `main`, sem criar branch (runbook 4.2).
    Ordem do deploy: endereço do Asaas → build → cache do Hyperdrive → dump cifrado → migração com o owner → `wrangler
    deploy` → saúde.
 2. **Postgres 18** em local (`docker-compose.yml`), CI (`ci.yml`) e no Neon, como no ADR-016. A imagem do `pg_dump`
@@ -52,6 +52,16 @@
 6. **Testes de banco em banco temporário por execução:** cada execução cria um banco com nome aleatório a partir das
    `DATABASE_URL_*` locais (`controle_teste_<hex>`, `controle_api_teste_<hex>`, `controle_e2e_<hex>` e os prefixos de
    `criarBancoDescartavel`), aplica as migrations do zero e o apaga no fim. Nenhum teste usa o Neon.
+7. **Database padronizado:** no Neon o database do projeto se chama `controle`, nas branches `main` e `dev` (já criado,
+   com owner `controle_owner`). A validação única (decisão 4) recusa URL do Neon com outro banco (`neondb`, o padrão
+   do console, inclusive). No local o Docker também cria `controle`; os testes usam os bancos temporários da decisão 6
+   e o ensaio local do runbook usou `ensaio_origem`/`ensaio_restaurado` (registro).
+8. **Roles padronizadas** `<projeto>_owner`, `<projeto>_app` e `<projeto>_backup_ro`: aqui `controle_owner`,
+   `controle_app` e `controle_backup_ro`, criadas por SQL (fora de `neon_superuser`). `controle_app` e
+   `controle_backup_ro` são `NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE`: no local, `init-local.sql` e o teste
+   `banco.test.ts` ("app e backup_ro não são SUPERUSER, não têm BYPASSRLS..."); no Neon, o `conferir-banco` (reprova
+   qualquer `controle_*` com `rolbypassrls`) e a consulta da evidência T1 da 17b. O `neondb_owner` do console nunca é
+   usado pelo app.
 
 ## Consequências
 

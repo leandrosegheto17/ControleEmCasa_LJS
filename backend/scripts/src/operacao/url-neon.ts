@@ -9,7 +9,7 @@
  * - host fora de `.neon.tech`;
  * - host com `-pooler` (o PgBouncer em transaction mode quebra o `set_config(..., true)` e as migrations);
  * - URL sem TLS (`sslmode` tem de ser `require` ou `verify-full`);
- * - URL sem nome de banco.
+ * - URL sem nome de banco ou com outro banco que não o `controle` (nome padronizado do database do projeto no Neon).
  *
  * Função pura: não conecta, não lê ambiente e nunca devolve a senha nem a URL nas mensagens.
  */
@@ -19,6 +19,8 @@ export type DestinoNeon = { ok: true; usuario: string; host: string; banco: stri
 const HOSTS_LOCAIS = ['localhost', '127.0.0.1', '::1'];
 const PORTA_DOCKER_LOCAL = '55432';
 const SSL_ACEITOS = ['require', 'verify-full'];
+/** Nome padronizado do database do projeto no Neon, nas branches `main` e `dev` (ADR-017). */
+export const BANCO_NEON = 'controle';
 
 export function validarUrlNeon(url: string, variavel: string): DestinoNeon {
   let u: URL;
@@ -49,6 +51,9 @@ export function validarUrlNeon(url: string, variavel: string): DestinoNeon {
   }
   const banco = decodeURIComponent(u.pathname.replace(/^\//, ''));
   if (!banco) return { ok: false, motivo: `${variavel}: URL sem nome de banco.` };
+  if (banco !== BANCO_NEON) {
+    return { ok: false, motivo: `${variavel}: banco ${banco} recusado; o database do Neon é ${BANCO_NEON}.` };
+  }
   return { ok: true, usuario: decodeURIComponent(u.username), host, banco };
 }
 

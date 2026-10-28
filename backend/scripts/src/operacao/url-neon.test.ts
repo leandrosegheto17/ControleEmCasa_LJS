@@ -45,6 +45,10 @@ describe('validarUrlNeon', () => {
     ['sem banco', 'postgresql://u:p@ep-abc.neon.tech/?sslmode=require', /banco/],
     ['outro protocolo', 'mysql://u:p@ep-abc.neon.tech/controle?sslmode=require', /postgres/],
     ['texto que não é URL', 'nao e url', /URL válida/],
+    // Database padronizado do projeto no Neon: `controle` (decisão do usuário em 2026-10-28, ADR-017).
+    ['banco neondb (padrão do console)', 'postgresql://u:p@ep-abc.neon.tech/neondb?sslmode=require', /controle/],
+    ['banco com outro nome', 'postgresql://u:p@ep-abc.neon.tech/controle_restaurado?sslmode=require', /controle/],
+    ['banco com caixa diferente', 'postgresql://u:p@ep-abc.neon.tech/Controle?sslmode=require', /controle/],
   ])('recusa %s', (_n, url, motivo) => {
     const d = validarUrlNeon(url, 'NEON_URL_OWNER');
     expect(d.ok).toBe(false);
