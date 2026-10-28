@@ -239,9 +239,9 @@ T16
 
 **Done when**:
 
-- [ ] O comando devolve um id; o usuário o passa ao Claude (o id não é segredo)
-- [ ] `wrangler hyperdrive get <id>` mostra o cache desligado (confirma o formato do campo, `[A VALIDAR]`)
-- [ ] Evidência registrada em `evidencias.md` (sem a string de conexão)
+- [x] O comando devolve um id; o usuário o passa ao Claude (o id não é segredo)
+- [x] `wrangler hyperdrive get <id>` mostra o cache desligado (confirma o formato do campo, `[A VALIDAR]`)
+- [x] Evidência registrada em `evidencias.md` (sem a string de conexão)
 
 **Tests**: none
 **Gate**: evidência registrada

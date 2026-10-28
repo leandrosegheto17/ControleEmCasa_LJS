@@ -84,11 +84,11 @@ Antes, a mesma preparação do passo 5 (os dois `ALTER ROLE ... IN DATABASE cont
 
 ## 7. Hyperdrive (Cloudflare)
 
-Na sua máquina, a string vai por variável (não fica no histórico do shell):
+Na sua máquina, a string vai por variável (não fica no histórico do shell). O `wrangler` só existe no pacote `backend/api`, por isso o `--filter` (conferir com `wrangler hyperdrive get <id>`, que mostra `caching.disabled: true`):
 
 ```powershell
 $env:CONN = '<url direta controle_app, branch main>'
-pnpm exec wrangler hyperdrive create controle --connection-string="$env:CONN" --caching-disabled
+pnpm --filter ./backend/api exec wrangler hyperdrive create controle --connection-string="$env:CONN" --caching-disabled
 ```
 
 - O comando imprime o **id**. Eu troco o id fictício `00000000000000000000000000000000` do `wrangler.jsonc` e faço o commit.
