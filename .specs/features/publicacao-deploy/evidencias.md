@@ -52,3 +52,13 @@ Sem segredo: só links, nomes e resultados.
 - Prova do token novo: evento fictício `evt_teste_17c` (`PAYMENT_CREATED` de uma cobrança inexistente) enviado pelo usuário com o token novo → `200`. Fica um registro de idempotência de teste em `webhook_evento`, que a limpeza dos 12 meses remove.
 - Chave de produção do Asaas: `GET /v3/finance/balance` (só leitura) → `200`, relato do usuário. Prova que a chave é válida; **não prova** que é idêntica à gravada no Worker e no environment `producao` (a primeira cobrança real, na 17d, confirma).
 - Ainda não provado: entrega de um evento real do Asaas ao Worker (o Asaas só dispara eventos de cobranças reais; fica para a 17d).
+
+## Alteração manual: plano Pro na conta de teste do usuário (2026-10-28, fora das tarefas)
+
+- Pedido do usuário: deixar a conta de teste dele com o plano ativado, sem expiração do período grátis.
+- Como o plano é calculado (`dominio/plano.ts`): `situacao = 'ativa'` dá Pro sem checar prazo. Ajuste feito: `app.assinatura` do lar do titular com `situacao = 'ativa'` e `periodo_ate = null` (sem assinatura nem cobrança no Asaas, então nenhum webhook ou cron a rebaixa).
+- Execução pelo próprio usuário, em produção, com a role `neondb_owner` (única com `BYPASSRLS`; `controle_owner` não enxerga `membro` nem `assinatura` por causa da RLS forçada, o que parecia "tabela vazia"). `pg_stat_user_tables` mostrou 1 linha em `usuario`, `lar`, `membro` e `assinatura`.
+- Script de uso único, fora do repositório, que só confirma se atualiza exatamente 1 linha de titular e confere role e banco antes. O estado anterior ficou com o usuário (para desfazer).
+- Resultado relatado pelo usuário: o app mostra o plano ativado em Meu plano. Não recebi a saída do script nem o estado anterior.
+- Cuidado: não usar "Assinar" nessa conta, para não misturar assinatura manual com cobrança real do Asaas.
+- Lição para o runbook: para ler ou ajustar tabelas com RLS forçada em produção, a role do editor precisa ser `neondb_owner` (e o banco `controle`); com `controle_owner` as tabelas parecem vazias.
