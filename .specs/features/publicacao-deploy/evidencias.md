@@ -38,3 +38,9 @@ Sem segredo: só links, nomes e resultados.
 - `https://controleemcasa.ljssoftware.com.br/api/health`: `200`, `{"ok":true}`, `Cache-Control: no-store`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`, `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`.
 - `/` → 200 `text/html`, verificação do TLS ok (`ssl_verify_result=0`); `/app/` → 200 `text/html`; `/termos` → 200.
 - `/api/sessao` sem cookie → 401 `sessao_expirada` (esperado). **Não prova** o caminho Worker → Hyperdrive → Neon; isso é provado pelo cadastro real da T6.
+
+## T6 — E-mail real do Resend em produção (2026-10-28)
+
+- Relato do usuário (ação manual no app publicado, e-mail dele; nenhum endereço, senha nem link registrado aqui): cadastro com aceite dos termos, e-mail de confirmação recebido e confirmado, lar criado, "esqueci minha senha" com e-mail de recuperação recebido, senha redefinida e novo login com a senha nova, tudo sem erro.
+- Os **dois e-mails chegaram na caixa de entrada**, não no spam. Isso melhora a ressalva da 17b (a T13 da 17b registrou um teste que caiu no spam); a reputação do domínio segue por observar quando houver mais envios e outros provedores de e-mail.
+- Prova indireta de que o caminho Worker → Hyperdrive → Neon funciona na produção: cadastro, confirmação, criação do lar e login gravam e leem no banco.

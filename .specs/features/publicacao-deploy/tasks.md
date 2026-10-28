@@ -229,9 +229,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Cadastro, confirmação e recuperação de senha funcionam de ponta a ponta no domínio publicado
-- [ ] Local de entrega dos e-mails registrado (entrada ou spam) e plano de reputação anotado se caiu no spam
-- [ ] Evidência registrada
+- [x] Cadastro, confirmação e recuperação de senha funcionam de ponta a ponta no domínio publicado
+- [x] Local de entrega dos e-mails registrado (entrada ou spam) e plano de reputação anotado se caiu no spam
+- [x] Evidência registrada
 
 **Tests**: none
 **Gate**: evidência registrada
