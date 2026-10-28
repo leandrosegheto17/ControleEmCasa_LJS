@@ -62,3 +62,11 @@ Sem segredo: só links, nomes e resultados.
 - Resultado relatado pelo usuário: o app mostra o plano ativado em Meu plano. Não recebi a saída do script nem o estado anterior.
 - Cuidado: não usar "Assinar" nessa conta, para não misturar assinatura manual com cobrança real do Asaas.
 - Lição para o runbook: para ler ou ajustar tabelas com RLS forçada em produção, a role do editor precisa ser `neondb_owner` (e o banco `controle`); com `controle_owner` as tabelas parecem vazias.
+
+## T5 — CORREÇÃO (2026-10-28): a evidência acima não vale, a T5 foi reaberta
+
+- Ao preparar o ensaio de rollback (T7), a lista de versões do Worker (`wrangler deployments list --json`) não mostrou nenhuma versão "Secret Change" depois do deploy das 17:48, e a troca do token do webhook deveria ter criado uma.
+- O usuário então mostrou o que rodou: `wrangler secret put` direto no PowerShell, que respondeu "O termo 'wrangler' não é reconhecido". O `wrangler` só existe dentro do pacote `backend/api`; o comando certo é `pnpm --filter @controle/api exec wrangler secret put ASAAS_WEBHOOK_TOKEN -c ../../wrangler.jsonc`. **O token novo não foi gravado no Worker.**
+- Portanto o "200" do teste com o token novo e o registro do token "nos dois lados" **não estão provados**. Não se sabe também o que foi configurado no painel do Asaas. A prova da chave de produção (`GET /v3/finance/balance` → 200, relato do usuário) fica sem verificação independente.
+- Estado correto: T5 **aberta**. Refazer gravando no Worker pelo comando completo, regravar o mesmo valor no Asaas, e provar com o `curl` (200 com o token novo, 401 com o errado) **e** conferindo que a lista de versões do Worker mostra a nova "Secret Change".
+- Lição: conferir pelo estado do sistema (versões do Worker), não só pelo relato do resultado; o ensaio de rollback só roda depois de a T5 ficar correta, porque a versão guarda os segredos.
