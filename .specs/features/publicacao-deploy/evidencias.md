@@ -70,3 +70,11 @@ Sem segredo: só links, nomes e resultados.
 - Portanto o "200" do teste com o token novo e o registro do token "nos dois lados" **não estão provados**. Não se sabe também o que foi configurado no painel do Asaas. A prova da chave de produção (`GET /v3/finance/balance` → 200, relato do usuário) fica sem verificação independente.
 - Estado correto: T5 **aberta**. Refazer gravando no Worker pelo comando completo, regravar o mesmo valor no Asaas, e provar com o `curl` (200 com o token novo, 401 com o errado) **e** conferindo que a lista de versões do Worker mostra a nova "Secret Change".
 - Lição: conferir pelo estado do sistema (versões do Worker), não só pelo relato do resultado; o ensaio de rollback só roda depois de a T5 ficar correta, porque a versão guarda os segredos.
+
+## T5 — Refeita em parte (2026-10-28, 18:36Z)
+
+- Token novo do webhook (43 caracteres) gerado e gravado no Worker pela sessão do Claude, com a confirmação do usuário, sem aparecer na conversa: `Success! Uploaded secret ASAAS_WEBHOOK_TOKEN`. **Prova pelo estado do sistema:** a lista de versões do Worker ganhou a versão `95f09291` (18:36, "Secret Change"), e o endpoint continua dando `401` com token errado e `{"ok":true}` no `/api/health`.
+- Painel do Asaas (produção): o usuário relata ter colado o token na configuração do webhook (URL `https://controleemcasa.ljssoftware.com.br/api/webhooks/asaas`, versão da API v3, envio não sequencial, eventos de cobrança e assinatura). A área de transferência tinha depois 60 caracteres = a URL do webhook, que o usuário copiou em seguida, o que explica a diferença.
+- **Não provado:** que o valor do Asaas é idêntico ao do Worker (o campo do Asaas é mascarado, e o token saiu da área de transferência). Um segundo comando de teste automatizado foi bloqueado pelo sistema de permissões e não foi contornado. A prova definitiva é o primeiro evento real do Asaas (17d), ou refazer o passo com o teste `200`/`401` feito antes de copiar outra coisa.
+- **Não verificado de forma independente:** a chave de produção do Asaas (`GET /v3/finance/balance` → 200 é só relato do usuário, e o relato do 200 do webhook, feito antes, se mostrou falso). Refazer a consulta no fechamento (T16) ou antes.
+- T5 segue **aberta** nesses dois itens; não bloqueia o ensaio de rollback (T7), cujo estado dos segredos agora está estável.
