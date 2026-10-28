@@ -33,9 +33,10 @@
    dispare de novo. Disparo a partir de outra branch não roda nada.
 
 4. O job `publicar` (environment `producao`) segue a ordem fixa, e qualquer passo que falha para tudo:
-   build do front (com `VITE_SENTRY_DSN` e `VITE_SENTRY_RELEASE`) → cache do Hyperdrive desligado → branch
-   `restauracao-<run>-<tentativa>` no Neon (ficam as 2 mais novas) → dump cifrado `dump-predeploy-<run>-<tentativa>`
-   → migração com a role owner → publicação com `SENTRY_RELEASE` = SHA → `GET /api/health`.
+   build do front (com `VITE_SENTRY_DSN` e `VITE_SENTRY_RELEASE`) → cache do Hyperdrive desligado → dump cifrado
+   `dump-predeploy-<run>-<tentativa>` (o único ponto de retorno antes de migrar) → migração com a role owner →
+   publicação com `SENTRY_RELEASE` = SHA → `GET /api/health`. O deploy não cria branch no Neon: só existem a `main`
+   (produção) e a `dev` (ADR-017).
 5. Depois do deploy, confira:
    - `curl -fsS https://controleemcasa.ljssoftware.com.br/api/health` responde `{"ok":true}`;
    - no Sentry, o release novo (o SHA) aparece sem erro novo;
@@ -55,7 +56,7 @@ Migrations são **aditivas** (G-43). O passo "Migrations aditivas (G-43)" do CI 
 As migrations são aditivas, então o Worker anterior continua funcionando com o banco migrado.
 
 - **Automático:** se a saúde falhar depois da publicação, o próprio `deploy.yml` faz `wrangler rollback` e marca o run
-  com erro, apontando a branch e o artefato da restauração.
+  com erro, apontando o artefato cifrado `dump-predeploy-<run>-<tentativa>`.
 - **Manual (painel):** Cloudflare → Workers → `controle-em-casa` → Deployments → escolher a versão anterior → Rollback.
 - **Manual (terminal):** com `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no ambiente (nunca no histórico do shell):
 
@@ -78,38 +79,19 @@ As migrations são aditivas, então o Worker anterior continua funcionando com o
 ### 3.2 Banco (dado perdido ou migração errada)
 
 Pare as escritas antes de restaurar: faça o rollback do Worker (3.1) ou, se o dano continuar, coloque o app fora do ar
-pelo painel da Cloudflare. Depois escolha:
-
-1. **Branch de restauração do Neon** (seção 4.1): a cópia exata do banco no instante anterior à migração do último
-   deploy. É a mais rápida.
-2. **Dump cifrado** (seção 4.2): independe do Neon. Use quando a branch não servir (dano antigo, branch podada, Neon
-   indisponível).
+pelo painel da Cloudflare. Depois restaure pelo **dump cifrado** (seção 4.2): o `dump-predeploy-<run>-<tentativa>`
+quando o problema veio de um deploy (é a cópia do instante anterior à migração), ou o `backup-<data>-...` mais recente
+anterior ao dano. Não há branch de restauração no Neon (seção 4.1).
 
 O dado escrito entre o instante da cópia e a restauração se perde. Registre o intervalo no incidente (seção 8).
 
 ## 4. Restauração
 
-### 4.1 Pela branch de restauração do Neon
+### 4.1 Branches do Neon: só `main` e `dev`
 
-O deploy cria `restauracao-<run>-<tentativa>` a partir da `main` antes de migrar e mantém as 2 mais novas. O nome do
-run está na anotação de erro do deploy e na lista de branches do Neon.
-
-Caminhos documentados pelo Neon (consulta em 2026-10-27, `neon.com/docs/guides/branch-restore`):
-
-- **Restaurar a `main` a partir de outra branch** (console: Branches → `main` → Restore; CLI:
-  `neon branches restore main <branch de origem>`; API: `POST /projects/{id}/branches/{main}/restore` com
-  `source_branch_id`). O Neon guarda o estado anterior numa branch de backup criada na hora.
-- **Restaurar a `main` a um instante do próprio histórico** (PITR): `neon branches restore main ^self@<RFC 3339>
---preserve-under-name main_antes_restauracao`, dentro da janela de histórico do plano.
-
-`[A VALIDAR NA ETAPA 17]`:
-
-- se a `main` (raiz) pode ser restaurada a partir da `restauracao-*`, que é filha dela, ou se o caminho certo é o PITR
-  da `main` até o instante da criação da branch;
-- a janela de histórico do plano Free;
-- se a branch de backup criada pela restauração conta no limite de branches e se pode ser apagada.
-
-Depois de restaurar: o Hyperdrive aponta para a `main`, então não muda. Rode a conferência da seção 4.3.
+Desde o padrão do Neon (ADR-017, 2026-10-28) o projeto tem só duas branches permanentes: `main` (produção) e `dev`.
+O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. O ponto de retorno antes de cada migração
+é o dump cifrado `dump-predeploy-<run>-<tentativa>` (seção 4.2), e o diário é o `backup-<data>-...`.
 
 ### 4.2 Pelo dump cifrado (`age`)
 
@@ -128,8 +110,9 @@ Depois de restaurar: o Hyperdrive aponta para a `main`, então não muda. Rode a
    age -d -i <arquivo da chave privada> -o restauracao/banco.dump restauracao/<nome>/<nome>.dump.age
    ```
 
-3. **Crie um banco vazio** para receber o dump: uma branch nova no Neon (ex.: `restaurada-<data>`) ou outro banco. Não
-   restaure por cima da `main` em uso.
+3. **Crie um banco vazio** para receber o dump, sem criar branch (ADR-017): um banco novo (ex.: `controle_restaurado`)
+   na branch `main`, quando for voltar a produção, ou na `dev`, num ensaio. Não restaure por cima do banco `controle`
+   da `main` em uso.
 4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016):
 
    ```bash
@@ -147,8 +130,8 @@ Depois de restaurar: o Hyperdrive aponta para a `main`, então não muda. Rode a
 
    No Neon, rode como `neondb_owner`: o `controle_owner` é `NOCREATEROLE` e não pode alterar outra role (seção 10).
 
-6. **Confira** (seção 4.3). Só depois troque o app para o banco restaurado: restaure a `main` a partir da branch
-   restaurada (4.1) ou aponte o Hyperdrive para ela `[A VALIDAR NA ETAPA 17]`.
+6. **Confira** (seção 4.3). Só depois troque o app para o banco restaurado: aponte o Hyperdrive para ele
+   `[A VALIDAR NA ETAPA 17]`.
 7. Apague o `banco.dump` em claro e devolva a chave privada à guarda.
 
 `[A VALIDAR NA ETAPA 17]`: no Neon a role owner não é superusuário. O ensaio local restaurou como superusuário (o
@@ -223,10 +206,11 @@ issue, PR ou log.
 | `SENTRY_DSN` / `VITE_SENTRY_DSN`            | Worker / variável do environment `producao` | Gere a chave nova no projeto do Sentry, grave, revogue a antiga                      | O front só passa a usar o DSN novo no próximo deploy                                                    |
 | `DATABASE_URL_OWNER`, `DATABASE_URL_BACKUP` | Environment `producao`                      | Troque a senha da role no Neon e grave a URL nova                                    | Nenhum para o app                                                                                       |
 | Senha da `controle_app`                     | Neon e Hyperdrive                           | Troque no Neon e atualize o Hyperdrive na mesma janela                               | Requisições falham entre os dois passos                                                                 |
-| `NEON_API_KEY`, `CLOUDFLARE_API_TOKEN`      | Environment `producao`                      | Gere a nova com o menor escopo, grave, revogue a antiga                              | Nenhum                                                                                                  |
+| `CLOUDFLARE_API_TOKEN`                      | Environment `producao`                      | Gere a nova com o menor escopo, grave, revogue a antiga                              | Nenhum                                                                                                  |
 | Chave `age`                                 | Offline (seção 6)                           | Seção 6                                                                              | Nenhum                                                                                                  |
 
-`[A VALIDAR NA ETAPA 17]`: os escopos mínimos do `CLOUDFLARE_API_TOKEN` e da `NEON_API_KEY` usados de fato.
+`[A VALIDAR NA ETAPA 17]`: o escopo mínimo do `CLOUDFLARE_API_TOKEN` usado de fato. A `NEON_API_KEY` saiu com a
+branch de restauração (ADR-017): nenhum workflow fala com a API do Neon.
 
 ### Lista do environment `producao` lida pelos workflows
 
@@ -242,13 +226,11 @@ por workflow e ficam fora desta lista. A tabela abaixo é conferida por teste co
 | secret   | `CLOUDFLARE_API_TOKEN`  |
 | secret   | `DATABASE_URL_BACKUP`   |
 | secret   | `DATABASE_URL_OWNER`    |
-| secret   | `NEON_API_KEY`          |
 | variável | `AGE_RECIPIENT`         |
 | variável | `ASAAS_API_URL`         |
 | variável | `BACKUP_ATIVO`          |
 | variável | `CLOUDFLARE_ACCOUNT_ID` |
 | variável | `DEPLOY_ATIVO`          |
-| variável | `NEON_PROJECT_ID`       |
 | variável | `PURGA_ATIVA`           |
 | variável | `VITE_SENTRY_DSN`       |
 
@@ -367,11 +349,10 @@ O 9.1 fica como registro do Postgres 17. Desde o ADR-016 a versão é a 18; o en
 ### 9.3 Pendente para a etapa 17 `[A VALIDAR NA ETAPA 17]`
 
 - Repetir o ensaio com o **primeiro backup real** (artefato do `backup.yml` baixado do GitHub), decifrado com a chave
-  privada da guarda offline, restaurado numa branch nova do Neon com a role owner do Neon, e registrar aqui data,
-  comandos e resultado.
-- Restaurar a partir de uma `restauracao-*` criada por um deploy real (seção 4.1) e registrar o caminho que funcionou.
+  privada da guarda offline, restaurado num banco novo da branch `dev` do Neon (sem criar branch; ADR-017) com a role
+  owner do Neon, e registrar aqui data, comandos e resultado.
 - Medir o tempo total (do alerta ao app de volta) para ter a referência de RTO, e o intervalo de dados perdidos (RPO:
-  até 24 h pelo backup diário; o instante do deploy pela branch).
+  até 24 h pelo backup diário; o instante da migração pelo `dump-predeploy-*` do deploy).
 
 ## 10. Roteiro de ativação da produção
 
@@ -398,7 +379,7 @@ enquanto as duas roles não tiverem `search_path = app` no banco. Não dê `CREA
 | 1   | Conferir roles e RLS do banco    | `DATABASE_URL_OWNER` (da produção) no ambiente e `pnpm --filter @controle/scripts conferir-banco`                                                   | A linha `Banco conforme: ...` (só contagens); migrations pendentes são aplicadas antes |
 | 2   | Criar o Hyperdrive e trocar o id | Passo do `neon.md`; trocar o id fictício no `wrangler.jsonc` e commitar                                                                             | Id novo no commit; `cache-hyperdrive` verde no passo 2 do deploy                       |
 | 3   | Ligar o deploy                   | Variável de repositório `DEPLOY_ATIVO=true` e o workflow `deploy` (Actions, disparo manual na `main`)                                               | Link da execução do `deploy.yml` verde                                                 |
-| 4   | Fumaça                           | Passo 7 do `deploy.yml`: `/api/health`, `/`, `/app/` e os cabeçalhos CSP, HSTS e `Cache-Control: no-store`                                          | Log do passo 7 verde                                                                   |
+| 4   | Fumaça                           | Passo 6 do `deploy.yml`: `/api/health`, `/`, `/app/` e os cabeçalhos CSP, HSTS e `Cache-Control: no-store`                                          | Log do passo 6 verde                                                                   |
 | 5   | Medir a CPU do Worker publicado  | `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no ambiente e `pnpm --filter @controle/scripts medir-cpu-publicado` (`JANELA_HORAS` opcional)      | O relatório (p50, p99 e veredito contra 10 ms); falhou o teto: abrir ajuste de CPU     |
 | 6   | Medir a retomada a frio          | App parado além do tempo de suspensão do Neon, `URL_PUBLICA` e `MEDIR_COOKIE` no ambiente e `pnpm --filter @controle/scripts medir-retomada-a-frio` | O relatório (primeira contra a mediana das seguintes)                                  |
 | 7   | Ligar o backup diário            | Variável de repositório `BACKUP_ATIVO=true`; conferir a execução (seção 5 deste runbook)                                                            | Link da primeira execução do `backup.yml` e o ensaio da seção 9.3                      |

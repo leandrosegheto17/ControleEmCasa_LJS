@@ -1,6 +1,6 @@
 # ADR-015: Deploy e backup
 
-- **Status:** Aceito em 2026-10-27, com a ressalva de que a restauração com a role owner do Neon e o primeiro backup real só são validados na etapa 17 (ligar em produção só na etapa 17). **Emendado em 2026-10-27**: gatilho e aprovação (decisões 1 e 2) substituídos pelo disparo manual com guarda de CI verde (seção "Emenda de 2026-10-27")
+- **Status:** Aceito em 2026-10-27, com a ressalva de que a restauração com a role owner do Neon e o primeiro backup real só são validados na etapa 17 (ligar em produção só na etapa 17). **Emendado em 2026-10-27**: gatilho e aprovação (decisões 1 e 2) substituídos pelo disparo manual com guarda de CI verde (seção "Emenda de 2026-10-27"). **Emendado em 2026-10-28** pelo ADR-017 (padrão do Neon): sai a branch de restauração (decisão 3.3) e o script `restauracao-neon.ts` (decisão 7); o dump cifrado é o único ponto de retorno antes de migrar
 - **Data:** 2026-10-27
 - **Decisores:** Leandro (stakeholder)
 - **Detalha:** PLANO etapa 16; PRD-TECNICO RNF-09 e CA-26.5; SDD §3.7, §4, §5.3, §11.1, §11.2, D-06; GUARDRAILS G-02, G-04, G-09, G-32, G-40, G-42, G-43, G-44; THREAT-MODEL TM-DB-02, TM-DB-05, TM-DB-07, TM-GH-01 a TM-GH-06, E-12; ADR-002, ADR-005 e ADR-013
@@ -79,3 +79,13 @@
   3. **Environment:** só o `producao` (segredos, regra de branch só da `main`, sem revisor). O `producao-aprovacao` sai do desenho e não é criado na etapa 17.
 - **Inalterado:** a ordem fixa, o rollback, a concorrência, a inércia por `DEPLOY_ATIVO`, os segredos só nos passos, as ações fixadas por SHA e o `wrangler deploy` único (G-42).
 - **Consequência:** a decisão humana agora é o próprio disparo. Quem tem permissão de escrita no repositório pode publicar, desde que o CI do commit esteja verde (RA-07: o projeto tem uma pessoa só). Um push na `main` não publica mais nada sozinho.
+
+## Emenda de 2026-10-28: padrão do Neon (ADR-017)
+
+- **Decisão do usuário (2026-10-28):** o Neon tem só as branches permanentes `main` e `dev`. O passo 3.3 (branch
+  `restauracao-<run>-<tentativa>`, mantendo as 2 mais novas) sai do `deploy.yml`, com o script `restauracao-neon.ts`, os
+  testes dele e a `NEON_API_KEY`/`NEON_PROJECT_ID` do environment `producao`. A ordem passa a ser: endereço do Asaas,
+  build, cache do Hyperdrive, dump cifrado, migração com o owner, `wrangler deploy` e saúde. Falha depois da migração
+  aponta só o artefato `dump-predeploy-<run>-<tentativa>`.
+- **Inalterado:** o resto da ordem fixa, o dump com o `backup_ro`, o rollback do Worker, a concorrência e a inércia
+  por `DEPLOY_ATIVO`.

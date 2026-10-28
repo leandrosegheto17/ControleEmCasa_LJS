@@ -14,7 +14,7 @@
 ## 1. Projeto no Neon (console)
 
 - Criar o projeto `controle-em-casa`, região **AWS São Paulo (`aws-sa-east-1`)**, **Postgres 18** (o projeto nasceu em 18; ADR-016 substitui o ADR-002).
-- **Project ID:** `nameless-grass-28234591` (informado pelo usuário em 2026-10-27; não é segredo). Vai para a variável `NEON_PROJECT_ID`. `[A VALIDAR]` região `aws-sa-east-1` no console. Postgres 18 informado pelo usuário em 2026-10-27.
+- **Project ID:** `nameless-grass-28234591` (informado pelo usuário em 2026-10-27; não é segredo). Desde o ADR-017 (2026-10-28) não vai para o GitHub: nenhum workflow chama a API do Neon. `[A VALIDAR]` região `aws-sa-east-1` no console. Postgres 18 informado pelo usuário em 2026-10-27.
 - O console cria a branch `main` e o banco `neondb`, com a role `neondb_owner`. **Não use** `neondb_owner` no app: ela é `neon_superuser`, que tem `BYPASSRLS` e anularia a RLS.
 
 ## 2. Roles (SQL Editor, como `neondb_owner`)
@@ -43,6 +43,8 @@ Esperado: `false` em todas as colunas, nas 3 linhas. **Se algum `rolbypassrls` v
 - **Medido em 2026-10-27 (T3, branch `dev`):** o `ALTER ROLE` falha para o `controle_owner` (`permission denied to alter role`, 42501). O Postgres só deixa alterar outra role quem tem `CREATEROLE` e `ADMIN` sobre ela, e o owner é `NOCREATEROLE` por desenho (passo 2). A migration tolera (só um aviso) e o `search_path` é definido antes, como `neondb_owner` (passo 5).
 
 ## 4. Branch `dev` e strings de conexão
+
+O projeto tem só duas branches permanentes, `main` (produção) e `dev` (ADR-017): nenhuma branch por PR nem de restauração.
 
 - Criar a branch `dev` (filha da `main`) **depois** do passo 3, para herdar roles e banco. `[A VALIDAR]` o passo no console.
 - Anotar, para cada role, a string **direta** (host **sem** `-pooler`), com `sslmode=require`. As URLs:
@@ -100,9 +102,8 @@ pnpm --filter ./backend/api exec wrangler hyperdrive create controle --connectio
 | Onde | Nome | Origem |
 |---|---|---|
 | Secret do environment `producao` | `DATABASE_URL_OWNER`, `DATABASE_URL_BACKUP` | passo 4 |
-| Secret | `NEON_API_KEY` | Neon: chave **escopada ao projeto**; `[A VALIDAR]` se cobre criar, apagar e restaurar branches |
 | Secret | `CLOUDFLARE_API_TOKEN` | Cloudflare, menor escopo possível; `[A VALIDAR]` o mínimo (comece com Workers Scripts Edit, Hyperdrive Edit, Workers Routes Edit, Zone Read) |
-| Variável | `NEON_PROJECT_ID`, `CLOUDFLARE_ACCOUNT_ID`, `AGE_RECIPIENT`, `DEPLOY_ATIVO`, `BACKUP_ATIVO`, `PURGA_ATIVA` | passos 1 e seguintes |
+| Variável | `CLOUDFLARE_ACCOUNT_ID`, `AGE_RECIPIENT`, `DEPLOY_ATIVO`, `BACKUP_ATIVO`, `PURGA_ATIVA` | passos 1 e seguintes |
 
 ## Pontos de atenção levantados pela pesquisa
 

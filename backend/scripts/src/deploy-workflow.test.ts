@@ -106,11 +106,12 @@ describe('.github/workflows/deploy.yml', () => {
     expect(semComentarios).toMatch(/concurrency:\s*\n\s*group: deploy-producao\s*\n\s*cancel-in-progress: false/);
   });
 
-  it('ordem fixa: build, cache do Hyperdrive, branch de restauração, dump cifrado, migração, publicação, saúde', () => {
+  // Alterado no padrão do Neon (ADR-017, decisão do usuário em 2026-10-28): saiu a branch de restauração; o dump cifrado
+  // é o único ponto de retorno antes da migração.
+  it('ordem fixa: build, cache do Hyperdrive, dump cifrado, migração, publicação, saúde', () => {
     const ordem = [
       posicao(/run: pnpm --filter @controle\/web build$/, 'build'),
       posicao(/run: pnpm --filter @controle\/scripts cache-hyperdrive$/, 'cache do Hyperdrive'),
-      posicao(/run: pnpm --filter @controle\/scripts restauracao-neon$/, 'branch de restauração'),
       posicao(/uses: \.\/\.github\/actions\/dump-cifrado$/, 'dump cifrado'),
       posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração'),
       posicao(PUBLICACAO, 'publicação'),
@@ -141,7 +142,6 @@ describe('.github/workflows/deploy.yml', () => {
     const producao = [
       posicao(/run: pnpm --filter @controle\/web build$/, 'build'),
       posicao(/run: pnpm --filter @controle\/scripts cache-hyperdrive$/, 'cache do Hyperdrive'),
-      posicao(/run: pnpm --filter @controle\/scripts restauracao-neon$/, 'branch de restauração'),
       posicao(/uses: \.\/\.github\/actions\/dump-cifrado$/, 'dump cifrado'),
       posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração'),
       posicao(PUBLICACAO, 'publicação'),
@@ -180,21 +180,26 @@ describe('.github/workflows/deploy.yml', () => {
     expect(semComentarios).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell: bash/);
   });
 
-  it('depois da migração, a falha desfaz o Worker (se publicado) e aponta a branch e o dump de restauração', () => {
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): a orientação aponta só o dump; não há mais branch de restauração.
+  it('depois da migração, a falha desfaz o Worker (se publicado) e aponta o dump cifrado de antes da migração', () => {
     expect(semComentarios).toMatch(/if: \$\{\{ failure\(\) && steps\.migrar\.outcome == 'success' \}\}/);
     expect(semComentarios).toMatch(/wrangler rollback -c \.\.\/\.\.\/wrangler\.jsonc/);
-    expect(semComentarios).toMatch(/restauracao-\$\{RUN\}/);
     expect(semComentarios).toMatch(/dump-predeploy-\$\{RUN\}/);
+    expect(semComentarios).not.toMatch(/restauracao-\$\{RUN\}/);
   });
 
-  it('segredos só por referência, só nos passos (nunca no env do job) e só os quatro necessários', () => {
+  it('o deploy não cria nem apaga branch no Neon: o Neon tem só main e dev (ADR-017)', () => {
+    expect(semComentarios).not.toMatch(/restauracao/);
+    expect(semComentarios).not.toMatch(/NEON_API_KEY|NEON_PROJECT_ID/);
+    expect(semComentarios).not.toMatch(/console\.neon\.tech|neonctl|neon branches/);
+    const pacote = readFileSync(join(RAIZ, 'backend/scripts/package.json'), 'utf8');
+    expect(pacote).not.toMatch(/restauracao/);
+  });
+
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): saiu a NEON_API_KEY, que só servia à branch de restauração.
+  it('segredos só por referência, só nos passos (nunca no env do job) e só os três necessários', () => {
     const nomes = new Set([...semComentarios.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]));
-    expect([...nomes].sort()).toEqual([
-      'CLOUDFLARE_API_TOKEN',
-      'DATABASE_URL_BACKUP',
-      'DATABASE_URL_OWNER',
-      'NEON_API_KEY',
-    ]);
+    expect([...nomes].sort()).toEqual(['CLOUDFLARE_API_TOKEN', 'DATABASE_URL_BACKUP', 'DATABASE_URL_OWNER']);
     for (const l of linhas.filter((x) => x.includes('secrets.'))) {
       expect(l, l).toMatch(/^ {10}\S/);
     }
@@ -215,8 +220,9 @@ describe('.github/workflows/deploy.yml', () => {
 
 describe('.github/workflows/deploy.yml: fumaça ampliada (PLANO etapa 17; RNF-06; ADR-015)', () => {
   const fumaca = () => {
-    const i = linhas.findIndex((l) => /name: 7\./.test(l));
-    expect(i, 'passo 7').toBeGreaterThan(-1);
+    // Passo 6 desde o padrão do Neon (ADR-017): era o 7 antes de sair a branch de restauração.
+    const i = linhas.findIndex((l) => /name: 6\. Conferir a saúde/.test(l));
+    expect(i, 'passo 6').toBeGreaterThan(-1);
     const fim = linhas.findIndex((l, k) => k > i && /^ {6}- name:/.test(l));
     return linhas.slice(i, fim === -1 ? linhas.length : fim).join('\n');
   };
@@ -244,10 +250,10 @@ describe('.github/workflows/deploy.yml: fumaça ampliada (PLANO etapa 17; RNF-06
 
   it('continua depois da publicação e antes do bloco de rollback (que dispara com qualquer falha dele)', () => {
     const publicacao = posicao(PUBLICACAO, 'publicação');
-    const passo7 = posicao(/name: 7\./, 'passo 7');
+    const fumacaInicio = posicao(/name: 6\. Conferir a saúde/, 'passo 6');
     const rollback = posicao(/name: Desfazer o Worker/, 'rollback');
-    expect(publicacao).toBeLessThan(passo7);
-    expect(passo7).toBeLessThan(rollback);
+    expect(publicacao).toBeLessThan(fumacaInicio);
+    expect(fumacaInicio).toBeLessThan(rollback);
     expect(fumaca()).not.toMatch(/if:|continue-on-error/);
     expect(linhas[rollback + 1]).toContain("failure() && steps.migrar.outcome == 'success'");
   });

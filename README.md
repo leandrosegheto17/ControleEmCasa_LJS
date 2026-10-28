@@ -124,8 +124,8 @@ Postgres 18, os e2e (simulados e da pilha real), o Lighthouse e o gitleaks. As a
 ## Deploy e operação
 
 - Só o `.github/workflows/deploy.yml` publica o Worker. O disparo é manual, da `main` (`gh workflow run deploy --ref main`
-  ou Actions → deploy → Run workflow), e só segue com o CI verde no mesmo commit. A ordem é fixa: build, cache do Hyperdrive conferido, branch de restauração no
-  Neon, dump cifrado, migração com a role owner, publicação e saúde.
+  ou Actions → deploy → Run workflow), e só segue com o CI verde no mesmo commit. A ordem é fixa: build, cache do Hyperdrive conferido, dump cifrado (o
+  ponto de retorno; o Neon tem só as branches `main` e `dev`), migração com a role owner, publicação e saúde.
 - `backup.yml`: dump diário às 04:00 de Brasília, cifrado com `age`, guardado 30 dias como artefato.
 - `purga.yml`: purga diária das contas excluídas (30 dias).
 - Os três ficam inertes até as variáveis `DEPLOY_ATIVO`, `BACKUP_ATIVO` e `PURGA_ATIVA` serem ligadas (etapa 17).

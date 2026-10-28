@@ -19,7 +19,7 @@ PWA de finanças de casal: um **lar** com um **titular** e no máximo 1 **membro
 | A-04 | Dados pessoais (LGPD) | E-mail, nome, IP em tentativas, endpoint de push | Tabelas de identidade, logs, Sentry |
 | A-05 | Estado da assinatura | Receita; Pro de graça se for forjado | `assinatura`, `webhook_evento` |
 | A-06 | Segredos operacionais | Cada um abre um terceiro | Chave Asaas, token do webhook, chave Resend, VAPID privada, URLs do Neon (`app`, `owner`, `backup_ro`), token Cloudflare |
-| A-07 | Backups e branches de restauração | Cópia integral da produção | Dump `.age`, branches do Neon |
+| A-07 | Backups | Cópia integral da produção | Dump `.age` (diário e antes de cada migração); o Neon tem só as branches `main` e `dev` (ADR-017) |
 | A-08 | Integridade do código publicado | Quem publica código lê tudo | Repositório, Actions, conta Cloudflare |
 | A-09 | Reputação do domínio de e-mail | Phishing e entregabilidade | `ljssoftware.com.br` no Resend |
 | A-10 | Disponibilidade e cotas Free | Workers (CPU de 10 ms, cota diária), compute do Neon, envio do Resend | Provedores |
@@ -58,7 +58,6 @@ flowchart LR
   end
   subgraph Z3["FT-2/FT-7 Neon sa-east-1"]
     PG[("Postgres 18<br/>RLS FORCE por lar e dono")]
-    BR[("Branches de restauração")]
   end
   subgraph Z4["FT-3/FT-4 Terceiros"]
     ASA["Asaas"]
@@ -90,7 +89,6 @@ flowchart LR
   SEC --> GA
   GA -- "owner: migração" --> PG
   GA -- "backup_ro: pg_dump" --> PG
-  GA -- "cria" --> BR
   GA --> ART
   GA -- "wrangler deploy (único)" --> W
 ```
@@ -154,7 +152,7 @@ Legenda STRIDE: **S** falsificação, **T** adulteração, **R** repúdio, **I**
 | TM-DB-04 | E | Tabela nova sem RLS FORCE | M | A | Teste de catálogo vale para tabelas futuras | G-01 | Catálogo (Etapa 2) |
 | TM-DB-05 | I/E | URL do `owner` ou do `backup_ro` vazada: o `owner` desliga a RLS; o `backup_ro` lê tudo | B | A | Só no environment `producao`, só no passo que precisa; a API usa só `app` | G-32, G-34, G-43 | Teste de que o código não referencia essas URLs; revisão dos workflows (Etapa 16) |
 | TM-DB-06 | I | Tráfego Hyperdrive → Neon sem TLS verificado | B | A | `sslmode` com verificação | G-34 | Lista de conferência da publicação (Etapa 17) |
-| TM-DB-07 | T | Migração destrutiva apaga dados | B | A | Aditiva; branch de restauração e dump antes | G-43 | Ordem dos passos; detector de migração não aditiva (Etapa 16) |
+| TM-DB-07 | T | Migração destrutiva apaga dados | B | A | Aditiva; dump cifrado antes (ADR-017) | G-43 | Ordem dos passos; detector de migração não aditiva (Etapa 16) |
 
 ### 5.4 Resend (e-mail)
 

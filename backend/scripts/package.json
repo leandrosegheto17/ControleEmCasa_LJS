@@ -20,7 +20,6 @@
     "medir-retomada-a-frio": "tsx src/operacao/medir-retomada-a-frio.ts",
     "conferir-asaas-url": "tsx src/operacao/conferir-asaas-url.ts",
     "cache-hyperdrive": "tsx src/operacao/cache-hyperdrive.ts",
-    "restauracao-neon": "tsx src/operacao/restauracao-neon.ts",
     "dump-cifrado": "tsx src/operacao/dump-cifrado.ts",
     "migracoes-aditivas": "tsx src/operacao/migracao-aditiva.ts"
   },
