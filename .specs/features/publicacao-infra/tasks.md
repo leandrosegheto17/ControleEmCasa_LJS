@@ -304,10 +304,10 @@ T16
 
 **Done when**:
 
-- [ ] `wrangler secret list` mostra `CHAVE_HMAC`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` (só os nomes)
-- [ ] A chave pública VAPID NÃO é a de teste; a privada nunca aparece na conversa
-- [ ] `[A VALIDAR]`: se o Worker ainda não existir, o `wrangler secret put` pede para criá-lo; o resultado é registrado
-- [ ] Evidência registrada em `evidencias.md` (só nomes)
+- [x] `wrangler secret list` mostra `CHAVE_HMAC`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` (só os nomes)
+- [x] A chave pública VAPID NÃO é a de teste; a privada nunca aparece na conversa
+- [x] `[A VALIDAR]`: se o Worker ainda não existir, o `wrangler secret put` pede para criá-lo; o resultado é registrado
+- [x] Evidência registrada em `evidencias.md` (só nomes)
 
 **Tests**: none
 **Gate**: evidência registrada
