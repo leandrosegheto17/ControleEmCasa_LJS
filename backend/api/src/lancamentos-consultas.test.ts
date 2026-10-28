@@ -198,7 +198,8 @@ describe.skipIf(!bancoDisponivel)('GET /api/lancamentos?mes= (RN-02, CA-02.1, CA
     expect(lista.quantidade).toBe(1);
     expect(lista.total_filtrado_centavos).toBe(200);
     const texto = JSON.stringify(lista);
-    expect(texto).not.toContain('777');
+    // O 777 como valor JSON (não como pedaço de UUID aleatório, que nasceria "777" por acaso).
+    expect(texto).not.toMatch(/[:,[]777[,}\]]/);
     for (const item of lista.itens) {
       for (const chave of CHAVES_PRIVADAS) expect(Object.keys(item)).not.toContain(chave);
       expect('data_ajustada' in item).toBe(false);
