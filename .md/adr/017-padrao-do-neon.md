@@ -45,6 +45,13 @@
    `conferir-banco` (com `NEON_URL_OWNER`; a `DATABASE_URL_OWNER` apontando para o Neon é recusada) e a restauração
    (`pnpm --filter @controle/scripts conferir-url-neon NEON_URL_RESTAURACAO` antes do `pg_restore`, runbook 4.2).
    Nenhuma mensagem traz a senha nem a URL.
+5. **Timeout de conexão no cliente de banco:** a API abre o pool do `pg` com `connectionTimeoutMillis: 8000` (8 s;
+   `backend/api/src/infraestrutura/db/cliente.ts`), que cobre a retomada a frio do Neon pelo Hyperdrive sem prender a
+   requisição indefinidamente. Não há nova tentativa (retry) automática: a falha de conexão vira o erro de banco
+   indisponível da API. Os scripts de operação (`migrar-neon`, `purgar`, `conferir-banco`) usam o padrão do `pg`.
+6. **Testes de banco em banco temporário por execução:** cada execução cria um banco com nome aleatório a partir das
+   `DATABASE_URL_*` locais (`controle_teste_<hex>`, `controle_api_teste_<hex>`, `controle_e2e_<hex>` e os prefixos de
+   `criarBancoDescartavel`), aplica as migrations do zero e o apaga no fim. Nenhum teste usa o Neon.
 
 ## Consequências
 
