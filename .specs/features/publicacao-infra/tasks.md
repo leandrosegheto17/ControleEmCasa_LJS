@@ -260,10 +260,10 @@ T16
 
 **Done when**:
 
-- [ ] Teste novo falha com o id fictício (`/^0+$/`) e passa com o real; o `localConnectionString` continua local
-- [ ] O comentário do `wrangler.jsonc` sobre o id fictício é atualizado
-- [ ] Nenhum teste existente alterado
-- [ ] Gate quick verde
+- [x] Teste novo falha com o id fictício (`/^0+$/`) e passa com o real; o `localConnectionString` continua local
+- [x] O comentário do `wrangler.jsonc` sobre o id fictício é atualizado
+- [x] Um teste existente alterado, com aprovação do usuário em 2026-10-28: `cache-hyperdrive.test.ts` ("o wrangler.jsonc do repositório ainda tem o id fictício") foi invertido para exigir o id real (32 hex, não só zeros). Motivo: descrevia o estado anterior à etapa 17 e deixa de ser verdadeiro com esta tarefa; a exigência não foi afrouxada
+- [x] Gate quick verde
 
 **Tests**: unit
 **Gate**: quick

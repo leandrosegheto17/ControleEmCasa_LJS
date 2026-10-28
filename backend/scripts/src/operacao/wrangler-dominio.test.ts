@@ -8,7 +8,19 @@ const RAIZ = join(import.meta.dirname, '../../../..');
 const HOST = 'controleemcasa.ljssoftware.com.br';
 const config = JSON.parse(jsoncParaJson(readFileSync(join(RAIZ, 'wrangler.jsonc'), 'utf8'))) as {
   routes?: Array<{ pattern?: string; custom_domain?: boolean }>;
+  hyperdrive?: Array<{ binding?: string; id?: string; localConnectionString?: string }>;
 };
+
+describe('wrangler.jsonc: Hyperdrive de produção', () => {
+  it('o binding HYPERDRIVE tem um id real (32 hex, não só zeros) e o localConnectionString continua local', () => {
+    expect(config.hyperdrive).toHaveLength(1);
+    const [h] = config.hyperdrive!;
+    expect(h!.binding).toBe('HYPERDRIVE');
+    expect(h!.id).toMatch(/^[0-9a-f]{32}$/);
+    expect(h!.id).not.toMatch(/^0+$/);
+    expect(h!.localConnectionString).toMatch(/@localhost:\d+\//);
+  });
+});
 
 describe('wrangler.jsonc: domínio custom', () => {
   it('tem exatamente uma rota, custom_domain true, no host de produção e sem curinga', () => {

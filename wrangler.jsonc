@@ -1,7 +1,7 @@
 // Configuração do Worker único (SDD 11.1). Sem segredo aqui (G-32): segredos vão por `wrangler secret`
 // (no local, em `.dev.vars`; CHAVE_HMAC, RESEND_API_KEY, ASAAS_* e VAPID_*, ver .env.example).
 // O deploy só sai do .github/workflows/deploy.yml (G-42, ADR-015), que injeta com --var URL_PUBLICA, AMBIENTE,
-// ASAAS_API_URL e SENTRY_RELEASE. O id do Hyperdrive abaixo é fictício: o deploy confere o cache dele e falha até a etapa 17.
+// ASAAS_API_URL e SENTRY_RELEASE. O id do Hyperdrive abaixo é o real (17b T5): o deploy confere que o cache dele está desligado.
 {
   "name": "controle-em-casa",
   "main": "backend/api/src/entrada/worker.ts",
@@ -17,8 +17,8 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      // Id fictício: o Hyperdrive real é criado na etapa 17. Só o local (localConnectionString) funciona até lá.
-      "id": "00000000000000000000000000000000",
+      // Id do Hyperdrive `controle` de produção, sem cache (17b T5; não é segredo). O local usa o localConnectionString.
+      "id": "8ebd63783fae414eb31b4d2f14a48bfb",
       "localConnectionString": "postgres://controle_app:controle_app@localhost:5432/controle",
     },
   ],

@@ -53,9 +53,11 @@ describe('id do Hyperdrive no wrangler.jsonc', () => {
     expect(() => idDoHyperdrive('{ "hyperdrive": [] }')).toThrow(/exatamente um/);
   });
 
-  it('o wrangler.jsonc do repositório ainda tem o id fictício: o deploy falharia até a etapa 17', () => {
+  it('o wrangler.jsonc do repositório tem o id real do Hyperdrive (17b T6): com o fictício o deploy falharia', () => {
     const real = readFileSync(join(import.meta.dirname, '../../../../wrangler.jsonc'), 'utf8');
-    expect(() => idDoHyperdrive(real)).toThrow(/fictício/);
+    const id = idDoHyperdrive(real);
+    expect(id).toMatch(/^[0-9a-f]{32}$/);
+    expect(id).not.toMatch(/^0+$/);
   });
 });
 
