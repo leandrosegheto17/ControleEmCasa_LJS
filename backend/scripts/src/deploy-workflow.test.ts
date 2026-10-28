@@ -119,7 +119,9 @@ describe('.github/workflows/deploy.yml', () => {
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });
 
-  it('a publicação injeta URL_PUBLICA, AMBIENTE producao, ASAAS_API_URL de produção e SENTRY_RELEASE = SHA', () => {
+  // Alterado na publicacao-deploy T17 (aprovação do usuário em 2026-10-28): o ASAAS_API_URL deixou de ser fixo em
+  // produção e vem de vars.ASAAS_API_URL, conferido contra a lista de dois valores antes de qualquer passo de produção.
+  it('a publicação injeta URL_PUBLICA, AMBIENTE producao, ASAAS_API_URL da variável e SENTRY_RELEASE = SHA', () => {
     const linha = linhas.find((l) => PUBLICACAO.test(l))!;
     expect(linha).toContain('-c ../../wrangler.jsonc');
     expect(linha).toContain('--var "URL_PUBLICA:${URL_PUBLICA}"');
@@ -127,7 +129,31 @@ describe('.github/workflows/deploy.yml', () => {
     expect(linha).toContain('--var "ASAAS_API_URL:${ASAAS_API_URL}"');
     expect(linha).toContain('--var "SENTRY_RELEASE:${SHA}"');
     expect(semComentarios).toMatch(/URL_PUBLICA: https:\/\/controleemcasa\.ljssoftware\.com\.br\n/);
-    expect(semComentarios).toMatch(/ASAAS_API_URL: https:\/\/api\.asaas\.com\/v3\n/);
+    const publicar = job('publicar');
+    expect(publicar).toMatch(/^ {6}ASAAS_API_URL: \$\{\{ vars\.ASAAS_API_URL \}\}$/m);
+    expect(semComentarios.match(/ASAAS_API_URL:\s/g)).toHaveLength(1);
+    expect(semComentarios).not.toMatch(/https?:\/\/api(-sandbox)?\.asaas\.com/);
+  });
+
+  it('o endereço do Asaas é conferido (só produção ou sandbox) depois da instalação e antes de qualquer passo de produção', () => {
+    const conferir = posicao(/run: pnpm --filter @controle\/scripts conferir-asaas-url$/, 'conferência do Asaas');
+    const instalar = posicao(/run: pnpm install --frozen-lockfile$/, 'instalação');
+    const producao = [
+      posicao(/run: pnpm --filter @controle\/web build$/, 'build'),
+      posicao(/run: pnpm --filter @controle\/scripts cache-hyperdrive$/, 'cache do Hyperdrive'),
+      posicao(/run: pnpm --filter @controle\/scripts restauracao-neon$/, 'branch de restauração'),
+      posicao(/uses: \.\/\.github\/actions\/dump-cifrado$/, 'dump cifrado'),
+      posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração'),
+      posicao(PUBLICACAO, 'publicação'),
+    ];
+    expect(instalar).toBeLessThan(conferir);
+    for (const p of producao) expect(conferir).toBeLessThan(p);
+    // Passo sem segredo, sem if e sem continue-on-error: a falha dele para o job.
+    let inicio = conferir;
+    while (inicio > 0 && !/^ {6}- /.test(linhas[inicio]!)) inicio -= 1;
+    expect(inicio).toBeGreaterThan(instalar);
+    const passo = linhas.slice(inicio, conferir + 1).join('\n');
+    expect(passo).not.toMatch(/secrets\.|if:|continue-on-error/);
   });
 
   it('o dump antes da migração usa a role backup_ro (o owner, com RLS FORCE, sairia sem linhas) e o destinatário público', () => {

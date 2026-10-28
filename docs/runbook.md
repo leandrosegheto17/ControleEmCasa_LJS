@@ -67,6 +67,7 @@ As migrations são aditivas, então o Worker anterior continua funcionando com o
   usa o `--message` e confirma sozinho (`-y` não é necessário, mas não atrapalha). Cada rollback levou cerca de 7 s e o
   `/api/health` respondeu 200 logo depois. Para voltar a uma versão específica, passe o id:
   `wrangler rollback <version-id> -c ../../wrangler.jsonc --message "..."` (`wrangler deployments list` mostra os ids).
+
 - **Cuidado com os segredos:** cada versão do Worker guarda os segredos de quando foi criada, e cada `wrangler secret put`
   cria uma versão nova. Reverter para uma versão anterior a uma troca de segredo **desfaz** essa troca. Antes de
   reverter, confira com `wrangler deployments list` qual é a versão anterior e qual segredo mudou depois dela. Não
@@ -252,6 +253,11 @@ por workflow e ficam fora desta lista. A tabela abaixo é conferida por teste co
 | variável | `VITE_SENTRY_DSN`       |
 
 <!-- segredos-workflows:fim -->
+
+A variável `ASAAS_API_URL` controla o endereço do Asaas do deploy (vai para o Worker) e da purga. Só dois valores são
+aceitos: `https://api.asaas.com/v3` (produção) ou `https://api-sandbox.asaas.com/v3` (sandbox). Qualquer outro,
+inclusive vazio, faz o deploy falhar antes de tocar a produção (`conferir-asaas-url`). Trocar o valor só vale para o
+Worker no próximo deploy.
 
 ## 8. Incidentes
 

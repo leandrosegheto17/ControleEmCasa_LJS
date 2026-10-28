@@ -6,7 +6,7 @@
 # num push à `main`, terminou com sucesso; CI em andamento, vermelho, cancelado ou inexistente falha com erro claro.
 # Disparo: `gh workflow run deploy --ref main` ou Actions -> deploy -> Run workflow (runbook, seção 2).
 #
-# Ordem fixa (G-43): build -> cache do Hyperdrive conferido -> branch de restauração no Neon (mantém 2) -> dump
+# Ordem fixa (G-43): endereço do Asaas conferido (17c T17) -> build -> cache do Hyperdrive conferido -> branch de restauração no Neon (mantém 2) -> dump
 # cifrado com age -> migração com a role owner -> wrangler deploy -> saúde. Qualquer passo que falha para tudo.
 #
 # Environment: o `publicar` roda no `producao` (segredos, só da main, sem revisor). Emenda de 2026-10-27 ao ADR-015: o
@@ -66,7 +66,8 @@ jobs:
     env:
       SHA: ${{ github.sha }}
       URL_PUBLICA: https://controleemcasa.ljssoftware.com.br
-      ASAAS_API_URL: https://api.asaas.com/v3
+      # Variável do environment `producao` (a mesma da purga): produção ou sandbox, conferida no passo 0 (17c T17).
+      ASAAS_API_URL: ${{ vars.ASAAS_API_URL }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -78,6 +79,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
+      - name: 0. Conferir o endereço do Asaas (só produção ou sandbox)
+        run: pnpm --filter @controle/scripts conferir-asaas-url
 
       - name: 1. Build do front (antes de tocar em qualquer coisa de produção)
         env:

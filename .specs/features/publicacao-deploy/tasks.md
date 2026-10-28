@@ -280,10 +280,10 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] `deploy.yml` lê `ASAAS_API_URL` de `vars.ASAAS_API_URL` e falha antes de qualquer passo de produção se o valor não for um dos dois permitidos (também se a variável estiver vazia)
-- [ ] O teste existente `deploy-workflow.test.ts:122-130` é alterado só no que muda (endereço fixo vira "vem da variável, só dois valores"), com o motivo no commit; motivo e aprovação do usuário em 2026-10-28
-- [ ] Testes novos: valores aceitos (produção e sandbox) e recusados (vazio, `http://`, host diferente, barra final)
-- [ ] Suíte dos scripts verde; trava de testes verde com tudo commitado
+- [x] `deploy.yml` lê `ASAAS_API_URL` de `vars.ASAAS_API_URL` e falha antes de qualquer passo de produção se o valor não for um dos dois permitidos (também se a variável estiver vazia) (passo 0, `conferir-asaas-url`)
+- [x] O teste existente `deploy-workflow.test.ts:122-130` é alterado só no que muda (endereço fixo vira "vem da variável, só dois valores"), com o motivo no commit; motivo e aprovação do usuário em 2026-10-28
+- [x] Testes novos: valores aceitos (produção e sandbox) e recusados (vazio, `http://`, host diferente, barra final) (`operacao/conferir-asaas-url.test.ts`)
+- [ ] Suíte dos scripts verde; trava de testes verde com tudo commitado (suíte dos scripts verde, 554 testes; a trava com a suíte inteira ainda não rodou)
 
 **Tests**: unit
 **Gate**: Quick
