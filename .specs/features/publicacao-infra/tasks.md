@@ -457,9 +457,9 @@ T16
 
 **Done when**:
 
-- [ ] A conta de produção está aprovada (o Asaas pode demorar; se demorar, a tarefa fica pendente sem bloquear a 17c até o fim da 17d)
-- [ ] `wrangler secret list` mostra `ASAAS_API_KEY` e `ASAAS_WEBHOOK_TOKEN` (só nomes)
-- [ ] Evidência registrada em `evidencias.md`
+- [x] A conta de produção está aprovada (o Asaas pode demorar; se demorar, a tarefa fica pendente sem bloquear a 17c até o fim da 17d)
+- [x] `wrangler secret list` mostra `ASAAS_API_KEY` e `ASAAS_WEBHOOK_TOKEN` (só nomes)
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: none
 **Gate**: evidência registrada
