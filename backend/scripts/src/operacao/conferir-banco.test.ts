@@ -56,10 +56,24 @@ describe('avaliar (funções puras)', () => {
 });
 
 describe('main sem banco', () => {
-  it('sem DATABASE_URL_OWNER falha com mensagem clara', async () => {
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): a mensagem cita as duas variáveis aceitas.
+  it('sem NEON_URL_OWNER nem DATABASE_URL_OWNER falha com mensagem clara', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(await main({})).toBe(1);
-    expect(erro).toHaveBeenCalledWith('DATABASE_URL_OWNER ausente.');
+    expect(erro).toHaveBeenCalledWith('NEON_URL_OWNER (Neon) e DATABASE_URL_OWNER (banco local) ausentes.');
+    erro.mockRestore();
+  });
+
+  it('com NEON_URL_OWNER, usa ela (e não a DATABASE_URL_OWNER) e cita o nome dela na falha', async () => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const amb = {
+      // Nenhum host real: a porta 1 do loopback recusa na hora.
+      NEON_URL_OWNER: 'postgres://u:p@127.0.0.1:1/controle',
+      DATABASE_URL_OWNER: 'postgres://u:p@127.0.0.1:1/controle',
+    };
+    expect(await main(amb)).toBe(1);
+    expect(erro.mock.calls.flat().join('\n')).toContain('NEON_URL_OWNER');
+    expect(erro.mock.calls.flat().join('\n')).not.toContain('DATABASE_URL_OWNER');
     erro.mockRestore();
   });
 });

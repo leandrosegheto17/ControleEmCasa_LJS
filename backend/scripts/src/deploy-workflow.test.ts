@@ -113,7 +113,7 @@ describe('.github/workflows/deploy.yml', () => {
       posicao(/run: pnpm --filter @controle\/web build$/, 'build'),
       posicao(/run: pnpm --filter @controle\/scripts cache-hyperdrive$/, 'cache do Hyperdrive'),
       posicao(/uses: \.\/\.github\/actions\/dump-cifrado$/, 'dump cifrado'),
-      posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração'),
+      posicao(/run: pnpm --filter @controle\/scripts migrar-neon --sim$/, 'migração'),
       posicao(PUBLICACAO, 'publicação'),
       posicao(/curl -fsS .*\/api\/health"$/, 'saúde'),
     ];
@@ -143,7 +143,7 @@ describe('.github/workflows/deploy.yml', () => {
       posicao(/run: pnpm --filter @controle\/web build$/, 'build'),
       posicao(/run: pnpm --filter @controle\/scripts cache-hyperdrive$/, 'cache do Hyperdrive'),
       posicao(/uses: \.\/\.github\/actions\/dump-cifrado$/, 'dump cifrado'),
-      posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração'),
+      posicao(/run: pnpm --filter @controle\/scripts migrar-neon --sim$/, 'migração'),
       posicao(PUBLICACAO, 'publicação'),
     ];
     expect(instalar).toBeLessThan(conferir);
@@ -159,16 +159,18 @@ describe('.github/workflows/deploy.yml', () => {
   it('o dump antes da migração usa a role backup_ro (o owner, com RLS FORCE, sairia sem linhas) e o destinatário público', () => {
     const i = linhas.findIndex((l) => /uses: \.\/\.github\/actions\/dump-cifrado/.test(l));
     const bloco = linhas.slice(i, i + 5).join('\n');
-    expect(bloco).toMatch(/url: \$\{\{ secrets\.DATABASE_URL_BACKUP \}\}/);
+    expect(bloco).toMatch(/url: \$\{\{ secrets\.NEON_URL_BACKUP \}\}/);
     expect(bloco).toMatch(/destinatario: \$\{\{ vars\.AGE_RECIPIENT \}\}/);
     expect(bloco).toMatch(/nome-artefato: dump-predeploy-/);
   });
 
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): a URL de produção se chama NEON_URL_OWNER e a migração do deploy
+  // passa pelo migrar-neon (não lê .env, valida o destino), em modo --sim (o runner não tem terminal para confirmar).
   it('a migração é a única com a URL do owner', () => {
-    const comOwner = linhas.filter((l) => l.includes('secrets.DATABASE_URL_OWNER'));
-    expect(comOwner).toEqual(['          DATABASE_URL_OWNER: ${{ secrets.DATABASE_URL_OWNER }}']);
-    const migrar = posicao(/run: pnpm --filter @controle\/scripts migrar$/, 'migração');
-    const owner = posicao(/secrets\.DATABASE_URL_OWNER/, 'owner');
+    const comOwner = linhas.filter((l) => l.includes('secrets.NEON_URL_OWNER'));
+    expect(comOwner).toEqual(['          NEON_URL_OWNER: ${{ secrets.NEON_URL_OWNER }}']);
+    const migrar = posicao(/run: pnpm --filter @controle\/scripts migrar-neon --sim$/, 'migração');
+    const owner = posicao(/secrets\.NEON_URL_OWNER/, 'owner');
     expect(migrar - owner).toBeGreaterThan(0);
     expect(migrar - owner).toBeLessThanOrEqual(2);
   });
@@ -196,10 +198,12 @@ describe('.github/workflows/deploy.yml', () => {
     expect(pacote).not.toMatch(/restauracao/);
   });
 
-  // Alterado no padrão do Neon (ADR-017, 2026-10-28): saiu a NEON_API_KEY, que só servia à branch de restauração.
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): saiu a NEON_API_KEY, que só servia à branch de restauração, e as
+  // URLs de produção passam a NEON_URL_* (DATABASE_URL_* fica só para o banco local e de teste).
   it('segredos só por referência, só nos passos (nunca no env do job) e só os três necessários', () => {
     const nomes = new Set([...semComentarios.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]));
-    expect([...nomes].sort()).toEqual(['CLOUDFLARE_API_TOKEN', 'DATABASE_URL_BACKUP', 'DATABASE_URL_OWNER']);
+    expect([...nomes].sort()).toEqual(['CLOUDFLARE_API_TOKEN', 'NEON_URL_BACKUP', 'NEON_URL_OWNER']);
+    expect(semComentarios).not.toMatch(/DATABASE_URL/);
     for (const l of linhas.filter((x) => x.includes('secrets.'))) {
       expect(l, l).toMatch(/^ {10}\S/);
     }

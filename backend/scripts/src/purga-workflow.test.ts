@@ -24,7 +24,9 @@ describe('.github/workflows/purga.yml', () => {
   });
 
   it('segredos só por referência; nenhuma URL de banco, chave do Asaas ou senha no arquivo', () => {
-    expect(semComentarios).toMatch(/DATABASE_URL_OWNER: \$\{\{ secrets\.DATABASE_URL_OWNER \}\}/);
+    // Alterado no padrão do Neon (ADR-017, 2026-10-28): a URL de produção se chama NEON_URL_OWNER.
+    expect(semComentarios).toMatch(/NEON_URL_OWNER: \$\{\{ secrets\.NEON_URL_OWNER \}\}/);
+    expect(semComentarios).not.toMatch(/DATABASE_URL/);
     expect(semComentarios).toMatch(/ASAAS_API_KEY: \$\{\{ secrets\.ASAAS_API_KEY \}\}/);
     expect(texto).not.toMatch(/postgres(ql)?:\/\//i);
     expect(texto).not.toMatch(/\$aact_/);

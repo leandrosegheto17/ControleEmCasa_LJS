@@ -32,7 +32,7 @@ describe('.github/workflows/backup.yml', () => {
 
   it('usa a action do dump cifrado com a role backup_ro e o destinatário público age', () => {
     expect(backupSem).toMatch(/uses: \.\/\.github\/actions\/dump-cifrado\s*\n/);
-    expect(backupSem).toMatch(/url: \$\{\{ secrets\.DATABASE_URL_BACKUP \}\}/);
+    expect(backupSem).toMatch(/url: \$\{\{ secrets\.NEON_URL_BACKUP \}\}/);
     expect(backupSem).toMatch(/destinatario: \$\{\{ vars\.AGE_RECIPIENT \}\}/);
     expect(backupSem).toMatch(/nome-artefato: backup-\$\{\{ steps\.data\.outputs\.dia \}\}-/);
     expect(backupSem).toMatch(/TZ=America\/Sao_Paulo date \+%F/);
@@ -49,9 +49,11 @@ describe('.github/workflows/backup.yml', () => {
     expect(backupSem).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell: bash/);
   });
 
+  // Alterado no padrão do Neon (ADR-017, 2026-10-28): a URL de produção se chama NEON_URL_BACKUP.
   it('segredos só por referência: só a URL do backup_ro, nunca a do owner nem a do app', () => {
     const nomes = new Set([...backupSem.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]));
-    expect([...nomes]).toEqual(['DATABASE_URL_BACKUP']);
+    expect([...nomes]).toEqual(['NEON_URL_BACKUP']);
+    expect(backupSem).not.toMatch(/DATABASE_URL/);
     expect(backup).not.toMatch(/postgres(ql)?:\/\//i);
     expect(backup).not.toMatch(/password|senha\s*[:=]/i);
   });

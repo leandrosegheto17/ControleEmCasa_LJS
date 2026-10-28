@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import type { DadosDoBanco } from './conferir-banco';
-import { avaliarDestino, migrarNeon, type Dependencias } from './migrar-neon';
+import { ARGUMENTOS_MIGRACAO, avaliarDestino, migrarNeon, type Dependencias } from './migrar-neon';
 
 /** G-43; TM-DB-05: o comando só migra o Neon, com o destino confirmado e sem cair no `.env` local. */
 const SENHA = 'segredo-super-secreto';
@@ -21,7 +21,7 @@ function montar(extra: Partial<Dependencias> = {}) {
   const migrar = vi.fn(async () => 0);
   const perguntar = vi.fn(async () => 'controle');
   const dep: Dependencias = {
-    ambiente: { DATABASE_URL_OWNER: URL_OK },
+    ambiente: { NEON_URL_OWNER: URL_OK },
     argv: [],
     perguntar,
     migrar,
@@ -62,10 +62,10 @@ describe('avaliarDestino', () => {
 });
 
 describe('migrarNeon', () => {
-  it('sem DATABASE_URL_OWNER falha com mensagem clara e não migra', async () => {
+  it('sem NEON_URL_OWNER falha com mensagem clara e não migra', async () => {
     const { dep, erros, migrar } = montar({ ambiente: {} });
     expect(await migrarNeon(dep)).toBe(1);
-    expect(erros.join('\n')).toContain('DATABASE_URL_OWNER ausente');
+    expect(erros.join('\n')).toContain('NEON_URL_OWNER ausente');
     expect(migrar).not.toHaveBeenCalled();
   });
 
@@ -73,7 +73,7 @@ describe('migrarNeon', () => {
     const dir = mkdtempSync(join(tmpdir(), 'migrar-neon-'));
     const anterior = process.cwd();
     try {
-      writeFileSync(join(dir, '.env'), `DATABASE_URL_OWNER=${URL_OK}\n`);
+      writeFileSync(join(dir, '.env'), `NEON_URL_OWNER=${URL_OK}\n`);
       process.chdir(dir);
       const { dep, migrar } = montar({ ambiente: {} });
       expect(await migrarNeon(dep)).toBe(1);
@@ -88,9 +88,22 @@ describe('migrarNeon', () => {
     expect(pacote).toMatch(/"migrar-neon": "tsx src\/operacao\/migrar-neon\.ts"/);
   });
 
+  it('a migração lê a URL de NEON_URL_OWNER (padrão do Neon, ADR-017), nunca de DATABASE_URL_OWNER nem de argv', () => {
+    const i = ARGUMENTOS_MIGRACAO.indexOf('--database-url-var');
+    expect(ARGUMENTOS_MIGRACAO[i + 1]).toBe('NEON_URL_OWNER');
+    expect(ARGUMENTOS_MIGRACAO.join(' ')).not.toMatch(/DATABASE_URL|postgres(ql)?:\/\//);
+  });
+
+  it('com só DATABASE_URL_OWNER (nome do banco local) no ambiente, recusa e não migra', async () => {
+    const { dep, migrar, erros } = montar({ ambiente: { DATABASE_URL_OWNER: URL_OK } });
+    expect(await migrarNeon(dep)).toBe(1);
+    expect(migrar).not.toHaveBeenCalled();
+    expect(erros.join('\n')).toContain('NEON_URL_OWNER ausente');
+  });
+
   it('destino recusado não pergunta nem migra', async () => {
     const { dep, migrar, perguntar, erros } = montar({
-      ambiente: { DATABASE_URL_OWNER: 'postgresql://u:p@localhost:55432/controle' },
+      ambiente: { NEON_URL_OWNER: 'postgresql://u:p@localhost:55432/controle' },
     });
     expect(await migrarNeon(dep)).toBe(1);
     expect(migrar).not.toHaveBeenCalled();

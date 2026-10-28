@@ -55,5 +55,5 @@
 
 - Etapa 15: `push_subscription` e `preferencia_notificacao` entram em `TABELAS_DO_LAR` (o teste de catálogo obriga) e a confirmação apaga as inscrições de push na hora (G-49, CA-27.6).
 - Etapa 15: o Cron do Worker `30 6 * * *` (limpeza curta do SDD §11.1: convites vencidos viram `expirado`, poda de 24 h) nasce com o `scheduled`; a purga já cobre a poda de 30 dias.
-- Etapa 17: criar o environment `producao` com `DATABASE_URL_OWNER`, `ASAAS_API_KEY` e a variável `ASAAS_API_URL`, e ligar `PURGA_ATIVA`.
+- Etapa 17: criar o environment `producao` com `NEON_URL_OWNER` (era `DATABASE_URL_OWNER` até o ADR-017), `ASAAS_API_KEY` e a variável `ASAAS_API_URL`, e ligar `PURGA_ATIVA`.
 - Lote 2 desta etapa: telas de pedido (Ajustes → Conta), `/confirmar-exclusao`, aviso ao convidado, landing, `/termos` e `/privacidade` (informar a retenção de 30 dias dos backups, CA-26.5).

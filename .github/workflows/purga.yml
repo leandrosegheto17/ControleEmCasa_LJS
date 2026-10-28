@@ -35,6 +35,6 @@ jobs:
       - name: Purgar exclusões vencidas, ex-membros, contas não confirmadas e podar
         run: pnpm --filter @controle/scripts purgar
         env:
-          DATABASE_URL_OWNER: ${{ secrets.DATABASE_URL_OWNER }}
+          NEON_URL_OWNER: ${{ secrets.NEON_URL_OWNER }}
           ASAAS_API_URL: ${{ vars.ASAAS_API_URL }}
           ASAAS_API_KEY: ${{ secrets.ASAAS_API_KEY }}

@@ -23,6 +23,21 @@
    novo da `main` (para voltar a produção) ou da `dev` (ensaio), sem criar branch (runbook 4.2).
    Ordem do deploy: endereço do Asaas → build → cache do Hyperdrive → dump cifrado → migração com o owner → `wrangler
    deploy` → saúde.
+2. **Postgres 18** em local (`docker-compose.yml`), CI (`ci.yml`) e no Neon, como no ADR-016. A imagem do `pg_dump`
+   continua fixada por digest (`postgres:18-alpine@sha256:…` em `dump-cifrado.ts`); compose e CI usam a tag
+   `postgres:18-alpine`.
+3. **Nomes das variáveis:** `NEON_URL_*` para toda conexão com o Neon, e `DATABASE_URL_*` só para o banco local e de
+   teste.
+   - `NEON_URL_OWNER` (role `controle_owner`): secret do environment `producao` para a migração do deploy e a purga, e
+     variável só do terminal para o `migrar-neon` e o `conferir-banco` contra o Neon;
+   - `NEON_URL_BACKUP` (role `controle_backup_ro`): secret do `producao` para o backup e o dump do deploy;
+   - `NEON_URL_APP` (role `controle_app`): só no terminal, ao criar o Hyperdrive; o Worker usa o binding `HYPERDRIVE`;
+   - `DATABASE_URL_OWNER`, `DATABASE_URL_APP` e `DATABASE_URL_BACKUP` ficam no `.env` local (Postgres do Docker) e nos
+     testes, que criam a partir delas um banco descartável por execução, passado ao node-pg-migrate como
+     `DATABASE_URL_TESTE` (ou `DATABASE_URL_E2E` nos e2e da pilha).
+
+   A migração do deploy passa a usar o `migrar-neon --sim`, que lê só `NEON_URL_OWNER` do ambiente (nunca o `.env`) e,
+   depois de migrar, confere roles, RLS e migrations como o `conferir-banco`.
 
 ## Consequências
 

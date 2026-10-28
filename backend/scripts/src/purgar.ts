@@ -425,20 +425,21 @@ export async function purgar(c: pg.Client, opcoes: OpcoesPurga): Promise<Relator
 }
 
 /**
- * Linha de comando (`pnpm --filter @controle/scripts purgar`). Lê `DATABASE_URL_OWNER` e, se houver,
- * `ASAAS_API_URL` e `ASAAS_API_KEY`; `PURGA_LIMITE` muda o limite por execução. Sai com código 1 se alguma unidade
- * falhou (o workflow fica vermelho; a próxima execução tenta de novo) e 2 sem a URL do banco.
+ * Linha de comando (`pnpm --filter @controle/scripts purgar`). Lê `NEON_URL_OWNER` (a purga só roda contra o Neon;
+ * padrão do Neon, ADR-017) e, se houver, `ASAAS_API_URL` e `ASAAS_API_KEY`; `PURGA_LIMITE` muda o limite por
+ * execução. Sai com código 1 se alguma unidade falhou (o workflow fica vermelho; a próxima execução tenta de novo) e 2
+ * sem a URL do banco.
  */
-async function principal(): Promise<number> {
-  const url = process.env['DATABASE_URL_OWNER'];
+export async function principal(ambiente: NodeJS.ProcessEnv = process.env): Promise<number> {
+  const url = ambiente['NEON_URL_OWNER'];
   if (!url) {
-    console.error(JSON.stringify({ nivel: 'error', evento: 'purga_sem_banco', variavel: 'DATABASE_URL_OWNER' }));
+    console.error(JSON.stringify({ nivel: 'error', evento: 'purga_sem_banco', variavel: 'NEON_URL_OWNER' }));
     return 2;
   }
-  const urlAsaas = process.env['ASAAS_API_URL'];
-  const chaveAsaas = process.env['ASAAS_API_KEY'];
+  const urlAsaas = ambiente['ASAAS_API_URL'];
+  const chaveAsaas = ambiente['ASAAS_API_KEY'];
   const asaas = urlAsaas && chaveAsaas ? criarClienteAsaas({ urlBase: urlAsaas, chaveApi: chaveAsaas }) : null;
-  const limite = Number(process.env['PURGA_LIMITE'] ?? LIMITE_PADRAO);
+  const limite = Number(ambiente['PURGA_LIMITE'] ?? LIMITE_PADRAO);
   const c = new pg.Client({ connectionString: url });
   await c.connect();
   try {

@@ -142,9 +142,12 @@ export async function main(
   ambiente: NodeJS.ProcessEnv = process.env,
   pasta: string = PASTA_MIGRACOES,
 ): Promise<number> {
-  const url = ambiente['DATABASE_URL_OWNER'];
+  // Padrão do Neon (ADR-017): `NEON_URL_OWNER` para o Neon (produção ou `dev`); `DATABASE_URL_OWNER` só para o banco
+  // local e de teste. Com as duas, vale a do Neon.
+  const variavel = ambiente['NEON_URL_OWNER'] ? 'NEON_URL_OWNER' : 'DATABASE_URL_OWNER';
+  const url = ambiente[variavel];
   if (!url) {
-    console.error('DATABASE_URL_OWNER ausente.');
+    console.error('NEON_URL_OWNER (Neon) e DATABASE_URL_OWNER (banco local) ausentes.');
     return 1;
   }
   let dados: DadosDoBanco;
@@ -152,7 +155,7 @@ export async function main(
     dados = await conferirBanco(url, pasta);
   } catch {
     // Texto do erro do driver pode trazer host ou usuário: não vai à saída.
-    console.error('Não foi possível ler o banco com DATABASE_URL_OWNER (conexão ou consulta falhou).');
+    console.error(`Não foi possível ler o banco com ${variavel} (conexão ou consulta falhou).`);
     return 1;
   }
   // IGNORAR_ROLES (lista separada por vírgula) existe só para o ensaio local, onde o owner do docker é superusuário.

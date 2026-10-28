@@ -101,15 +101,15 @@ jobs:
       - name: 3. Dump cifrado antes da migração (ponto de retorno)
         uses: ./.github/actions/dump-cifrado
         with:
-          url: ${{ secrets.DATABASE_URL_BACKUP }}
+          url: ${{ secrets.NEON_URL_BACKUP }}
           destinatario: ${{ vars.AGE_RECIPIENT }}
           nome-artefato: dump-predeploy-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: 4. Migrar com a role owner
         id: migrar
         env:
-          DATABASE_URL_OWNER: ${{ secrets.DATABASE_URL_OWNER }}
-        run: pnpm --filter @controle/scripts migrar
+          NEON_URL_OWNER: ${{ secrets.NEON_URL_OWNER }}
+        run: pnpm --filter @controle/scripts migrar-neon --sim
 
       - name: 5. Publicar o Worker
         id: publicar

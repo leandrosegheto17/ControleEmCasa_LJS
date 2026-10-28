@@ -196,18 +196,18 @@ o `.env` local aponta para o Docker e o `pnpm migrar` o carrega; `migrar` fica s
 Troque um segredo quando ele vazar, quando alguém com acesso sair, ou uma vez por ano. Nunca cole segredo em conversa,
 issue, PR ou log.
 
-| Segredo                                     | Onde fica                                   | Como trocar                                                                          | Efeito da troca                                                                                         |
-| ------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `CHAVE_HMAC`                                | Worker (`wrangler secret put CHAVE_HMAC`)   | Gere 32 bytes base64url e grave                                                      | Zera a contagem de tentativas de login e de exclusão (os hashes antigos de e-mail e IP deixam de casar) |
-| `RESEND_API_KEY`                            | Worker                                      | Crie a chave nova no Resend (só envio, restrita ao domínio), grave, revogue a antiga | Nenhum                                                                                                  |
-| `ASAAS_API_KEY`                             | Worker e environment `producao` (purga)     | Gere no Asaas (sem transferência por API), grave nos dois, revogue a antiga          | Nenhum                                                                                                  |
-| `ASAAS_WEBHOOK_TOKEN`                       | Worker                                      | Grave o novo no Worker e, logo depois, no webhook do Asaas                           | Eventos entre os dois passos são recusados e o Asaas reenvia                                            |
-| `VAPID_PRIVATE_KEY` / `VAPID_PUBLIC_KEY`    | Worker                                      | `pnpm --filter @controle/scripts gerar-vapid` e grave o par                          | Todas as inscrições de push deixam de valer: cada aparelho precisa ativar de novo                       |
-| `SENTRY_DSN` / `VITE_SENTRY_DSN`            | Worker / variável do environment `producao` | Gere a chave nova no projeto do Sentry, grave, revogue a antiga                      | O front só passa a usar o DSN novo no próximo deploy                                                    |
-| `DATABASE_URL_OWNER`, `DATABASE_URL_BACKUP` | Environment `producao`                      | Troque a senha da role no Neon e grave a URL nova                                    | Nenhum para o app                                                                                       |
-| Senha da `controle_app`                     | Neon e Hyperdrive                           | Troque no Neon e atualize o Hyperdrive na mesma janela                               | Requisições falham entre os dois passos                                                                 |
-| `CLOUDFLARE_API_TOKEN`                      | Environment `producao`                      | Gere a nova com o menor escopo, grave, revogue a antiga                              | Nenhum                                                                                                  |
-| Chave `age`                                 | Offline (seção 6)                           | Seção 6                                                                              | Nenhum                                                                                                  |
+| Segredo                                  | Onde fica                                   | Como trocar                                                                          | Efeito da troca                                                                                         |
+| ---------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `CHAVE_HMAC`                             | Worker (`wrangler secret put CHAVE_HMAC`)   | Gere 32 bytes base64url e grave                                                      | Zera a contagem de tentativas de login e de exclusão (os hashes antigos de e-mail e IP deixam de casar) |
+| `RESEND_API_KEY`                         | Worker                                      | Crie a chave nova no Resend (só envio, restrita ao domínio), grave, revogue a antiga | Nenhum                                                                                                  |
+| `ASAAS_API_KEY`                          | Worker e environment `producao` (purga)     | Gere no Asaas (sem transferência por API), grave nos dois, revogue a antiga          | Nenhum                                                                                                  |
+| `ASAAS_WEBHOOK_TOKEN`                    | Worker                                      | Grave o novo no Worker e, logo depois, no webhook do Asaas                           | Eventos entre os dois passos são recusados e o Asaas reenvia                                            |
+| `VAPID_PRIVATE_KEY` / `VAPID_PUBLIC_KEY` | Worker                                      | `pnpm --filter @controle/scripts gerar-vapid` e grave o par                          | Todas as inscrições de push deixam de valer: cada aparelho precisa ativar de novo                       |
+| `SENTRY_DSN` / `VITE_SENTRY_DSN`         | Worker / variável do environment `producao` | Gere a chave nova no projeto do Sentry, grave, revogue a antiga                      | O front só passa a usar o DSN novo no próximo deploy                                                    |
+| `NEON_URL_OWNER`, `NEON_URL_BACKUP`      | Environment `producao`                      | Troque a senha da role no Neon e grave a URL nova                                    | Nenhum para o app                                                                                       |
+| Senha da `controle_app`                  | Neon e Hyperdrive                           | Troque no Neon e atualize o Hyperdrive na mesma janela                               | Requisições falham entre os dois passos                                                                 |
+| `CLOUDFLARE_API_TOKEN`                   | Environment `producao`                      | Gere a nova com o menor escopo, grave, revogue a antiga                              | Nenhum                                                                                                  |
+| Chave `age`                              | Offline (seção 6)                           | Seção 6                                                                              | Nenhum                                                                                                  |
 
 `[A VALIDAR NA ETAPA 17]`: o escopo mínimo do `CLOUDFLARE_API_TOKEN` usado de fato. A `NEON_API_KEY` saiu com a
 branch de restauração (ADR-017): nenhum workflow fala com a API do Neon.
@@ -224,8 +224,8 @@ por workflow e ficam fora desta lista. A tabela abaixo é conferida por teste co
 | -------- | ----------------------- |
 | secret   | `ASAAS_API_KEY`         |
 | secret   | `CLOUDFLARE_API_TOKEN`  |
-| secret   | `DATABASE_URL_BACKUP`   |
-| secret   | `DATABASE_URL_OWNER`    |
+| secret   | `NEON_URL_BACKUP`       |
+| secret   | `NEON_URL_OWNER`        |
 | variável | `AGE_RECIPIENT`         |
 | variável | `ASAAS_API_URL`         |
 | variável | `BACKUP_ATIVO`          |
@@ -376,7 +376,7 @@ enquanto as duas roles não tiverem `search_path = app` no banco. Não dê `CREA
 
 | #   | Passo                            | Comando                                                                                                                                             | Evidência a guardar                                                                    |
 | --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 1   | Conferir roles e RLS do banco    | `DATABASE_URL_OWNER` (da produção) no ambiente e `pnpm --filter @controle/scripts conferir-banco`                                                   | A linha `Banco conforme: ...` (só contagens); migrations pendentes são aplicadas antes |
+| 1   | Conferir roles e RLS do banco    | `NEON_URL_OWNER` (da produção) no ambiente e `pnpm --filter @controle/scripts conferir-banco`                                                       | A linha `Banco conforme: ...` (só contagens); migrations pendentes são aplicadas antes |
 | 2   | Criar o Hyperdrive e trocar o id | Passo do `neon.md`; trocar o id fictício no `wrangler.jsonc` e commitar                                                                             | Id novo no commit; `cache-hyperdrive` verde no passo 2 do deploy                       |
 | 3   | Ligar o deploy                   | Variável de repositório `DEPLOY_ATIVO=true` e o workflow `deploy` (Actions, disparo manual na `main`)                                               | Link da execução do `deploy.yml` verde                                                 |
 | 4   | Fumaça                           | Passo 6 do `deploy.yml`: `/api/health`, `/`, `/app/` e os cabeçalhos CSP, HSTS e `Cache-Control: no-store`                                          | Log do passo 6 verde                                                                   |

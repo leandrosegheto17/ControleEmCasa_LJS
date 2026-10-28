@@ -48,9 +48,10 @@ O projeto tem só duas branches permanentes, `main` (produção) e `dev` (ADR-01
 
 - Criar a branch `dev` (filha da `main`) **depois** do passo 3, para herdar roles e banco. `[A VALIDAR]` o passo no console.
 - Anotar, para cada role, a string **direta** (host **sem** `-pooler`), com `sslmode=require`. As URLs:
-  - owner: vai para o secret `DATABASE_URL_OWNER` (migrations e purga);
-  - backup: vai para `DATABASE_URL_BACKUP`;
-  - app: **só** vai para o Hyperdrive.
+  - owner: vai para o secret `NEON_URL_OWNER` (migrations e purga);
+  - backup: vai para `NEON_URL_BACKUP`;
+  - app (`NEON_URL_APP`): **só** vai para o Hyperdrive.
+- Nomes (padrão do Neon, ADR-017): `NEON_URL_*` para o Neon; `DATABASE_URL_*` fica só para o banco local e de teste.
 - Motivo da string direta: o pooler do Neon usa PgBouncer em transaction mode, e a API depende de `set_config(..., true)` dentro da transação; o Hyperdrive já faz o próprio pooling.
 
 ## 5. Ensaio na branch `dev` (antes de tocar na `main`)
@@ -67,7 +68,7 @@ Motivo: o `controle_owner` é `NOCREATEROLE` (passo 2) e não pode alterar outra
 Na sua máquina, com a URL **direta do owner da branch `dev`** numa variável só do terminal:
 
 ```powershell
-$env:DATABASE_URL_OWNER = '<url direta owner, branch dev>'
+$env:NEON_URL_OWNER = '<url direta owner, branch dev>'
 pnpm migrar-neon
 ```
 
@@ -89,8 +90,8 @@ Antes, a mesma preparação do passo 5 (os dois `ALTER ROLE ... IN DATABASE cont
 Na sua máquina, a string vai por variável (não fica no histórico do shell). O `wrangler` só existe no pacote `backend/api`, por isso o `--filter` (conferir com `wrangler hyperdrive get <id>`, que mostra `caching.disabled: true`):
 
 ```powershell
-$env:CONN = '<url direta controle_app, branch main>'
-pnpm --filter ./backend/api exec wrangler hyperdrive create controle --connection-string="$env:CONN" --caching-disabled
+$env:NEON_URL_APP = '<url direta controle_app, branch main>'
+pnpm --filter ./backend/api exec wrangler hyperdrive create controle --connection-string="$env:NEON_URL_APP" --caching-disabled
 ```
 
 - O comando imprime o **id**. Eu troco o id fictício `00000000000000000000000000000000` do `wrangler.jsonc` e faço o commit.
@@ -101,7 +102,7 @@ pnpm --filter ./backend/api exec wrangler hyperdrive create controle --connectio
 
 | Onde | Nome | Origem |
 |---|---|---|
-| Secret do environment `producao` | `DATABASE_URL_OWNER`, `DATABASE_URL_BACKUP` | passo 4 |
+| Secret do environment `producao` | `NEON_URL_OWNER`, `NEON_URL_BACKUP` | passo 4 |
 | Secret | `CLOUDFLARE_API_TOKEN` | Cloudflare, menor escopo possível; `[A VALIDAR]` o mínimo (comece com Workers Scripts Edit, Hyperdrive Edit, Workers Routes Edit, Zone Read) |
 | Variável | `CLOUDFLARE_ACCOUNT_ID`, `AGE_RECIPIENT`, `DEPLOY_ATIVO`, `BACKUP_ATIVO`, `PURGA_ATIVA` | passos 1 e seguintes |
 

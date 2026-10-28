@@ -45,7 +45,7 @@ jobs:
       - name: Dump cifrado do banco de produção
         uses: ./.github/actions/dump-cifrado
         with:
-          url: ${{ secrets.DATABASE_URL_BACKUP }}
+          url: ${{ secrets.NEON_URL_BACKUP }}
           destinatario: ${{ vars.AGE_RECIPIENT }}
           nome-artefato: backup-${{ steps.data.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Alertar a falha do backup

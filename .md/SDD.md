@@ -1127,8 +1127,10 @@ O Worker Free tem **10 ms de CPU** por requisição. O tempo esperando o banco n
 | `SENTRY_DSN` | secret | não (sem ele, o Sentry fica desligado) | URL DSN | sim (tratado como segredo) |
 | `SENTRY_RELEASE` | `--var` no deploy | não | SHA do commit | não |
 | `VITE_SENTRY_DSN` | build do web | não | URL DSN | não (vai para o bundle) |
-| `DATABASE_URL_OWNER` | `.env` local e GitHub `producao` | sim para migrar, seed e purga | `postgres://controle_owner:…` | **sim** |
-| `DATABASE_URL_BACKUP` | GitHub `producao` | sim para o backup e o dump do deploy | `postgres://controle_backup_ro:…` | **sim** |
+| `DATABASE_URL_OWNER`, `DATABASE_URL_APP`, `DATABASE_URL_BACKUP` | `.env` local (nunca o Neon; ADR-017) | sim para migrar, seed e os testes de banco | `postgres://controle_owner:…@localhost:…/controle` | não (senhas locais fixas) |
+| `NEON_URL_OWNER` | GitHub `producao` e terminal | sim para a migração do deploy, a purga, o `migrar-neon` e o `conferir-banco` no Neon | `postgresql://controle_owner:…@<host direto>.neon.tech/controle?sslmode=require` | **sim** |
+| `NEON_URL_BACKUP` | GitHub `producao` | sim para o backup e o dump do deploy | `postgresql://controle_backup_ro:…@<host direto>.neon.tech/controle?sslmode=require` | **sim** |
+| `NEON_URL_APP` | só no terminal, ao criar o Hyperdrive | — | `postgresql://controle_app:…@<host direto>.neon.tech/controle?sslmode=require` | **sim** |
 | `AGE_RECIPIENT` | GitHub `producao` (variável) | sim para o backup e o deploy | chave pública `age1…` | não (a identidade privada fica offline, fora do GitHub) |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub `producao` (secret / variável) | sim para o deploy | — | **sim** / não |
 | `DEPLOY_ATIVO`, `BACKUP_ATIVO`, `PURGA_ATIVA` | variáveis do repositório no GitHub | `true` liga o `deploy.yml`, o `backup.yml` e o `purga.yml` (etapa 17); sem elas, nada roda | `true` | não |
