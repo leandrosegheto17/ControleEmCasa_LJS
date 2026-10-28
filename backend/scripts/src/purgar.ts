@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { criarClienteAsaas } from '../../api/src/infraestrutura/asaas/cliente';
+import { validarUrlNeon } from './operacao/url-neon';
 
 /**
  * Purga (RN-26, CA-19.8, CA-23.12, CA-26.3, CA-26.4, CA-26.8, CA-26.10; SDD D-05, E-1, E-2; G-49; ADR-013).
@@ -434,6 +435,12 @@ export async function principal(ambiente: NodeJS.ProcessEnv = process.env): Prom
   const url = ambiente['NEON_URL_OWNER'];
   if (!url) {
     console.error(JSON.stringify({ nivel: 'error', evento: 'purga_sem_banco', variavel: 'NEON_URL_OWNER' }));
+    return 2;
+  }
+  // Validação única do Neon (ADR-017, decisão 4): local, -pooler, fora de .neon.tech ou sem TLS não conecta.
+  const destino = validarUrlNeon(url, 'NEON_URL_OWNER');
+  if (!destino.ok) {
+    console.error(JSON.stringify({ nivel: 'error', evento: 'purga_url_recusada', motivo: destino.motivo }));
     return 2;
   }
   const urlAsaas = ambiente['ASAAS_API_URL'];

@@ -1,6 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import pg from 'pg';
+import { validarUrlNeon } from './url-neon';
 
 /**
  * Confere o banco de produção antes de ligá-lo ao Worker (RNF-07; ADR-005; roteiro `.specs/etapa-17/neon.md`, passos 2
@@ -138,6 +139,14 @@ export async function conferirBanco(url: string, pasta: string = PASTA_MIGRACOES
   }
 }
 
+function apontaParaNeon(url: string): boolean {
+  try {
+    return new URL(url).hostname.toLowerCase().endsWith('.neon.tech');
+  } catch {
+    return false;
+  }
+}
+
 export async function main(
   ambiente: NodeJS.ProcessEnv = process.env,
   pasta: string = PASTA_MIGRACOES,
@@ -148,6 +157,17 @@ export async function main(
   const url = ambiente[variavel];
   if (!url) {
     console.error('NEON_URL_OWNER (Neon) e DATABASE_URL_OWNER (banco local) ausentes.');
+    return 1;
+  }
+  // Validação única do Neon (ADR-017, decisão 4). A DATABASE_URL_OWNER nunca aponta para o Neon.
+  if (variavel === 'NEON_URL_OWNER') {
+    const destino = validarUrlNeon(url, variavel);
+    if (!destino.ok) {
+      console.error(destino.motivo);
+      return 1;
+    }
+  } else if (apontaParaNeon(url)) {
+    console.error('DATABASE_URL_OWNER aponta para o Neon: use NEON_URL_OWNER (DATABASE_URL_* é só o banco local).');
     return 1;
   }
   let dados: DadosDoBanco;

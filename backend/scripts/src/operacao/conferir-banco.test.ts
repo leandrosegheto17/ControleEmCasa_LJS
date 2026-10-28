@@ -64,6 +64,30 @@ describe('main sem banco', () => {
     erro.mockRestore();
   });
 
+  // Validação única do Neon (ADR-017, decisão 4): nenhum destes conecta.
+  it.each([
+    ['local', 'postgres://u:segredo@127.0.0.1:1/controle?sslmode=require', /local/],
+    ['pooler', 'postgresql://u:segredo@ep-a-pooler.sa-east-1.aws.neon.tech/controle?sslmode=require', /-pooler/],
+    ['fora do Neon', 'postgresql://u:segredo@db.exemplo.com/controle?sslmode=require', /\.neon\.tech/],
+    ['sem TLS', 'postgresql://u:segredo@ep-a.sa-east-1.aws.neon.tech/controle', /sslmode/],
+  ])('NEON_URL_OWNER %s é recusada antes de conectar', async (_n, url, motivo) => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(await main({ NEON_URL_OWNER: url })).toBe(1);
+    const msg = erro.mock.calls.flat().join('\n');
+    expect(msg).toMatch(motivo);
+    expect(msg).not.toMatch(/Não foi possível ler o banco/);
+    expect(msg).not.toContain('segredo');
+    erro.mockRestore();
+  });
+
+  it('DATABASE_URL_OWNER apontando para o Neon é recusada: o Neon usa NEON_URL_OWNER', async () => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const url = 'postgresql://u:segredo@ep-a.sa-east-1.aws.neon.tech/controle?sslmode=require';
+    expect(await main({ DATABASE_URL_OWNER: url })).toBe(1);
+    expect(erro.mock.calls.flat().join('\n')).toMatch(/use NEON_URL_OWNER/);
+    erro.mockRestore();
+  });
+
   it('com NEON_URL_OWNER, usa ela (e não a DATABASE_URL_OWNER) e cita o nome dela na falha', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
     const amb = {

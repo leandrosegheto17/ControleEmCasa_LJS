@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, rmSync, statSync } from 'node:fs';
+import { validarUrlNeon } from './url-neon';
 
 /**
  * Dump do Postgres cifrado em fluxo (etapa 16; SDD 3.7, D-06; G-44; TM-GH-03, TM-GH-06; ADR-016, ADR-015). Usado pelo
@@ -14,7 +15,9 @@ import { readFileSync, rmSync, statSync } from 'node:fs';
  * - só aceita destinatário público `age1...`; uma identidade privada (`AGE-SECRET-KEY-...`) é recusada;
  * - confere que o arquivo final existe, não está vazio e começa com o cabeçalho do formato age;
  * - a URL do banco chega só pelo ambiente (`URL_BANCO`), nunca em argv; o stderr do psql/pg_dump (que pode trazer host)
- *   é descartado e a falha sai com mensagem fixa. Em qualquer falha o arquivo parcial é apagado e o código é 1.
+ *   é descartado e a falha sai com mensagem fixa. Em qualquer falha o arquivo parcial é apagado e o código é 1;
+ * - a linha de comando só aceita URL do Neon (validação única, ADR-017): local, `-pooler`, fora de `.neon.tech` ou
+ *   sem TLS é recusado antes de rodar qualquer comando. A action recebe a URL do secret `NEON_URL_BACKUP`.
  */
 
 /** Postgres 18 (ADR-016, que substitui o ADR-002), fixado por digest como as ações por SHA (G-40). Atualizar = trocar tag e digest juntos. */
@@ -143,7 +146,10 @@ export function comandosDoRunner(imagem = IMAGEM_PG): Pick<OpcoesDump, 'versao' 
 
 export async function main(ambiente: NodeJS.ProcessEnv = process.env): Promise<number> {
   try {
-    if (!ambiente['URL_BANCO']) throw new Error('URL_BANCO ausente.');
+    const url = ambiente['URL_BANCO'];
+    if (!url) throw new Error('URL_BANCO ausente.');
+    const destino = validarUrlNeon(url, 'URL_BANCO (NEON_URL_BACKUP)');
+    if (!destino.ok) throw new Error(destino.motivo);
     const r = await gerarDumpCifrado({
       destinatario: ambiente['AGE_RECIPIENT'] ?? '',
       saida: ambiente['SAIDA'] ?? '',

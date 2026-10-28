@@ -196,4 +196,24 @@ describe('comandos do runner', () => {
       e.mockRestore();
     }
   });
+
+  // Padrão do Neon (ADR-017, decisão 4): o backup e o dump do deploy só aceitam URL do Neon (validação única).
+  it.each([
+    ['local', 'postgres://controle_backup_ro:x@127.0.0.1:55432/controle', /local/],
+    ['pooler', 'postgresql://u:x@ep-a-pooler.sa-east-1.aws.neon.tech/controle?sslmode=require', /-pooler/],
+    ['fora do Neon', 'postgresql://u:x@db.exemplo.com/controle?sslmode=require', /\.neon\.tech/],
+    ['sem TLS', 'postgresql://u:x@ep-a.sa-east-1.aws.neon.tech/controle', /sslmode/],
+  ])('main recusa URL_BANCO %s antes de rodar qualquer comando', async (_n, url, motivo) => {
+    const e = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await main({ URL_BANCO: url, AGE_RECIPIENT: DESTINATARIO, SAIDA: saida })).toBe(1);
+      const msg = e.mock.calls.flat().join('\n');
+      expect(msg).toMatch(motivo);
+      expect(msg).toContain('URL_BANCO');
+      expect(msg).not.toContain(':x@');
+      expect(existsSync(saida)).toBe(false);
+    } finally {
+      e.mockRestore();
+    }
+  });
 });

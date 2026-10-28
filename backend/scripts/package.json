@@ -21,6 +21,7 @@
     "conferir-asaas-url": "tsx src/operacao/conferir-asaas-url.ts",
     "cache-hyperdrive": "tsx src/operacao/cache-hyperdrive.ts",
     "dump-cifrado": "tsx src/operacao/dump-cifrado.ts",
+    "conferir-url-neon": "tsx src/operacao/url-neon.ts",
     "migracoes-aditivas": "tsx src/operacao/migracao-aditiva.ts"
   },
   "dependencies": {

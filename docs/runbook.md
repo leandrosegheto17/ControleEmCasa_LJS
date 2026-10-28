@@ -113,11 +113,17 @@ O deploy não cria branch de restauração (`restauracao-*`) nem branch por PR. 
 3. **Crie um banco vazio** para receber o dump, sem criar branch (ADR-017): um banco novo (ex.: `controle_restaurado`)
    na branch `main`, quando for voltar a produção, ou na `dev`, num ensaio. Não restaure por cima do banco `controle`
    da `main` em uso.
-4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016):
+4. **Restaure com a role owner**, com o cliente do Postgres 18 (a mesma versão maior do servidor; ADR-016). A URL
+   direta do owner do banco de destino fica numa variável só do terminal e passa antes pela validação única do Neon
+   (ADR-017: recusa local, `-pooler`, host fora de `.neon.tech` e URL sem TLS):
 
    ```bash
-   pg_restore --exit-on-error --no-owner --role=controle_owner -d "<URL owner do banco novo>" restauracao/banco.dump
+   read -rs NEON_URL_RESTAURACAO && export NEON_URL_RESTAURACAO   # cole a URL; não fica no histórico
+   pnpm --filter @controle/scripts conferir-url-neon NEON_URL_RESTAURACAO
+   pg_restore --exit-on-error --no-owner --role=controle_owner -d "$NEON_URL_RESTAURACAO" restauracao/banco.dump
    ```
+
+   Só rode o `pg_restore` se o `conferir-url-neon` disser "aceita" e mostrar o host e o banco esperados.
 
 5. **Refaça as configurações por banco das roles.** O `pg_dump` não leva `ALTER ROLE ... IN DATABASE` (são objetos
    globais). Sem isto, a `controle_app` perde o `search_path` (o ensaio de 2026-10-27 mostrou `"$user", public` no banco
@@ -314,6 +320,10 @@ migrations, e manter o procedimento das seções 4.2 e 4.3 correto.
   foram apagados.
 
 O 9.1 fica como registro do Postgres 17. Desde o ADR-016 a versão é a 18; o ensaio que vale hoje é o 9.2.
+
+Desde o ADR-017 (2026-10-28) o `dump-cifrado` só aceita URL do Neon: os comandos locais do 9.1 e do 9.2 ficam como
+registro. Um ensaio novo usa o backup real (9.3); um ensaio só local roda o `pg_dump` da mesma imagem em pipe para o
+`age`, à mão.
 
 ### 9.2 Resultado registrado — 2026-10-27 (local, Postgres 18 do Docker)
 

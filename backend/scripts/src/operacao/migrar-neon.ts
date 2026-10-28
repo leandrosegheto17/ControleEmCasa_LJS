@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 import { join } from 'node:path';
 import { avaliar, conferirBanco, resumo, type DadosDoBanco } from './conferir-banco';
+import { validarUrlNeon, type DestinoNeon } from './url-neon';
 
 /**
  * Migra o banco do Neon confirmando o destino (G-43; TM-DB-05; roteiro `.specs/etapa-17/neon.md`, passos 5 e 6).
@@ -11,38 +12,11 @@ import { avaliar, conferirBanco, resumo, type DadosDoBanco } from './conferir-ba
  * Nunca imprime a URL nem o texto bruto de erro do driver.
  */
 
-export type Destino = { ok: true; usuario: string; host: string; banco: string } | { ok: false; motivo: string };
+export type Destino = DestinoNeon;
 
+/** Destino da migração: a validação única do Neon (ADR-017, decisão 4) aplicada a `NEON_URL_OWNER`. */
 export function avaliarDestino(url: string): Destino {
-  let u: URL;
-  try {
-    u = new URL(url);
-  } catch {
-    return { ok: false, motivo: 'NEON_URL_OWNER não é uma URL válida.' };
-  }
-  if (u.protocol !== 'postgres:' && u.protocol !== 'postgresql:') {
-    return { ok: false, motivo: 'NEON_URL_OWNER não é uma URL postgres.' };
-  }
-  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  if (['localhost', '127.0.0.1', '::1'].includes(host) || u.port === '55432') {
-    return {
-      ok: false,
-      motivo: 'Destino local recusado: este comando é só para o Neon (para o local use pnpm migrar).',
-    };
-  }
-  if (!host.endsWith('.neon.tech')) {
-    return { ok: false, motivo: 'Host fora de .neon.tech recusado.' };
-  }
-  if (host.includes('-pooler')) {
-    return { ok: false, motivo: 'Host com -pooler recusado: migrar exige a string direta (sem pooler).' };
-  }
-  const ssl = u.searchParams.get('sslmode');
-  if (ssl !== 'require' && ssl !== 'verify-full') {
-    return { ok: false, motivo: 'URL sem sslmode=require (ou verify-full) recusada.' };
-  }
-  const banco = decodeURIComponent(u.pathname.replace(/^\//, ''));
-  if (!banco) return { ok: false, motivo: 'URL sem nome de banco.' };
-  return { ok: true, usuario: decodeURIComponent(u.username), host, banco };
+  return validarUrlNeon(url, 'NEON_URL_OWNER');
 }
 
 /** Descrição do destino; a senha não entra nunca. */

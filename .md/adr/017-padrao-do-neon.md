@@ -38,6 +38,13 @@
 
    A migração do deploy passa a usar o `migrar-neon --sim`, que lê só `NEON_URL_OWNER` do ambiente (nunca o `.env`) e,
    depois de migrar, confere roles, RLS e migrations como o `conferir-banco`.
+4. **Validação única da URL do Neon** (`backend/scripts/src/operacao/url-neon.ts`, `validarUrlNeon`): recusa texto
+   que não é URL postgres, destino local (`localhost`, `127.0.0.1`, `::1`, porta 55432), host fora de `.neon.tech`,
+   host `-pooler` e URL sem `sslmode=require` (ou `verify-full`). É usada antes de conectar em todo caminho que toca o
+   Neon: `migrar-neon` (manual e na migração do deploy), `dump-cifrado` (backup diário e dump do deploy), `purgar`,
+   `conferir-banco` (com `NEON_URL_OWNER`; a `DATABASE_URL_OWNER` apontando para o Neon é recusada) e a restauração
+   (`pnpm --filter @controle/scripts conferir-url-neon NEON_URL_RESTAURACAO` antes do `pg_restore`, runbook 4.2).
+   Nenhuma mensagem traz a senha nem a URL.
 
 ## Consequências
 
