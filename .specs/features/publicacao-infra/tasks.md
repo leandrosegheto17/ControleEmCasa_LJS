@@ -282,10 +282,10 @@ T16
 
 **Done when**:
 
-- [ ] A chave pública `age1...` é passada ao Claude (não é segredo); a privada nunca sai da máquina do usuário
-- [ ] A privada está guardada em 2 lugares offline; o usuário confirma
-- [ ] Teste de ida e volta: cifrar e decifrar um arquivo de teste com o par, confirmando a decifragem
-- [ ] Evidência registrada em `evidencias.md` (só a chave pública)
+- [x] A chave pública `age1...` é passada ao Claude (não é segredo); a privada nunca sai da máquina do usuário
+- [x] A privada está guardada em 2 lugares offline; o usuário confirma
+- [x] Teste de ida e volta: cifrar e decifrar um arquivo de teste com o par, confirmando a decifragem
+- [x] Evidência registrada em `evidencias.md` (só a chave pública)
 
 **Tests**: none
 **Gate**: evidência registrada
