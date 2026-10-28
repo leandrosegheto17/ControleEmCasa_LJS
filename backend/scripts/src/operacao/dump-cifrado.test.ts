@@ -172,8 +172,10 @@ describe('gerarDumpCifrado', () => {
 });
 
 describe('comandos do runner', () => {
-  it('usam o Postgres 18 fixado por digest, pg_dump -Fc com --enable-row-security e a URL só pelo ambiente', () => {
-    expect(IMAGEM_PG).toMatch(/^postgres:18[-\w]*@sha256:[0-9a-f]{64}$/);
+  // Alterado no padrão do Neon (ADR-017, decisão 2, aprovada pelo usuário em 2026-10-28): a imagem passa da tag
+  // postgres:18-alpine fixada por digest para a tag postgres:18, sem digest, a mesma do compose e do CI.
+  it('usam o Postgres 18 pela tag postgres:18, pg_dump -Fc com --enable-row-security e a URL só pelo ambiente', () => {
+    expect(IMAGEM_PG).toBe('postgres:18');
     const c = comandosDoRunner();
     const tudo = [c.versao, c.dump].flatMap((x) => [x.cmd, ...x.args]).join(' ');
     expect(c.dump.args).toContain(IMAGEM_PG);

@@ -1144,7 +1144,7 @@ O `config/index.ts` valida tudo com Zod na 1ª requisição e falha fechado (`Co
 ```yaml
 services:
   banco:
-    image: postgres:18-alpine
+    image: postgres:18
     environment:
       POSTGRES_DB: controle
       POSTGRES_USER: controle_owner

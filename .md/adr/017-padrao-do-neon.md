@@ -23,9 +23,11 @@
    `controle` recriado da `dev` e, conferido, no da `main`, sem criar branch (runbook 4.2).
    Ordem do deploy: endereço do Asaas → build → cache do Hyperdrive → dump cifrado → migração com o owner → `wrangler
    deploy` → saúde.
-2. **Postgres 18** em local (`docker-compose.yml`), CI (`ci.yml`) e no Neon, como no ADR-016. A imagem do `pg_dump`
-   continua fixada por digest (`postgres:18-alpine@sha256:…` em `dump-cifrado.ts`); compose e CI usam a tag
-   `postgres:18-alpine`.
+2. **Postgres 18** em local (`docker-compose.yml`), CI (`ci.yml`) e no Neon, como no ADR-016, sempre pela tag
+   `postgres:18`, **sem digest** (decisão do usuário em 2026-10-28, igual nos projetos dele): compose, os dois serviços
+   do CI e a imagem do `pg_dump` (`IMAGEM_PG` em `dump-cifrado.ts`). Antes o compose e o CI usavam `postgres:18-alpine`
+   e o `pg_dump` a mesma tag fixada por digest. A proteção contra versão errada continua: o dump confere a versão maior
+   do servidor antes de rodar. O custo é que a imagem muda sem commit quando sai uma versão menor do 18.
 3. **Nomes das variáveis:** `NEON_URL_*` para toda conexão com o Neon, e `DATABASE_URL_*` só para o banco local e de
    teste.
    - `NEON_URL_OWNER` (role `controle_owner`): secret do environment `producao` para a migração do deploy e a purga, e

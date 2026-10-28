@@ -34,7 +34,8 @@ describe('e2e da pilha real', () => {
     const inicio = ci.indexOf('  e2e-pilha:');
     expect(inicio).toBeGreaterThan(-1);
     const job = ci.slice(inicio, ci.indexOf('\n  gitleaks:'));
-    expect(job).toMatch(/image: postgres:18-alpine/);
+    // Alterado no padrão do Neon (ADR-017, decisão 2, aprovada pelo usuário em 2026-10-28): tag postgres:18.
+    expect(job).toMatch(/image: postgres:18\s*\n/);
     expect(job).toMatch(/-f backend\/scripts\/init-local\.sql/);
     expect(job).toMatch(/playwright install --with-deps chromium/);
     expect(job).toMatch(/run: pnpm --filter @controle\/web e2e:pilha/);

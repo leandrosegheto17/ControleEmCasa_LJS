@@ -20,8 +20,11 @@ import { validarUrlNeon } from './url-neon';
  *   sem TLS é recusado antes de rodar qualquer comando. A action recebe a URL do secret `NEON_URL_BACKUP`.
  */
 
-/** Postgres 18 (ADR-016, que substitui o ADR-002), fixado por digest como as ações por SHA (G-40). Atualizar = trocar tag e digest juntos. */
-export const IMAGEM_PG = 'postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5';
+/**
+ * Postgres 18 (ADR-016) pela tag `postgres:18`, sem digest, a mesma do compose e do CI (padrão do Neon, ADR-017,
+ * decisão 2). A versão maior do servidor continua conferida antes do dump (`VERSAO_MAIOR`).
+ */
+export const IMAGEM_PG = 'postgres:18';
 export const VERSAO_MAIOR = 18;
 export const CABECALHO_AGE = 'age-encryption.org/v1\n';
 

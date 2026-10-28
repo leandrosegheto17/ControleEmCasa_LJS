@@ -21,7 +21,7 @@
 1. **Postgres 18** no `docker-compose.yml`, nos serviços Postgres do `ci.yml` (jobs `banco` e `e2e-pilha`) e no projeto
    Neon.
 2. O `pg_dump`/`psql` do `backup.yml` e do `deploy.yml` (action `dump-cifrado`) usa a imagem `postgres:18-alpine`
-   fixada por digest; a versão maior do servidor é conferida antes e precisa ser 18.
+   fixada por digest (desde o ADR-017, decisão 2: a tag `postgres:18`, sem digest, como compose e CI); a versão maior do servidor é conferida antes e precisa ser 18.
 3. No `docker-compose.yml`, o volume é montado em `/var/lib/postgresql`: nas imagens oficiais do 18 o `PGDATA` passou a
    ser `/var/lib/postgresql/18/docker` e o volume declarado pela imagem é o diretório pai.
 4. Em vez de recriar o Neon em 17, o projeto inteiro sobe para o 18.
