@@ -9,7 +9,7 @@ Implemente estas tarefas com a skill `tlc-spec-driven`: **ative-a pelo nome e si
 ---
 
 **Design**: não há `design.md` próprio. A base é o `docs/runbook.md` (seções 2, 3, 4, 5, 9 e 10), os ADRs 015 e 016, o `deploy.yml`, o `backup.yml` e o `purga.yml`. A divisão da etapa 17 está no AD-001 (`.specs/STATE.md`).
-**Status**: Draft (aguardando aprovação)
+**Status**: Approved (2026-10-28)
 
 Escopo: ligar a produção pela primeira vez (deploy, fumaça, webhook do Asaas, e-mail real), medir (CPU, retomada a frio, Início, Lighthouse), ligar monitoramento, backup e purga, e ensaiar a restauração com o primeiro backup real. Fecha as pendências `[A VALIDAR NA 17C]` do runbook.
 
