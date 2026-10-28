@@ -427,6 +427,8 @@ T16
 
 #### T14: Sentry: projetos e DSN
 
+> **Adiada por decisão do usuário em 2026-10-28:** fica para o final do projeto. Sem DSN o Sentry fica inerte e a CSP sai sem o host dele. Como o `VITE_SENTRY_DSN` entra no build do front, ao fazer a T14 depois é preciso **novo deploy** (e rever a CSP) para valer no app.
+
 **What**: **Ação do usuário.** Criar os projetos do Sentry para o Worker e para o front, gravar `SENTRY_DSN` como secret do Worker e `VITE_SENTRY_DSN` como variável do environment `producao`.
 **Estimativa**: 1h
 **Where**: painel do Sentry, `wrangler secret`, GitHub
