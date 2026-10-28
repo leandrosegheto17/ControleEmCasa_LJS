@@ -105,6 +105,9 @@ export default async function setup(): Promise<() => Promise<void>> {
       '127.0.0.1',
       '--port',
       String(PORTA_PILHA),
+      // Sem isto o `routes` (domínio de produção) vira o host das requisições e o CSRF recusa a origem local.
+      '--local-upstream',
+      `localhost:${PORTA_PILHA}`,
       '--persist-to',
       join(pasta, 'estado'),
       '--show-interactive-dev-session=false',
