@@ -215,10 +215,10 @@ T16
 
 **Done when**:
 
-- [ ] Antes de migrar, repetir como `neondb_owner` na branch `main` a preparação do `search_path` (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;`)
-- [ ] Só executada depois de T3 sem erro e com a confirmação do usuário
-- [ ] `conferir-banco` sai com código 0 na `main`
-- [ ] Evidência registrada em `evidencias.md`
+- [x] Antes de migrar, repetir como `neondb_owner` na branch `main` a preparação do `search_path` (os dois `ALTER ROLE ... IN DATABASE controle SET search_path = app;`)
+- [x] Só executada depois de T3 sem erro e com a confirmação do usuário
+- [x] `conferir-banco` sai com código 0 na `main`
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: integration
 **Gate**: full
