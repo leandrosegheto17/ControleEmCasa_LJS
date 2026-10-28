@@ -370,9 +370,9 @@ T16
 
 **Done when**:
 
-- [ ] Os dois secrets existem no environment `producao` (só nomes)
-- [ ] `[A VALIDAR]` resolvido: o escopo da chave do Neon cobre criar, apagar e restaurar branches (verificado pelo script `restauracao-neon` com a chave); o escopo mínimo do token da Cloudflare fica anotado
-- [ ] Evidência registrada em `evidencias.md`
+- [x] Os dois secrets existem no environment `producao` (só nomes)
+- [x] `[A VALIDAR]` resolvido: o escopo da chave do Neon cobre criar, apagar e restaurar branches (verificado pelo script `restauracao-neon` com a chave); o escopo mínimo do token da Cloudflare fica anotado
+- [x] Evidência registrada em `evidencias.md`
 
 **Tests**: none
 **Gate**: evidência registrada
