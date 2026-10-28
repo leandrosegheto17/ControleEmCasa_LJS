@@ -101,9 +101,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Trava de testes verde no commit a enviar (saída mostrada)
-- [ ] Push feito só depois da confirmação do usuário
-- [ ] `ci` verde no commit enviado (link da execução em `evidencias.md`)
+- [x] Trava de testes verde no commit a enviar (saída mostrada)
+- [x] Push feito só depois da confirmação do usuário
+- [x] `ci` verde no commit enviado (link da execução em `evidencias.md`)
 
 **Tests**: none
 **Gate**: evidência registrada
