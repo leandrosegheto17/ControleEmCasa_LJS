@@ -258,9 +258,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Comando de rollback executado e `/api/health` responde com a versão anterior
-- [ ] Redeploy da versão atual feito depois do ensaio
-- [ ] Tempo medido e runbook ajustado se o comando documentado não servir
+- [x] Comando de rollback executado e `/api/health` responde com a versão anterior
+- [x] Redeploy da versão atual feito depois do ensaio
+- [x] Tempo medido e runbook ajustado se o comando documentado não servir
 
 **Tests**: none (unit se o runbook exigir ajuste em script)
 **Gate**: evidência registrada

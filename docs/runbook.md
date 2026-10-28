@@ -63,7 +63,14 @@ As migrations são aditivas, então o Worker anterior continua funcionando com o
   pnpm --filter @controle/api exec wrangler rollback -c ../../wrangler.jsonc --message "motivo do rollback"
   ```
 
-  `[A VALIDAR NA ETAPA 17]`: o modo não interativo do `wrangler rollback` (ADR 015).
+  Ensaiado em produção em 2026-10-28 (17c, T7): sem terminal interativo o comando escolhe sozinho a versão anterior,
+  usa o `--message` e confirma sozinho (`-y` não é necessário, mas não atrapalha). Cada rollback levou cerca de 7 s e o
+  `/api/health` respondeu 200 logo depois. Para voltar a uma versão específica, passe o id:
+  `wrangler rollback <version-id> -c ../../wrangler.jsonc --message "..."` (`wrangler deployments list` mostra os ids).
+- **Cuidado com os segredos:** cada versão do Worker guarda os segredos de quando foi criada, e cada `wrangler secret put`
+  cria uma versão nova. Reverter para uma versão anterior a uma troca de segredo **desfaz** essa troca. Antes de
+  reverter, confira com `wrangler deployments list` qual é a versão anterior e qual segredo mudou depois dela. Não
+  troque segredo no meio de um rollback.
 
 - Depois do rollback, o defeito vira correção pelo fluxo normal (PR, CI, deploy). Não publique fora do `deploy.yml`.
 

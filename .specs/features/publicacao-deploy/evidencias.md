@@ -78,3 +78,12 @@ Sem segredo: só links, nomes e resultados.
 - **Não provado:** que o valor do Asaas é idêntico ao do Worker (o campo do Asaas é mascarado, e o token saiu da área de transferência). Um segundo comando de teste automatizado foi bloqueado pelo sistema de permissões e não foi contornado. A prova definitiva é o primeiro evento real do Asaas (17d), ou refazer o passo com o teste `200`/`401` feito antes de copiar outra coisa.
 - **Não verificado de forma independente:** a chave de produção do Asaas (`GET /v3/finance/balance` → 200 é só relato do usuário, e o relato do 200 do webhook, feito antes, se mostrou falso). Refazer a consulta no fechamento (T16) ou antes.
 - T5 segue **aberta** nesses dois itens; não bloqueia o ensaio de rollback (T7), cujo estado dos segredos agora está estável.
+
+## T7 — Ensaio de rollback do Worker (2026-10-28)
+
+- Confirmação específica do usuário. Para ter duas versões do app, um segundo deploy do mesmo commit `725ab5c` (execução verde: https://github.com/leandrosegheto17/ControleEmCasa_LJS/actions/runs/40747832727) gerou a versão B `92a2b64f`.
+- Versões em ordem: `9a2ade0e` (deploy 1, 17:48) → `95f09291` (segredo `ASAAS_WEBHOOK_TOKEN`, 18:36, mesmo código) → `92a2b64f` (deploy 2, 18:45). Alvo do rollback: `95f09291`, mesmo código e mesmos segredos atuais, para não desfazer o token do webhook.
+- `wrangler rollback --message "…" -y` (sem terminal interativo): escolheu sozinho a versão anterior, `SUCCESS Worker Version 95f09291… has been deployed to 100% of traffic`; `/api/health` 200 nas 3 tentativas seguidas. Deployment registrado 18:46:23.
+- Volta: `wrangler rollback 92a2b64f-… --message "…"` em **7 s**, `SUCCESS`, `/api/health`, `/` e `/app/` em 200; versão ativa final `92a2b64f` (18:46:45).
+- Resolvido o `[A VALIDAR NA ETAPA 17]` do runbook 3.1 (modo não interativo): funciona. Runbook atualizado, com o cuidado de que reverter uma versão anterior a uma troca de segredo desfaz o segredo.
+- Não ensaiado: o rollback automático do `deploy.yml` quando a fumaça falha (só roda com falha; o mesmo comando, com o mesmo token da Cloudflare, foi provado agora pelo terminal).
