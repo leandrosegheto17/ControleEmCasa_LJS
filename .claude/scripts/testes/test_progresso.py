@@ -1,6 +1,9 @@
 import contextlib
 import io
 import json
+import os
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,11 +14,13 @@ pr = carregar("progresso.py")
 pr_caminho = Path(__file__).resolve().parents[1] / "progresso.py"
 
 
-def tarefa(numero, caixas, status=None, estimativa=None):
+def tarefa(numero, caixas, status=None, estimativa=None, depende=None):
     """Bloco de tarefa no formato do tasks.md do tlc-spec-driven; caixas = lista de True/False."""
     linhas = [f"### T{numero}: Tarefa {numero}", "", "**What**: algo", "**Where**: `src/a.py`"]
     if estimativa:
         linhas.append(f"**Estimativa**: {estimativa}")
+    if depende:
+        linhas.append(f"**Depends on**: {depende}")
     linhas.append("")
     if status:
         linhas += [f"**Status**: {status}", ""]
@@ -161,7 +166,8 @@ class TestRelatorio(unittest.TestCase):
         self.assertEqual(rel["item"], {"nome": ".specs/features/importar-extrato", "total": 4, "feitas": 1})
         self.assertEqual(rel["projeto"], {"total": 6, "feitas": 3})
         texto = pr.formatar(rel)
-        self.assertIn("Item atual (.specs/features/importar-extrato): Faltam 3 de 4 tarefas: 25% concluído", texto)
+        # V3: o rótulo "Item atual" virou "Feature atual" (vocabulário único do CLAUDE.md)
+        self.assertIn("Feature atual (.specs/features/importar-extrato): Faltam 3 de 4 tarefas: 25% concluído", texto)
         self.assertIn("Projeto: Faltam 3 de 6 tarefas: 50% concluído", texto)
 
     def test_argumento_item_vence_a_retomada(self):
@@ -177,6 +183,15 @@ class TestRelatorio(unittest.TestCase):
         escrever(self.raiz, ".specs/features/aberta/tasks.md", tasks_md(tarefa(1, [True]), tarefa(2, [False])))
         rel = pr.relatorio(self.raiz)
         self.assertEqual(rel["item"]["nome"], ".specs/features/aberta")
+
+    def test_sem_retomada_e_com_tudo_concluido_usa_o_unico_item(self):
+        escrever(self.raiz, ".specs/features/pronta/tasks.md", tasks_md(tarefa(1, [True]), tarefa(2, [True])))
+        self.assertEqual(pr.relatorio(self.raiz)["item"], {"nome": ".specs/features/pronta", "total": 2, "feitas": 2})
+
+    def test_varios_itens_concluidos_sem_retomada_nao_escolhem_um(self):
+        escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(tarefa(1, [True])))
+        escrever(self.raiz, ".specs/features/b/tasks.md", tasks_md(tarefa(1, [True])))
+        self.assertIsNone(pr.relatorio(self.raiz)["item"])
 
     def test_varios_itens_em_aberto_sem_retomada_mostra_so_o_projeto(self):
         escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(tarefa(1, [False])))
@@ -279,15 +294,17 @@ class TestRelatorioComRoadmap(unittest.TestCase):
         escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(tarefa(1, [True]), tarefa(2, [False])))
         texto = pr.formatar(pr.relatorio(self.raiz))
         linhas = texto.splitlines()
-        self.assertEqual(linhas[0], "Plano: Faltam 3 de 6 etapas: 50% concluído")
+        # V3: a linha vira "Produto" e a "Projeto" some quando repete a feature atual
+        self.assertEqual(linhas[0], "Produto: Faltam 3 de 6 etapas: 50% concluído")
         self.assertEqual(linhas[1], "Em andamento: 3 API")
-        self.assertIn("Projeto: Falta 1 de 2 tarefas: 50% concluído", texto)
+        self.assertIn("Feature atual (.specs/features/a): Falta 1 de 2 tarefas: 50% concluído", texto)
+        self.assertNotIn("Projeto:", texto)
 
     def test_so_roadmap_sem_tarefas_nao_mostra_fase_da_retomada(self):
         escrever(self.raiz, ".specs/projeto/roadmap.md", ROADMAP)
         escrever(self.raiz, ".specs/STATE.md", STATE)
         texto = pr.formatar(pr.relatorio(self.raiz))
-        self.assertIn("Plano: Faltam 3 de 6 etapas: 50% concluído", texto)
+        self.assertIn("Produto: Faltam 3 de 6 etapas: 50% concluído", texto)
         self.assertIn("Projeto: Sem tarefas ainda", texto)
         self.assertNotIn("Fase aprovada", texto)
 
@@ -368,6 +385,255 @@ class TestEstimativa(unittest.TestCase):
         self.assertEqual(itens, [".specs/features/a"])
 
 
+def tasks_fases(*fases):
+    """tasks.md com Phases no Execution Plan; cada fase = lista de (numero, caixas[, estimativa[, depende]])."""
+    plano, corpo = ["## Execution Plan", ""], ["## Task Breakdown", ""]
+    for n, tarefas in enumerate(fases, 1):
+        plano += [f"### Phase {n}: Fase {n}", "", "```", " -> ".join(f"T{t[0]}" for t in tarefas), "```", ""]
+        for t in tarefas:
+            extra = list(t[2:]) + [None] * (2 - len(t[2:]))
+            corpo.append(tarefa(t[0], t[1], estimativa=extra[0], depende=extra[1]))
+    return "# Tasks\n\n" + "\n".join(plano) + "\n" + "\n".join(corpo)
+
+
+class TestFasesETarefaAtual(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def relatorio(self, texto):
+        escrever(self.raiz, ".specs/features/a/tasks.md", texto)
+        return pr.relatorio(self.raiz)
+
+    def test_cada_tarefa_sabe_a_phase_do_diagrama(self):
+        tarefas, fases = pr.tarefas_de(tasks_fases([(1, [True]), (2, [True])], [(3, [False]), (4, [False])]))
+        self.assertEqual([(t["id"], t["fase"]) for t in tarefas], [("T1", 1), ("T2", 1), ("T3", 2), ("T4", 2)])
+        self.assertEqual([f["nome"] for f in fases], ["Phase 1: Fase 1", "Phase 2: Fase 2"])
+
+    def test_tarefa_escrita_dentro_da_phase_tambem_pertence_a_ela(self):
+        texto = ("## Phase 1: Base\n\n### T1: a\n\n**Depends on**: T2\n\n- [x] ok\n\n"
+                 "## Phase 2: Topo\n\n### T2: b\n\n- [ ] ok\n")
+        tarefas, _ = pr.tarefas_de(texto)
+        self.assertEqual([(t["id"], t["fase"]) for t in tarefas], [("T1", 1), ("T2", 2)])
+
+    def test_sem_phases_nao_mostra_a_linha_de_phase(self):
+        texto = pr.formatar(self.relatorio(tasks_md(tarefa(1, [True]), tarefa(2, [False]))))
+        self.assertNotIn("Phase atual", texto)
+
+    def test_phase_atual_e_a_primeira_com_tarefa_pendente(self):
+        rel = self.relatorio(tasks_fases([(1, [True]), (2, [True])], [(3, [True]), (4, [False]), (5, [False])],
+                                         [(6, [False])]))
+        linhas = pr.formatar(rel).splitlines()
+        self.assertIn("Feature atual (.specs/features/a): Faltam 3 de 6 tarefas: 50% concluído", linhas)
+        self.assertIn("Phase atual (Phase 2: Fase 2): Faltam 2 de 3 tarefas: 33% concluído", linhas)
+
+    def test_tarefa_atual_respeita_as_dependencias(self):
+        rel = self.relatorio(tasks_fases([(1, [True]), (2, [False], "1h", "T3"), (3, [False], "30 min", "T1")]))
+        self.assertIn("Tarefa atual: T3 — Tarefa 3 (estimada 30 min)", pr.formatar(rel).splitlines())
+
+    def test_tarefa_atual_sem_dependencia_pronta_cai_na_primeira_pendente(self):
+        rel = self.relatorio(tasks_fases([(1, [False], None, "T2"), (2, [False], None, "T1")]))
+        self.assertIn("Tarefa atual: T1 — Tarefa 1", pr.formatar(rel).splitlines())
+
+    def test_tudo_concluido_nao_tem_tarefa_nem_phase_atual(self):
+        texto = pr.formatar(self.relatorio(tasks_fases([(1, [True]), (2, [True])])))
+        self.assertNotIn("Tarefa atual", texto)
+        self.assertNotIn("Phase atual", texto)
+
+    def test_projeto_so_aparece_quando_difere_da_feature(self):
+        escrever(self.raiz, ".specs/features/a/tasks.md", tasks_md(tarefa(1, [False])))
+        self.assertNotIn("Projeto:", pr.formatar(pr.relatorio(self.raiz)))
+        escrever(self.raiz, ".specs/features/b/tasks.md", tasks_md(tarefa(1, [True])))
+        texto = pr.formatar(pr.relatorio(self.raiz, item=".specs/features/a"))
+        self.assertIn("Feature atual (.specs/features/a): Falta 1 de 1 tarefas: 0% concluído", texto)
+        self.assertIn("Projeto: Falta 1 de 2 tarefas: 50% concluído", texto)
+
+
+class TestLotes(unittest.TestCase):
+    def lotes(self, *fases):
+        tarefas, fs = pr.tarefas_de(tasks_fases(*fases))
+        return pr.lotes_de(tarefas, fs)
+
+    def fase(self, primeira, quantas, estimativa="2h"):
+        return [(primeira + i, [False], estimativa) for i in range(quantas)]
+
+    def test_junta_phases_inteiras_ate_a_capacidade(self):
+        # 14h = capacidade: duas Phases de 8h fecham o lote 1 (16h); a terceira abre o lote 2
+        lotes = self.lotes(self.fase(1, 4), self.fase(5, 4), self.fase(9, 4), self.fase(13, 4))
+        self.assertEqual([(l["fases"], len(l["tarefas"])) for l in lotes], [([1, 2], 8), ([3, 4], 8)])
+        self.assertEqual([l["numero"] for l in lotes], [1, 2])
+
+    def test_nunca_parte_uma_phase(self):
+        lotes = self.lotes(self.fase(1, 10), self.fase(11, 3))  # 20h na Phase 1: passa da capacidade, mas fica inteira
+        self.assertEqual([(l["fases"], len(l["tarefas"])) for l in lotes], [([1], 10), ([2], 3)])
+
+    def test_cauda_de_ate_2_tarefas_entra_no_lote_anterior(self):
+        lotes = self.lotes(self.fase(1, 8), self.fase(9, 2))
+        self.assertEqual(len(lotes), 1)
+        self.assertEqual(lotes[0]["fases"], [1, 2])
+
+    def test_cauda_maior_fica_em_lote_proprio(self):
+        lotes = self.lotes(self.fase(1, 8), self.fase(9, 3))
+        self.assertEqual([l["fases"] for l in lotes], [[1], [2]])
+
+    def test_sem_estimativa_cada_tarefa_conta_1h(self):
+        lotes = self.lotes(self.fase(1, 7, None), self.fase(8, 7, None), self.fase(15, 7, None))
+        self.assertEqual([l["fases"] for l in lotes], [[1, 2], [3]])
+        self.assertEqual(lotes[0]["horas"], 14.0)
+
+    def test_sem_phases_cada_tarefa_e_uma_unidade(self):
+        tarefas, fs = pr.tarefas_de(tasks_md(*[tarefa(i, [False], estimativa="2h") for i in range(1, 17)]))
+        lotes = pr.lotes_de(tarefas, fs)
+        self.assertEqual([len(l["tarefas"]) for l in lotes], [7, 9])  # 7×2h = 14h; cauda de 2 foi absorvida
+
+
+def _git(pasta, *args, quando=None):
+    env = dict(os.environ)
+    if quando is not None:
+        env["GIT_AUTHOR_DATE"] = env["GIT_COMMITTER_DATE"] = f"{quando} +0000"
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
+                   cwd=pasta, env=env, check=True, capture_output=True)
+
+
+@unittest.skipUnless(shutil.which("git"), "git não está instalado")
+class TestTempo(unittest.TestCase):
+    """Tempo por tarefa, lido do git log do tasks.md com datas controladas."""
+
+    INICIO = 1_700_000_000
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+        _git(self.raiz, "init", "-q")
+        self.tasks = self.raiz / ".specs/features/a/tasks.md"
+
+    def versao(self, feitas, quando, total=5, estimativa="1h"):
+        """Grava o tasks.md com as tarefas `feitas` marcadas e commita na data `quando`."""
+        fases = [[(i, [i in feitas], estimativa) for i in range(1, 4)],
+                 [(i, [i in feitas], estimativa) for i in range(4, total + 1)]]
+        escrever(self.raiz, ".specs/features/a/tasks.md", tasks_fases(*fases))
+        _git(self.raiz, "add", "-A")
+        _git(self.raiz, "commit", "-q", "-m", f"feat(a): v{len(feitas)}", quando=self.INICIO + quando)
+
+    def tarefas(self, agora=None):
+        rel = pr.relatorio(self.raiz, agora=agora or self.INICIO + 10_000)
+        return rel, {t["id"]: t for t in rel["detalhe"]["tarefas"]}
+
+    def test_tempo_e_o_intervalo_desde_a_conclusao_anterior(self):
+        self.versao(set(), 0)
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        self.versao({1, 2, 3}, 1800)
+        _, t = self.tarefas()
+        self.assertIsNone(t["T1"]["segundos"])  # sem conclusão anterior para medir
+        self.assertEqual(t["T2"]["segundos"], 900)
+        self.assertEqual(t["T3"]["segundos"], 300)
+        self.assertEqual(t["T3"]["quando"], self.INICIO + 1800)
+
+    def test_pausa_longa_nao_vira_tempo_de_tarefa(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 600 + 91 * 60)
+        self.versao({1, 2, 3}, 600 + 91 * 60 + 120)
+        _, t = self.tarefas()
+        self.assertIsNone(t["T2"]["segundos"])
+        self.assertEqual(t["T3"]["segundos"], 120)
+
+    def test_exatamente_no_limite_de_pausa_ainda_conta(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 600 + 90 * 60)
+        self.assertEqual(self.tarefas()[1]["T2"]["segundos"], 90 * 60)
+
+    def test_tarefas_no_mesmo_commit_dividem_o_intervalo(self):
+        self.versao({1}, 600)
+        self.versao({1, 2, 3}, 1800)
+        _, t = self.tarefas()
+        self.assertEqual((t["T2"]["segundos"], t["T3"]["segundos"]), (600, 600))
+
+    def test_commit_que_nao_conclui_nada_nao_mexe_na_medida(self):
+        self.versao({1}, 600)
+        escrever(self.raiz, ".specs/features/a/notas.md", "x")
+        _git(self.raiz, "add", "-A")
+        _git(self.raiz, "commit", "-q", "-m", "docs(a): nota", quando=self.INICIO + 900)
+        self.versao({1, 2}, 1200)
+        self.assertEqual(self.tarefas()[1]["T2"]["segundos"], 600)
+
+    def test_ritmo_e_fator_de_calibracao(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        self.versao({1, 2, 3}, 1800)
+        rel, _ = self.tarefas()
+        ritmo = rel["detalhe"]["ritmo"]
+        self.assertAlmostEqual(ritmo["por_hora"], 6.0)  # 2 tarefas em 20 min
+        self.assertAlmostEqual(ritmo["fator"], 1 / 6)  # 20 min reais para 2h estimadas
+        self.assertEqual(ritmo["amostra"], 2)
+
+    def test_linhas_do_status_completo(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        self.versao({1, 2, 3}, 1800)
+        rel, _ = self.tarefas(agora=self.INICIO + 1800 + 120)
+        linhas = pr.formatar(rel).splitlines()
+        self.assertIn("Phase atual (Phase 2: Fase 2): Faltam 2 de 2 tarefas: 0% concluído", linhas)
+        self.assertIn("Tarefa atual: T4 — Tarefa 4 (estimada 1h)", linhas)
+        self.assertIn("Última tarefa: T3 há 2 min (5 min; estimada 1h)", linhas)
+        self.assertIn("Ritmo: 6,0 tarefas/h · faltam ~2h de trabalho humano estimado · previsão ~20 min no ritmo atual",
+                      linhas)
+
+    def test_v2_da_tarefa_traz_tempo_estimado_e_andamento(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        rel, _ = self.tarefas()
+        self.assertEqual(pr.linha_tarefa(rel, "T2"),
+                         "T2 concluída: 15 min (estimada 1h) · Phase 1: 2 de 3 tarefas · Feature: 2 de 5 tarefas (40%)")
+        self.assertEqual(pr.linha_tarefa(rel), pr.linha_tarefa(rel, "T2"))  # sem ID: a última concluída
+        self.assertTrue(pr.linha_tarefa(rel, "T1").startswith("T1 concluída: tempo não medido (estimada 1h)"))
+        self.assertEqual(pr.linha_tarefa(rel, "T4"), "T4 ainda não concluída")
+        self.assertIsNone(pr.linha_tarefa(rel, "T99"))
+
+    def test_v2_do_lote_soma_o_tempo_medido(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        self.versao({1, 2, 3}, 1800)
+        rel, _ = self.tarefas()
+        linha = pr.linha_lote(rel)
+        self.assertEqual(linha, "Lote 1 de 1 em andamento: 3 de 5 tarefas, 20 min até agora (estimado 5h); "
+                                "tempo medido em 2 de 3 · Feature: 3 de 5 tarefas (60%)")
+        self.assertEqual(pr.linha_lote(rel, 1), linha)
+        self.assertIsNone(pr.linha_lote(rel, 2))
+
+    def test_v2_do_lote_concluido(self):
+        self.versao({1}, 600)
+        self.versao({1, 2}, 1500)
+        self.versao({1, 2, 3, 4, 5}, 2100)
+        rel, _ = self.tarefas()
+        self.assertTrue(pr.linha_lote(rel).startswith("Lote 1 de 1 concluído: 5 tarefas em "))
+        self.assertIn("(estimado 5h)", pr.linha_lote(rel))
+        self.assertTrue(pr.linha_lote(rel).endswith("Feature: 5 de 5 tarefas (100%)"))
+
+    def test_v2_do_lote_sem_estimativa_diz_isso(self):
+        self.versao({1, 2}, 600, estimativa=None)
+        rel, _ = self.tarefas()
+        self.assertIn("(sem estimativa)", pr.linha_lote(rel))
+
+    def test_sem_git_o_resto_continua_funcionando(self):
+        with tempfile.TemporaryDirectory() as sem_git:
+            escrever(sem_git, ".specs/features/a/tasks.md", tasks_fases([(1, [True], "1h"), (2, [False], "1h")]))
+            rel = pr.relatorio(sem_git)
+            texto = pr.formatar(rel)
+        self.assertIn("Tarefa atual: T2", texto)
+        self.assertNotIn("Última tarefa", texto)
+        self.assertIn("faltam ~1h de trabalho humano estimado", texto)
+        self.assertNotIn("previsão", texto)
+
+    def test_limita_o_numero_de_commits_lidos(self):
+        for n in range(1, 4):
+            self.versao(set(range(1, n + 1)), n * 300)
+        eventos = pr.conclusoes(self.tasks, limite=2)
+        self.assertEqual([ids for _, ids in eventos], [["T2"], ["T3"]])
+
+
 class TestMain(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -384,13 +650,40 @@ class TestMain(unittest.TestCase):
     def test_saida_em_texto(self):
         codigo, saida = self.rodar()
         self.assertEqual(codigo, 0)
-        self.assertIn("Projeto: Falta 1 de 2 tarefas: 50% concluído", saida)
+        self.assertIn("Feature atual (.specs/features/a): Falta 1 de 2 tarefas: 50% concluído", saida)
 
     def test_saida_json(self):
         codigo, saida = self.rodar("--json")
         self.assertEqual(codigo, 0)
         dados = json.loads(saida)
         self.assertEqual(dados["projeto"], {"total": 2, "feitas": 1})
+
+    def test_v2_da_tarefa_por_argumento(self):
+        codigo, saida = self.rodar("--tarefa", "T1")
+        self.assertEqual(codigo, 0)
+        self.assertEqual(saida.strip(), "T1 concluída: tempo não medido · Feature: 1 de 2 tarefas (50%)")
+
+    def test_v2_do_lote_por_argumento(self):
+        codigo, saida = self.rodar("--lote")
+        self.assertEqual(codigo, 0)
+        self.assertTrue(saida.startswith("Lote 1 de 1 em andamento: 1 de 2 tarefas"))
+
+    def test_v2_em_json_traz_so_a_linha(self):
+        codigo, saida = self.rodar("--tarefa", "T1", "--json")
+        self.assertEqual(codigo, 0)
+        self.assertEqual(list(json.loads(saida)), ["linha"])
+
+    def test_tarefa_inexistente_sai_com_1(self):
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida), contextlib.redirect_stderr(saida):
+            self.assertEqual(pr.main(["--raiz", str(self.raiz), "--tarefa", "T9"]), 1)
+            self.assertEqual(pr.main(["--raiz", str(self.raiz), "--lote", "7"]), 1)
+        self.assertIn("não encontrada", saida.getvalue())
+
+    def test_lote_que_nao_e_numero_sai_com_2(self):
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida), contextlib.redirect_stderr(saida):
+            self.assertEqual(pr.main(["--raiz", str(self.raiz), "--lote", "abc"]), 2)
 
     def test_saida_em_utf8_mesmo_quando_o_padrao_do_sistema_nao_e(self):
         """Em pipe no Windows o Python usa cp1252; o chamador lê UTF-8 e o 'í' viraria '�'."""

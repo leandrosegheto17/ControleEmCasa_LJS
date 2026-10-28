@@ -10,6 +10,10 @@ Instalar: cria a pasta se faltar, faz git init se não for repositório, copia a
 (sem .cache, __pycache__ e settings.local.json), acrescenta o que falta no .gitignore e grava
 .claude/.instalacao.json com o hash de cada arquivo copiado. Não cria .specs: ela é do projeto.
 
+Hook: a instalação e a atualização gravam um `commit-msg` em .git/hooks que roda o check_commit.py do
+tlc-spec-driven só nos commits feitos pelo Claude Code (variável CLAUDECODE); commit manual, Merge e
+Revert passam. Nunca sobrescreve hook do projeto e não mexe quando `core.hooksPath` está em uso.
+
 Atualizar: arquivo que o projeto não mudou é substituído; arquivo mudado no projeto fica como
 está e é listado como conflito (--forcar sobrescreve); arquivo que saiu dos fluxos é apagado
 só se não foi mudado; arquivo criado pelo projeto dentro da .claude nunca é tocado.
@@ -51,6 +55,57 @@ REGRAS_LOCAIS = """# Fluxos de trabalho (instalação local)
 - **Contexto do projeto**, nesta instalação: não altere o `CLAUDE.md` versionado do time sem pedido explícito; registre o que os fluxos aprendem na seção `## Contexto do projeto (local)` deste arquivo, fora do bloco gerado.
 
 """
+
+
+CHECK_COMMIT = ".claude/skills/tlc-spec-driven/scripts/check_commit.py"
+MARCA_HOOK = "# fluxos: commit-msg"
+HOOK_COMMIT_MSG = f"""#!/bin/sh
+{MARCA_HOOK} (gerado por instalar.py; é reescrito a cada --atualizar)
+# Valida a mensagem de commit feita pelo Claude Code (Conventional Commits) para o agente não
+# precisar chamar o check_commit.py a cada tarefa. Commit manual no terminal não é validado.
+[ -n "$CLAUDECODE" ] || exit 0
+case "$(head -n 1 "$1")" in Merge\\ *|Revert\\ *|fixup!*|squash!*) exit 0 ;; esac
+[ -f "{CHECK_COMMIT}" ] || exit 0
+for py in python3 python py; do
+  command -v "$py" >/dev/null 2>&1 || continue
+  "$py" -c "" >/dev/null 2>&1 || continue
+  exec "$py" "{CHECK_COMMIT}" "$1"
+done
+exit 0
+"""
+
+
+def instalar_hook_commit(destino: Path) -> str:
+    """Instala o hook commit-msg que roda o check_commit.py nos commits do Claude Code.
+
+    Nunca sobrescreve hook do projeto (sem a nossa marca) nem mexe quando `core.hooksPath` está em uso.
+    """
+    if not (destino / CHECK_COMMIT).exists():
+        return "não instalado (o tlc-spec-driven não está na .claude)"
+    if (_git_saida(destino, "config", "core.hooksPath") or "").strip():
+        return "não instalado (core.hooksPath em uso; chame o check_commit.py pelo gerenciador de hooks do projeto)"
+    pasta = _git_saida(destino, "rev-parse", "--git-path", "hooks")
+    if not pasta:
+        return "não instalado (git indisponível)"
+    pasta_hooks = Path(pasta.strip())
+    if not pasta_hooks.is_absolute():
+        pasta_hooks = destino / pasta_hooks
+    hook = pasta_hooks / "commit-msg"
+    existia = hook.exists()
+    if existia and MARCA_HOOK not in hook.read_text(encoding="utf-8", errors="replace"):
+        return "mantido o commit-msg que o projeto já tem (o agente deve rodar o check_commit.py à mão)"
+    pasta_hooks.mkdir(parents=True, exist_ok=True)
+    hook.write_bytes(HOOK_COMMIT_MSG.encode("utf-8"))
+    hook.chmod(0o755)
+    return "atualizado" if existia else "instalado"
+
+
+def _git_saida(pasta: Path, *args: str) -> str | None:
+    try:
+        r = subprocess.run(["git", "-C", str(pasta), *args], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout if r.returncode == 0 else None
 
 
 class Recusa(Exception):
@@ -235,6 +290,7 @@ def instalar(origem: Path, destino: Path, atualizar: bool = False, forcar: bool 
     else:
         completar_gitignore(destino)
     manifesto_atual.write_text(json.dumps(manifesto, ensure_ascii=False, indent=2), encoding="utf-8")
+    relatorio["hook"] = instalar_hook_commit(destino)
     return relatorio
 
 
@@ -278,6 +334,8 @@ def main() -> int:
         if chave != "novos" or args.atualizar:
             for rel in itens:
                 print(f"    {rel}")
+    if relatorio.get("hook"):
+        print(f"- hook commit-msg: {relatorio['hook']}")
     for aviso in avisos_de_ambiente():
         print(f"Aviso: {aviso}")
     if not args.atualizar and not args.simular:

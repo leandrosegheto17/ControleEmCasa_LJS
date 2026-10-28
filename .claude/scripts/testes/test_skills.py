@@ -155,6 +155,30 @@ class TestSkills(unittest.TestCase):
             with self.subTest(skill=nome):
                 self.assertIn("Estimativa", (SKILLS / nome / "SKILL.md").read_text(encoding="utf-8"))
 
+    def test_execucao_por_lote_com_v2_por_tarefa(self):
+        """Sempre por subagente, um lote por vez; o trabalhador relata o V2 de cada tarefa; a revisão segue o risco."""
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        for trecho in ("## Execução", "Sempre por subagente, um lote por vez", "Não há execução inline",
+                       "progresso.py --tarefa", "progresso.py --lote", "`**Risco**: alto|baixo`", "**14h**",
+                       "substitui o passo 6.4", "uma linha V2 por tarefa"):
+            with self.subTest(trecho=trecho):
+                self.assertIn(trecho, claude_md)
+        self.assertNotIn("**Subagentes**", claude_md)  # não há mais oferta nem escolha de subagentes
+        for nome in ("implementador", "implementador-dominio"):
+            with self.subTest(agente=nome):
+                texto = (CLAUDE / "agents" / f"{nome}.md").read_text(encoding="utf-8")
+                self.assertIn("Lote (fases", texto)
+                self.assertIn("progresso.py --tarefa", texto)  # o trabalhador relata o V2 depois de cada tarefa
+                self.assertIn("revisão por risco", texto.lower())
+                self.assertNotIn("Tarefa <ID> concluída", texto)
+        progresso = (SKILLS / "progresso" / "SKILL.md").read_text(encoding="utf-8")
+        for trecho in ("--tarefa", "--lote", "Feature atual", "Phase atual"):
+            with self.subTest(progresso=trecho):
+                self.assertIn(trecho, progresso)
+        marcos = (SKILLS / "fluxo" / "references" / "marcos.md").read_text(encoding="utf-8")
+        self.assertIn("Feature atual", marcos)
+        self.assertIn("commit-msg", (CLAUDE / "scripts" / "instalar.py").read_text(encoding="utf-8"))
+
     def test_trava_de_modelo(self):
         """A sessão compara o próprio modelo com o da fase e pergunta antes de trabalhar."""
         claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")

@@ -53,13 +53,30 @@ Vale para todo `tasks.md`, de qualquer fluxo, e tem precedência sobre o tamanho
 
 - **Não há limite de quantidade de tarefas.** O limite é o **tamanho de cada uma**: a menor tarefa possível, com meta de **até 2 horas de trabalho humano** (o tempo que uma pessoa levaria, qualquer que seja quem executa). Continua sendo uma entrega verificável, com teste.
 - Toda tarefa leva a linha **`**Estimativa**: <N>h`** (ou `<N> min`), logo depois de **What**. Estimativa acima de 2h: divida a tarefa, não aumente o prazo. Em dúvida entre uma tarefa e duas, faça duas.
+- Toda tarefa leva também **`**Risco**: alto|baixo`**, logo depois de **Estimativa** (ausente = alto). **Baixo**: configuração, ligação entre partes, CRUD sobre um padrão que o projeto já tem, sem regra de negócio nova. **Alto**: todo o resto (regra de negócio, caso limite, integração nova, concorrência, dinheiro, dado pessoal). Define a profundidade da revisão da tarefa (seção Execução).
 - O `progresso.py` avisa tarefa acima de 2h e, em `tasks.md` que já usa o campo, tarefa sem estimativa. O aviso não bloqueia: dividir é decisão de quem planeja.
+
+## Execução
+
+Vale na construção de qualquer fluxo e tem precedência sobre o `sub-agents.md` e o passo 6 do `implement.md` do `tlc-spec-driven`:
+
+- **Sempre por subagente, um lote por vez.** A sessão principal orquestra e nunca implementa: despacha **um trabalhador por lote**, espera o retorno e só então despacha o próximo. Não há execução inline, nem oferta de subagentes (isto substitui a oferta do `sub-agents.md`), nem lotes em paralelo. Feature pequena é um lote só. A skill do fluxo pode restringir mais (ex.: performance executa uma tarefa por vez: lote de uma tarefa).
+- **Lote:** Phases inteiras seguidas somando até **14h** de **Estimativa** (7 tarefas de 2h; tarefa sem estimativa conta 1h; lote final de até 2 tarefas se junta ao anterior). `python .claude/scripts/progresso.py --lote` diz qual é. O trabalhador é o `implementador-dominio` se o lote tiver alguma tarefa de `**Risco**: alto` (ou sem o campo); senão, o `implementador`. Passe a ele as tarefas do lote, na ordem do Execution Plan, só com as dependências prontas.
+- **Depois de cada tarefa**, o trabalhador roda `python .claude/scripts/progresso.py --tarefa` e guarda a linha como saiu (tempo gasto, tempo estimado, Phase e feature). O retorno do lote traz **uma linha V2 por tarefa**, na ordem. O subagente só devolve texto ao terminar, então o usuário as lê no fim do lote; quem quiser ver ao vivo roda `/progresso` em outro terminal. O tempo vem do `git log` do `tasks.md`: é o commit da tarefa, com o status marcado, que o registra.
+- **Depois de cada lote**, a sessão principal copia as linhas V2 das tarefas para o usuário e roda `--lote`, mostrando a linha do lote. Tarefa que falhou ou bloqueou não gera linha: o trabalhador para, sem commit dela, e devolve as linhas das tarefas já concluídas e o motivo; a sessão principal decide antes de despachar outro lote.
+- **Quando se para:** só em falha, bloqueio, marco de troca de sessão ou fim de fase. Entre lotes não há aprovação.
+- **Revisão por risco** (substitui o passo 6.4 do `implement.md`; o gate roda sempre, em toda tarefa):
+  - **Baixo:** gate verde e uma linha por critério de pronto: `critério → arquivo:linha`.
+  - **Alto:** uma linha por critério e por caso limite da spec, com a expressão da asserção (`critério → arquivo:linha: expect(...)`), a conferência de que nenhum teste passaria com uma implementação errada plausível e a linha `Órfãos:` (teste sem critério, ou `nenhum`).
+  - Critério sem `arquivo:linha` não está coberto (evidência ou zero). Tarefa de risco baixo que toque autenticação ou autorização, SQL ou migração, entrada externa (rota, parser), CI, deploy ou Docker, dependência, segredo ou log passa a risco alto.
+  - As linhas de adequação ficam no trabalho do trabalhador; o retorno do lote só traz o que reprovou na revisão. O `verificador` continua conferindo **todas** as tarefas por inteiro (passos A a D) no fim da feature: é ele que cobre o que a autorrevisão de risco baixo não listou. Isto não relaxa a regra de Testes (abaixo).
+- **Mensagem de commit:** o hook `commit-msg` instalado pelo `instalar.py` valida os commits do Claude Code. Em projeto sem o hook, rode `check_commit.py --message` antes de commitar.
 
 ## Aprovação
 
 - Cada fase termina com um resumo curto e a pergunta de aprovação (via `AskUserQuestion`) com as opções **seguir / ajustar / parar**. Nada avança para a fase seguinte sem aprovação explícita.
 - Parar é um resultado válido e fica registrado.
-- **Progresso no resumo:** antes da pergunta de aprovação, rode `python .claude/scripts/progresso.py` e ponha no resumo as linhas que ele mostra (ex.: "Faltam 45 de 180 tarefas: 75% concluído"). Antes da fase de tarefas ainda não há tarefas: diga só em que fase do fluxo o trabalho está. Projeto com `.specs/projeto/roadmap.md` (uma linha por etapa ou feature, com a Situação) traz também a linha **Plano**; ao aprovar uma etapa ou integrar uma feature, troque a Situação dela no roadmap no mesmo commit. Detalhes na skill `progresso` (`/progresso` mostra a qualquer momento).
+- **Progresso no resumo:** antes da pergunta de aprovação, rode `python .claude/scripts/progresso.py` e ponha no resumo as linhas que ele mostra (ex.: "Faltam 45 de 180 tarefas: 75% concluído"). Antes da fase de tarefas ainda não há tarefas: diga só em que fase do fluxo o trabalho está. Projeto com `.specs/projeto/roadmap.md` (uma linha por etapa ou feature, com a Situação) traz também a linha **Produto**; ao aprovar uma etapa ou integrar uma feature, troque a Situação dela no roadmap no mesmo commit. Detalhes na skill `progresso` (`/progresso` mostra a qualquer momento).
 - Nos marcos de troca de sessão (seção abaixo), a pergunta ganha a opção **seguir numa sessão nova**.
 - Ação externa ou difícil de desfazer (push, deploy, banco de produção, apagar dados, publicar) exige confirmação específica para aquela ação, mesmo com a fase aprovada.
 
@@ -99,7 +116,7 @@ A conversa usa o modelo da sessão (padrão: Sonnet). O trabalho pesado roda em 
 | `verificador` | Sonnet | Verificação independente (quem escreve não verifica) |
 | `auditor-seguranca` | Opus | Auditoria de segurança |
 
-- Ao despachar trabalhadores do `tlc-spec-driven`, use `implementador` (fase mecânica) ou `implementador-dominio` (fase de domínio). O verificador dele é o agente `verificador`.
+- Ao despachar trabalhadores do `tlc-spec-driven` (um por lote, um lote por vez, seção Execução), use `implementador` (lote todo de `**Risco**: baixo`) ou `implementador-dominio` (lote com alguma tarefa de domínio ou ambígua, `**Risco**: alto`). O verificador dele é o agente `verificador`.
 - Leitura ampla de código: delegue ao `leitor-codigo` e trabalhe com o resumo.
 
 ## Artefatos e dependências

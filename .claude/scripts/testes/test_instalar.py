@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -91,6 +93,94 @@ class TestInstalar(Base):
         self.instalar()
         log = subprocess.run(["git", "log", "--oneline"], cwd=self.destino, capture_output=True, text=True).stdout
         self.assertEqual(len(log.strip().splitlines()), 1)
+
+
+CHECK_COMMIT_REAL = Path(__file__).resolve().parents[2] / "skills" / "tlc-spec-driven" / "scripts" / "check_commit.py"
+
+
+@unittest.skipUnless(shutil.which("git") and shutil.which("sh"), "git e sh são necessários")
+class TestHookCommit(Base):
+    """S4: hook commit-msg que valida só os commits do Claude Code, no lugar do agente chamar o script."""
+
+    def setUp(self):
+        super().setUp()
+        escrever(self.origem / "skills" / "tlc-spec-driven" / "scripts" / "check_commit.py",
+                 CHECK_COMMIT_REAL.read_text(encoding="utf-8"))
+        self.destino.mkdir()
+        repo_git(self.destino)
+        self.hook = self.destino / ".git" / "hooks" / "commit-msg"
+
+    def commit(self, mensagem, claude=True):
+        escrever(self.destino / "a.txt", mensagem)
+        subprocess.run(["git", "add", "-A"], cwd=self.destino, check=True)
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+        if claude:
+            env["CLAUDECODE"] = "1"
+        return subprocess.run(["git", "commit", "-q", "-m", mensagem], cwd=self.destino, env=env,
+                              capture_output=True, text=True)
+
+    def test_instala_o_hook_e_avisa_no_relatorio(self):
+        relatorio = self.instalar()
+        self.assertEqual(relatorio["hook"], "instalado")
+        self.assertIn(inst.MARCA_HOOK, self.hook.read_text(encoding="utf-8"))
+
+    def test_sem_o_tlc_na_claude_nao_instala(self):
+        (self.origem / "skills" / "tlc-spec-driven" / "scripts" / "check_commit.py").unlink()
+        self.assertTrue(self.instalar()["hook"].startswith("não instalado"))
+        self.assertFalse(self.hook.exists())
+
+    def test_nao_sobrescreve_hook_do_projeto(self):
+        self.hook.parent.mkdir(parents=True, exist_ok=True)
+        escrever(self.hook, "#!/bin/sh\necho do projeto\n")
+        self.assertTrue(self.instalar()["hook"].startswith("mantido"))
+        self.assertEqual(self.hook.read_text(encoding="utf-8"), "#!/bin/sh\necho do projeto\n")
+
+    def test_atualizar_reescreve_o_nosso_hook(self):
+        self.instalar()
+        escrever(self.hook, f"#!/bin/sh\n{inst.MARCA_HOOK} velho\nexit 0\n")
+        self.assertEqual(self.instalar(atualizar=True)["hook"], "atualizado")
+        self.assertIn("CLAUDECODE", self.hook.read_text(encoding="utf-8"))
+
+    def test_core_hookspath_em_uso_nao_instala(self):
+        subprocess.run(["git", "config", "core.hooksPath", ".husky"], cwd=self.destino, check=True)
+        self.assertIn("core.hooksPath", self.instalar()["hook"])
+        self.assertFalse(self.hook.exists())
+
+    def test_simular_nao_instala_hook(self):
+        self.instalar()
+        self.hook.unlink()
+        self.instalar(atualizar=True, simular=True)
+        self.assertFalse(self.hook.exists())
+
+    def test_bloqueia_mensagem_fora_do_padrao_quando_e_o_claude(self):
+        self.instalar()
+        r = self.commit("Ajuste qualquer coisa")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertEqual(git_saida(self.destino, "rev-list", "--count", "--all").strip(), "0")
+
+    def test_aceita_mensagem_conventional_commits_do_claude(self):
+        self.instalar()
+        self.assertEqual(self.commit("feat(a): adiciona a tarefa").returncode, 0)
+
+    def test_commit_manual_nao_e_validado(self):
+        self.instalar()
+        self.assertEqual(self.commit("Ajuste qualquer coisa", claude=False).returncode, 0)
+
+    def test_merge_e_revert_passam_mesmo_do_claude(self):
+        self.instalar()
+        self.assertEqual(self.commit("Merge branch 'x'").returncode, 0)
+        self.assertEqual(self.commit('Revert "feat(a): x"').returncode, 0)
+
+    def test_funciona_em_worktree(self):
+        self.instalar()
+        self.assertEqual(self.commit("feat(a): base").returncode, 0)
+        arvore = self.dir / "arvore"
+        subprocess.run(["git", "worktree", "add", "-q", str(arvore), "-b", "ramo"], cwd=self.destino, check=True)
+        escrever(arvore / "b.txt", "x")  # a .claude foi commitada com a base, então o worktree já a tem
+        subprocess.run(["git", "add", "-A"], cwd=arvore, check=True)
+        env = dict(os.environ, CLAUDECODE="1")
+        ruim = subprocess.run(["git", "commit", "-q", "-m", "ruim"], cwd=arvore, env=env, capture_output=True, text=True)
+        self.assertNotEqual(ruim.returncode, 0)
 
 
 class TestAtualizar(Base):
