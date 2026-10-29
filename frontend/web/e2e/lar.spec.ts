@@ -73,3 +73,65 @@ test('sair de todos os aparelhos: pede confirmação, chama a rota global e leva
   expect(saida?.cabecalhos['x-controle-em-casa']).toBe('1');
   expect(estado.sessaoAtiva).toBe(false);
 });
+
+/**
+ * Remover o membro (etapa 18; spec "Titular remove o membro" e critério de sucesso "em até 2 toques"): Ana, titular,
+ * remove Beatriz (`lar-dois-membros.json`).
+ */
+const ID_BEATRIZ = '00000000-0000-4000-8000-000000000102';
+
+test('o titular remove o membro em 2 toques e a lista volta só com ele', async ({ page }) => {
+  const { escritas, lar } = await simularApiMetas(page, 'lar-dois-membros.json');
+  await page.goto('/app/ajustes/lar');
+  const membros = page.getByRole('region', { name: 'Membros' }).getByRole('listitem');
+  await expect(membros).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Remover' }).click();
+  const dialogo = page.getByRole('alertdialog');
+  await expect(dialogo).toHaveAccessibleName('Remover Beatriz da casa?');
+  await expect(dialogo).toContainText('Ex-membro');
+  await dialogo.getByRole('button', { name: 'Remover' }).click();
+
+  await expect(page.getByText('Membro removido', { exact: true })).toBeVisible();
+  await expect(dialogo).toHaveCount(0);
+  await expect(membros).toHaveCount(1);
+  await expect(membros.first()).toContainText('Ana');
+  await expect(page.getByLabel('E-mail de quem vai participar')).toBeVisible();
+  const remocoes = escritas.filter((e) => e.url.startsWith('/api/lar/membros/'));
+  expect(remocoes).toHaveLength(1);
+  expect(remocoes[0]).toMatchObject({ metodo: 'DELETE', url: `/api/lar/membros/${ID_BEATRIZ}` });
+  expect(remocoes[0]?.cabecalhos['x-controle-em-casa']).toBe('1');
+  expect(lar.membros).toHaveLength(1);
+});
+
+test('cancelar a remoção não chama DELETE /api/lar/membros/:id', async ({ page }) => {
+  const { escritas } = await simularApiMetas(page, 'lar-dois-membros.json');
+  await page.goto('/app/ajustes/lar');
+
+  await page.getByRole('button', { name: 'Remover' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar' }).click();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Remover' }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+  await expect(page.getByRole('region', { name: 'Membros' }).getByRole('listitem')).toHaveCount(2);
+  expect(escritas.filter((e) => e.url.startsWith('/api/lar/membros/'))).toHaveLength(0);
+});
+
+test('registro_invalido (o membro já saiu): avisa "Este membro já não está na casa" e relê a lista', async ({
+  page,
+}) => {
+  const { lar } = await simularApiMetas(page, 'lar-dois-membros.json');
+  await page.goto('/app/ajustes/lar');
+
+  await page.getByRole('button', { name: 'Remover' }).click();
+  // Beatriz sai por conta própria enquanto a confirmação está aberta.
+  lar.membros = lar.membros.filter((m) => m.id !== ID_BEATRIZ);
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Remover' }).click();
+
+  await expect(page.getByText('Este membro já não está na casa', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Membros' }).getByRole('listitem')).toHaveCount(1);
+  await expect(page.getByText('Membro removido', { exact: true })).toHaveCount(0);
+});

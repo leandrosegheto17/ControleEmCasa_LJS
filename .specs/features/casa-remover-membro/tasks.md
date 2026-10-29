@@ -248,10 +248,10 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Remover chega em 2 toques (Remover, Confirmar) e a lista volta só com o titular
-- [ ] Cancelar não faz nenhuma chamada a `DELETE /api/lar/membros/:id`
-- [ ] `registro_invalido` mostra "Este membro já não está na casa"
-- [ ] Gate full passa e o total de testes não diminui
+- [x] Remover chega em 2 toques (Remover, Confirmar) e a lista volta só com o titular
+- [x] Cancelar não faz nenhuma chamada a `DELETE /api/lar/membros/:id`
+- [x] `registro_invalido` mostra "Este membro já não está na casa"
+- [x] Gate full passa e o total de testes não diminui
 
 **Tests**: e2e
 **Gate**: full

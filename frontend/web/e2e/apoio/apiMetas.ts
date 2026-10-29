@@ -64,10 +64,13 @@ const mesesEntre = (de: string, ate: string) => {
   return (pa - a) * 12 + (pm - m);
 };
 
-/** `lar-sozinha`: o convite só faz sentido com um membro; `lar-dois-membros`: a casa cheia. */
+/**
+ * `lar-sozinha`: o convite só faz sentido com um membro; `lar-dois-membros`: a casa cheia, com Ana titular;
+ * `lar-como-membro`: a mesma casa, com a sessão de Beatriz, o membro.
+ */
 export async function simularApiMetas(
   page: Page,
-  larInicial: 'lar-sozinha.json' | 'lar-dois-membros.json' = 'lar-sozinha.json',
+  larInicial: 'lar-sozinha.json' | 'lar-dois-membros.json' | 'lar-como-membro.json' = 'lar-sozinha.json',
 ) {
   const dados = ler<Record<string, unknown>>('dados-lancamento.json');
   const metas: Meta[] = ler<
@@ -101,7 +104,10 @@ export async function simularApiMetas(
   }
   const lar = ler<Lar>(larInicial);
   const escritas: Escrita[] = [];
-  const estado = { sessaoAtiva: true };
+  /** `saiuDoLar`: depois de `POST /api/lar/sair`, a sessão vem sem lar (CA-23.13). */
+  const estado = { sessaoAtiva: true, saiuDoLar: false };
+  const souTitular = () => lar.membros.find((m) => m.sou_eu)?.papel === 'titular';
+  const registroInvalido = () => json({ code: 'registro_invalido', message: 'x' }, 400);
 
   const guardado = (id: string, local?: string) =>
     movimentos
@@ -140,7 +146,8 @@ export async function simularApiMetas(
     if (metodo !== 'GET') escritas.push({ metodo, url: pathname, corpo, cabecalhos: pedido.headers() });
 
     if (pathname === '/api/sessao') {
-      return rota.fulfill(estado.sessaoAtiva ? json(SESSAO) : json({ code: 'sessao_expirada', message: 'x' }, 401));
+      if (!estado.sessaoAtiva) return rota.fulfill(json({ code: 'sessao_expirada', message: 'x' }, 401));
+      return rota.fulfill(json(estado.saiuDoLar ? { ...SESSAO, membro: null, lar: null } : SESSAO));
     }
     if (pathname === '/api/sessao/sair-de-todos' && metodo === 'POST') {
       estado.sessaoAtiva = false;
@@ -225,6 +232,20 @@ export async function simularApiMetas(
     }
     if (pathname === `/api/lar/convites/${ID_CONVITE}` && metodo === 'DELETE') {
       delete lar.convite_pendente;
+      return rota.fulfill({ status: 204 });
+    }
+    // CA-23.14: o titular remove o outro membro ativo; o resto (inclusive quem já saiu) é `registro_invalido`.
+    const remover = /^\/api\/lar\/membros\/([^/]+)$/.exec(pathname);
+    if (remover && metodo === 'DELETE') {
+      const alvo = lar.membros.find((m) => m.id === remover[1]);
+      if (!souTitular() || !alvo || alvo.sou_eu) return rota.fulfill(registroInvalido());
+      lar.membros = lar.membros.filter((m) => m !== alvo);
+      return rota.fulfill({ status: 204 });
+    }
+    // CA-23.12, CA-23.13: o membro sai; o titular não sai por aqui.
+    if (pathname === '/api/lar/sair' && metodo === 'POST') {
+      if (souTitular()) return rota.fulfill(registroInvalido());
+      estado.saiuDoLar = true;
       return rota.fulfill({ status: 204 });
     }
     return rota.fulfill(json({ code: 'rota_inexistente', message: 'x' }, 404));
