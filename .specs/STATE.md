@@ -4,10 +4,10 @@
 
 - **Fluxo**: recriação do MyMoney no Padrão LJS, conduzida pelo `.md/PLANO.md`, sem skill de fluxo própria (o `/fluxo` não cobre; retome direto pelo plano). Construção pelo `tlc-spec-driven`.
 - **Item**: `.specs/features/casa-remover-membro/` (etapa 18, remover membro e sair do lar; só front, a API já existe).
-- **Fase aprovada**: Specify (`aeb3ea2`) e Tasks (`c1b94e5`) em 2026-10-29; design pulado (padrões existentes). A 17c foi aprovada com ressalvas no mesmo dia.
-- **Próxima fase**: Execute, 1 lote de 8 tarefas (~10,5h, 3 phases), trabalhador `implementador-dominio` (6 tarefas de risco alto); depois `verificador`. Modelo indicado: sonnet.
-- **Construção**: nenhum lote despachado ainda. Ao começar, trocar a Situação da 18 no roadmap para `Em andamento` e rodar `python .claude/scripts/progresso.py --lote`.
-- **Progresso**: Produto: faltam 2 de 22 etapas (91%); o `/progresso` ainda aponta a `publicacao-infra` por causa da T14 (Sentry) adiada; conferida em 2026-10-29, recalcular ao retomar.
+- **Fase aprovada**: Execute, lote 1 de 1 (8 de 8 tarefas, commits `d99d92c` a `c94d532`, 44 min para ~10h30 estimadas) em 2026-10-29. O usuário aprovou as decisões do trabalhador: véu do `DialogoConfirmacao` que fecha só nos dois diálogos novos (`fecharNoVeu`, `erro`) e troca do atraso fixo por trava no teste "confirmar inerte" da T5 (commit `f5a4e67`). A 17c foi aprovada com ressalvas no mesmo dia.
+- **Próxima fase**: verificação independente pelo agente `verificador` (todas as tarefas, passos A a D, grava `validation.md`), depois integração da feature e troca da Situação da 18 para `Concluída` no roadmap (hoje `Em andamento`). Modelo indicado: sonnet.
+- **Construção**: concluída. O trabalhador relatou suíte inteira verde (4085 testes), e2e `lar.spec.ts` 10 de 10, lint, typecheck e `checar-tokens.py` verdes; ainda sem `trava-testes.py --rodar` e sem verificador. Teste instável fora da feature: `MetaFormulario.test.tsx` ("ADR-010: duas tentativas…") estourou 5 s uma vez na suíte inteira. Risco fora da spec: despesas na fila offline da casa antiga poderiam subir depois de o membro criar casa nova (improvável, sair é só online).
+- **Progresso**: Produto: faltam 2 de 22 etapas (91%), com a 18 em andamento; Feature atual: 8 de 8 tarefas (100%); conferida em 2026-10-29. O `/progresso` do Produto ainda aponta a `publicacao-infra` por causa da T14 (Sentry) adiada.
 - **Combinado na conversa e não registrado em artefato**: decisões do usuário já na spec (sair leva ao primeiro acesso; confirmação com efeitos completos; ações só online). Push segue não feito; só com confirmação específica e suíte verde. Pendências da 17c herdadas pela 17d estão no roadmap. Mesmas regras de trabalho do histórico abaixo (legado e GestaodaPelada somente leitura; segredos nunca pela conversa; uma etapa por vez).
 - **Gravada em**: 2026-10-29
 
