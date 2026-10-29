@@ -480,10 +480,10 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] CPU por rota (p50 e p99) registrada em `evidencias.md`, com as rotas que passam de 10 ms
-- [ ] Causa da cauda identificada ou descartada com medida (não hipótese)
-- [ ] Decisão do usuário registrada: corrigir (tarefa própria, com teste que falha antes) ou aceitar o risco no ADR
-- [ ] Nova medição `medir-cpu-publicado` depois da correção, se houve
+- [ ] ~~CPU por rota (p50 e p99) registrada~~ — dispensado pelo usuário em 2026-10-29 (aceitou os tempos da T8)
+- [ ] ~~Causa da cauda identificada~~ — não investigada; risco aceito
+- [x] Decisão do usuário registrada: **aceitar o risco** (2026-10-29, `evidencias.md`); a nota no ADR-015 fica para a T16
+- [x] Sem correção, sem nova medição
 
 **Tests**: unit (qualquer correção de código nasce de teste que falha)
 **Gate**: Quick

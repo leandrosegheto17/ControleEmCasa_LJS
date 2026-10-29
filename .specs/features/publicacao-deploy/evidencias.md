@@ -94,3 +94,9 @@ Sem segredo: só links, nomes e resultados.
 - **Validado:** o dataset `workersInvocationsAdaptive` e os campos `quantiles.cpuTimeP50`/`cpuTimeP99` e `sum.requests` respondem na Cloudflare real; o `[A VALIDAR NA 17C]` do dataset e dos campos está resolvido. O script não precisou de correção.
 - **Veredito:** teto estourado no p99 (4,4 vezes o teto); o p50 está dentro (70% do teto). Pela tarefa, abre-se o ajuste de CPU (T18) antes de aprovar a feature.
 - **Limites desta medição:** a janela mistura fumaça do deploy, cadastro, login e uso manual; o dataset não separa por rota, então não diz o que causa a cauda. Candidatos a investigar: hash da senha no cadastro e no login, retomada a frio do isolate, a primeira conexão com o banco pelo Hyperdrive. Isso é hipótese, não medida.
+
+## T18 — Decisão do usuário sobre a CPU (2026-10-29)
+
+- O usuário **aceitou os tempos medidos na T8** (p50 7,07 ms; p99 44,14 ms; teto 10 ms), sem a medição por rota que a T18 previa. Decisão do usuário, registrada como foi dada.
+- **Risco aceito, não eliminado:** a causa da cauda do p99 não foi identificada. Requisições acima de 10 ms de CPU podem falhar no plano Free do Workers (erro 1102) ou, se a Cloudflare mudar o limite, passar a falhar. A medição por rota (janelas curtas com `JANELA_HORAS`) segue disponível se o p99 piorar com mais tráfego.
+- **Pendente para a T16:** anotar o aceite no ADR-015 e manter o RNF-04 registrado como "aceito com p99 acima do teto" (não como atendido). Reavaliar na 17d, com tráfego de pessoas reais.
