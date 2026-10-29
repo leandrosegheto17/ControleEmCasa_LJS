@@ -87,3 +87,10 @@ Sem segredo: só links, nomes e resultados.
 - Volta: `wrangler rollback 92a2b64f-… --message "…"` em **7 s**, `SUCCESS`, `/api/health`, `/` e `/app/` em 200; versão ativa final `92a2b64f` (18:46:45).
 - Resolvido o `[A VALIDAR NA ETAPA 17]` do runbook 3.1 (modo não interativo): funciona. Runbook atualizado, com o cuidado de que reverter uma versão anterior a uma troca de segredo desfaz o segredo.
 - Não ensaiado: o rollback automático do `deploy.yml` quando a fumaça falha (só roda com falha; o mesmo comando, com o mesmo token da Cloudflare, foi provado agora pelo terminal).
+
+## T8 — CPU do Worker publicado (2026-10-29)
+
+- `pnpm --filter @controle/scripts medir-cpu-publicado` (token de leitura de Analytics no terminal do usuário, nunca na conversa): janela 24 h, **261 requisições**, CPU por requisição **p50 7,07 ms | p99 44,14 ms | teto 10 ms**. Saída do script: **ACIMA do teto (RNF-04)**, código de saída 1.
+- **Validado:** o dataset `workersInvocationsAdaptive` e os campos `quantiles.cpuTimeP50`/`cpuTimeP99` e `sum.requests` respondem na Cloudflare real; o `[A VALIDAR NA 17C]` do dataset e dos campos está resolvido. O script não precisou de correção.
+- **Veredito:** teto estourado no p99 (4,4 vezes o teto); o p50 está dentro (70% do teto). Pela tarefa, abre-se o ajuste de CPU (T18) antes de aprovar a feature.
+- **Limites desta medição:** a janela mistura fumaça do deploy, cadastro, login e uso manual; o dataset não separa por rota, então não diz o que causa a cauda. Candidatos a investigar: hash da senha no cadastro e no login, retomada a frio do isolate, a primeira conexão com o banco pelo Hyperdrive. Isso é hipótese, não medida.

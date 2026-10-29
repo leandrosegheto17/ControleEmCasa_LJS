@@ -469,13 +469,35 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 ### Phase 5: Fechamento
 
+#### T18: Ajuste de CPU do Worker: achar a causa do p99 acima de 10 ms
+
+**What**: A T8 mediu p99 de 44,14 ms (teto 10 ms; p50 7,07 ms; 261 requisições, 24 h). Descobrir por rota o que gasta CPU (cadastro e login com hash de senha, retomada a frio, primeira conexão, resumo) com o `cpuTime` por requisição dos logs do Workers (`wrangler tail` ou Workers Logs), separar a cauda de retomada a frio da de rota pesada, e propor a correção ou o aceite do risco ao usuário. Não corrige antes de medir por rota.
+**Estimativa**: 2h
+**Risco**: alto
+**Where**: logs do Workers; `backend/api/src/aplicacao/acesso/`; `backend/scripts/src/operacao/medir-cpu-publicado.ts`
+**Depends on**: T8
+**Requirement**: RNF-04 (R1 do SDD §10)
+
+**Done when**:
+
+- [ ] CPU por rota (p50 e p99) registrada em `evidencias.md`, com as rotas que passam de 10 ms
+- [ ] Causa da cauda identificada ou descartada com medida (não hipótese)
+- [ ] Decisão do usuário registrada: corrigir (tarefa própria, com teste que falha antes) ou aceitar o risco no ADR
+- [ ] Nova medição `medir-cpu-publicado` depois da correção, se houve
+
+**Tests**: unit (qualquer correção de código nasce de teste que falha)
+**Gate**: Quick
+**Commit**: `docs(deploy): cpu do worker por rota`
+
+---
+
 #### T16: Fechar a 17c: runbook, evidências, ressalvas e roadmap
 
 **What**: Consolidar `evidencias.md`, retirar os marcadores `[A VALIDAR NA 17C]` do runbook e dos scripts, anotar nos ADRs 015 e 016 o que a produção confirmou, trocar a Situação da 17c no `roadmap.md` e registrar o fim da 17c no `STATE.md`. Pedir a verificação independente (agente `verificador`) do que for código; as demais tarefas são conferidas pelas evidências.
 **Estimativa**: 90 min
 **Risco**: baixo
 **Where**: `docs/runbook.md`; `.specs/projeto/roadmap.md`; `.specs/STATE.md`
-**Depends on**: T5, T6, T7, T9, T10, T11, T14, T15
+**Depends on**: T5, T6, T7, T9, T10, T11, T14, T15, T18
 **Reuses**: `validation.md` da 17b como modelo
 **Requirement**: AD-001
 
