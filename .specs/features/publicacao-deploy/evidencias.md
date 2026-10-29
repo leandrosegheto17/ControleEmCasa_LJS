@@ -100,3 +100,16 @@ Sem segredo: só links, nomes e resultados.
 - O usuário **aceitou os tempos medidos na T8** (p50 7,07 ms; p99 44,14 ms; teto 10 ms), sem a medição por rota que a T18 previa. Decisão do usuário, registrada como foi dada.
 - **Risco aceito, não eliminado:** a causa da cauda do p99 não foi identificada. Requisições acima de 10 ms de CPU podem falhar no plano Free do Workers (erro 1102) ou, se a Cloudflare mudar o limite, passar a falhar. A medição por rota (janelas curtas com `JANELA_HORAS`) segue disponível se o p99 piorar com mais tráfego.
 - **Pendente para a T16:** anotar o aceite no ADR-015 e manter o RNF-04 registrado como "aceito com p99 acima do teto" (não como atendido). Reavaliar na 17d, com tráfego de pessoas reais.
+
+## T10 — Lighthouse no app publicado (2026-10-29)
+
+- Lighthouse **11.7.1** (versão fixada, a última com a categoria PWA), perfil padrão de celular (moto g power, 4G simulado), Chrome headless, contra `https://controleemcasa.ljssoftware.com.br/` e `/app/` (que redireciona para `/entrar?volta=%2Fapp%2F`, sem sessão). Relatórios JSON fora do git (pasta temporária).
+
+| Caminho | PWA | Desempenho | Acessibilidade | Boas práticas | SEO |
+|---|---|---|---|---|---|
+| `/` (landing) | **100** | 59 | 100 | 93 | 92 |
+| `/app/` → Entrar | **100** | 57 | 100 | 93 | 92 |
+
+- **Meta cumprida:** PWA ≥ 90 nos dois caminhos.
+- **Desempenho (fora da meta da tarefa, registrado):** FCP 7,0 s e LCP 7,7 s na landing (7,5 s e 8,3 s no app), TBT 10 ms, CLS 0. O servidor responde em 20 a 50 ms; a lentidão vem de **recursos que bloqueiam a renderização** (economia estimada de 2,6 s) e de JavaScript não usado (56 KiB), sob a simulação de celular lento com CPU reduzida. Não é a meta de Início ≤ 2 s da T9, que se mede no navegador real, sem essa simulação.
+- Sem ajuste aberto: a nota que a tarefa exige (PWA) passou. O desempenho fica como candidato a melhoria futura.

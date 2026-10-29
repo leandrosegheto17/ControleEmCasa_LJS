@@ -349,8 +349,8 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Notas registradas; PWA ≥ 90
-- [ ] Nota abaixo da meta: registrar a causa e abrir ajuste
+- [x] Notas registradas; PWA ≥ 90 (100 nos dois caminhos)
+- [x] Nota abaixo da meta: não houve na PWA; desempenho 57 a 59 registrado com a causa, sem ajuste aberto
 
 **Tests**: none
 **Gate**: evidência registrada
