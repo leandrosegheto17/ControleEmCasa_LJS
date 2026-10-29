@@ -503,9 +503,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Nenhum `[A VALIDAR NA 17C]` restante, ou cada restante com motivo e destino (17d)
-- [ ] Situação da 17c no roadmap trocada no mesmo commit da aprovação
-- [ ] Trava de testes verde (`python .claude/scripts/trava-testes.py --rodar`) e `validation.md` com PASS, se houve código
+- [x] Nenhum `[A VALIDAR NA 17C]` restante, ou cada restante com motivo e destino (17d) (dataset da CPU resolvido; rota `/api/sessao` e retomada a frio vão para a 17d)
+- [x] Situação da 17c no roadmap trocada no mesmo commit da aprovação
+- [x] Trava de testes verde no `938f17a` e `validation.md` com PASS (T17)
 
 **Tests**: none (unit nos scripts, se mudaram)
 **Gate**: Build
