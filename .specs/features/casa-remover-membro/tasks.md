@@ -75,10 +75,10 @@ T7 → T8
 
 **Done when**:
 
-- [ ] `removerMembro(id)` chama `DELETE /api/lar/membros/:id`; id que não é uuid lança `REGISTRO_INVALIDO` sem chamar a rede
-- [ ] `sairDoLar()` chama `POST /api/lar/sair` sem corpo
-- [ ] Erros de regra (`registro_invalido`, `sem_lar`) e de rede chegam intactos a quem chamou
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] `removerMembro(id)` chama `DELETE /api/lar/membros/:id`; id que não é uuid lança `REGISTRO_INVALIDO` sem chamar a rede
+- [x] `sairDoLar()` chama `POST /api/lar/sair` sem corpo
+- [x] Erros de regra (`registro_invalido`, `sem_lar`) e de rede chegam intactos a quem chamou
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick

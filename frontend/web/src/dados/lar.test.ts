@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { aceitarConvite, aceitarTermos, conviteAtual, criarLar, recusarConvite } from './lar';
+import { aceitarConvite, aceitarTermos, conviteAtual, criarLar, recusarConvite, removerMembro, sairDoLar } from './lar';
 
 const fetchSimulado = vi.fn<typeof fetch>();
 const json = (corpo: unknown, status = 200) =>
@@ -59,5 +59,44 @@ describe('dados/lar', () => {
       metodo: 'POST',
       corpo: { termos: 'v1', privacidade: 'v2' },
     });
+  });
+
+  it('removerMembro: DELETE /api/lar/membros/:id com o id do membro e sem corpo', async () => {
+    const id = '00000000-0000-4000-8000-0000000000c1';
+    fetchSimulado.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(removerMembro(id)).resolves.toBeUndefined();
+    expect(ultima()).toEqual({ url: `/api/lar/membros/${id}`, metodo: 'DELETE', corpo: undefined });
+  });
+
+  it.each(['nao-e-uuid', '', '../convites/x'])(
+    'removerMembro(%j): id inválido lança REGISTRO_INVALIDO sem chamar a rede',
+    async (id) => {
+      await expect(removerMembro(id)).rejects.toEqual({ tipo: 'regra', codigo: 'registro_invalido' });
+      expect(fetchSimulado).not.toHaveBeenCalled();
+    },
+  );
+
+  it('sairDoLar: POST /api/lar/sair sem corpo', async () => {
+    fetchSimulado.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(sairDoLar()).resolves.toBeUndefined();
+    expect(ultima()).toEqual({ url: '/api/lar/sair', metodo: 'POST', corpo: undefined });
+  });
+
+  it.each([
+    ['registro_invalido', 400],
+    ['sem_lar', 403],
+  ] as const)('remover e sair repassam o erro de regra %s intacto', async (code, status) => {
+    fetchSimulado.mockImplementation(async () => json({ code, message: 'x' }, status));
+    await expect(removerMembro('00000000-0000-4000-8000-0000000000c1')).rejects.toEqual({
+      tipo: 'regra',
+      codigo: code,
+    });
+    await expect(sairDoLar()).rejects.toEqual({ tipo: 'regra', codigo: code });
+  });
+
+  it('remover e sair repassam a falha de rede como erro rede', async () => {
+    fetchSimulado.mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(removerMembro('00000000-0000-4000-8000-0000000000c1')).rejects.toEqual({ tipo: 'rede' });
+    await expect(sairDoLar()).rejects.toEqual({ tipo: 'rede' });
   });
 });

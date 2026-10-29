@@ -50,3 +50,14 @@ export async function revogarConvite(id: string): Promise<void> {
   if (!ehUuid(id)) throw REGISTRO_INVALIDO;
   await chamar('DELETE', `/api/lar/convites/${id}`);
 }
+
+/** `DELETE /api/lar/membros/:id` (titular, 204; CA-23.14): remove o convidado com o efeito da saída. */
+export async function removerMembro(id: string): Promise<void> {
+  if (!ehUuid(id)) throw REGISTRO_INVALIDO;
+  await chamar('DELETE', `/api/lar/membros/${id}`);
+}
+
+/** `POST /api/lar/sair` (membro, 204; CA-23.12, CA-23.13): o convidado sai; o titular recebe `registro_invalido`. */
+export async function sairDoLar(): Promise<void> {
+  await chamar('POST', '/api/lar/sair');
+}
