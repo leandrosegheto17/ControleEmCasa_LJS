@@ -702,9 +702,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Restauração concluída e conferência 4.3 sem acusação
-- [ ] Seção 9.3 do runbook atualizada com o resultado
-- [ ] Branch de ensaio apagada
+- [ ] Restauração concluída e conferência 4.3 sem acusação — **não executada**; aprovada pelo usuário em 2026-10-29 sem execução
+- [ ] Seção 9.3 do runbook atualizada com o resultado — segue pendente (nada a registrar)
+- [x] Branch de ensaio apagada (não se aplica: ADR-017 não cria branch)
 
 **Tests**: none
 **Gate**: evidência registrada

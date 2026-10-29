@@ -156,3 +156,11 @@ Sem segredo: só links, nomes e resultados.
 - **Não medida.** O usuário pediu para considerar a tarefa checada, sem rodar o `medir-retomada-a-frio` nem enviar tempos da primeira requisição, da mediana ou do Início no navegador. Registro como **aceite do usuário, sem evidência**.
 - Sem medida, ficam em aberto: a retomada a frio do Neon pelo Hyperdrive (timeout de conexão de 8 s da API, ADR-017), a rota `/api/sessao` em produção (`[A VALIDAR NA 17C]` no script) e a meta de Início ≤ 2 s. O único dado de CPU/latência publicado é o da T8 (p50 7,07 ms, p99 44,14 ms) e o do Lighthouse (servidor responde em 20 a 50 ms).
 - Destino do `[A VALIDAR NA 17C]` da rota: segue em aberto; vai para a 17d na T16.
+
+## T13 — Ensaio de restauração com o primeiro backup real (2026-10-29)
+
+- Preparado: o artefato `backup-2026-10-29-40862690411-1` (178.393 bytes, cifrado com `age`) foi baixado por mim para `%TEMP%\backup-ensaio`, fora do git, e o roteiro do runbook 4.2 (decifrar, restaurar só na branch `dev`, `search_path` das roles, `conferir-banco`) foi entregue ao usuário.
+- **Não executado.** O usuário respondeu "pode confirmar esse passo como aprovado pelo usuário", sem rodar o ensaio e sem enviar saída, horários nem erro. Registro como **aprovação do usuário sem execução**: **o backup de produção nunca foi restaurado**, então não há prova de que ele restaura.
+- Continuam em aberto, e não foram verificados: o `COPY` sob `FORCE ROW LEVEL SECURITY` com o `controle_owner` do Neon (que não é superusuário; `[A VALIDAR NA ETAPA 17]` do runbook 4.2), o tempo de restauração (referência de RTO) e o RPO medido. O runbook seção 9.3 segue como pendente.
+- Destino: levar o ensaio para a 17d (T16 registra) ou fazê-lo antes de a primeira conta real entrar no sistema; o risco cresce com os dados reais.
+- Limpeza: o arquivo cifrado em `%TEMP%\backup-ensaio` pode ser apagado quando o ensaio for feito ou descartado.
