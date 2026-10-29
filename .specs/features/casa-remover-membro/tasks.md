@@ -129,11 +129,11 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Remover bem-sucedido invalida só a chave do lar; falha não invalida nada
-- [ ] Sair bem-sucedido invalida a sessão (a guarda leva ao primeiro acesso)
-- [ ] `registro_invalido` na saída também leva à sessão renovada (spec, sair, critério 6)
-- [ ] Sem rede o erro `rede` chega à tela em vez de a mutação ficar pausada
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] Remover bem-sucedido invalida só a chave do lar; falha não invalida nada
+- [x] Sair bem-sucedido invalida a sessão (a guarda leva ao primeiro acesso)
+- [x] `registro_invalido` na saída também leva à sessão renovada (spec, sair, critério 6)
+- [x] Sem rede o erro `rede` chega à tela em vez de a mutação ficar pausada
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick
