@@ -8,7 +8,7 @@ Implemente estas tarefas com a skill `tlc-spec-driven`: **ative-a pelo nome e si
 
 **Design**: nenhum (mudança só de front sobre padrões existentes: `DialogoConfirmacao`, `useComandoCadastro`, `useAviso`, `useConectado`)
 **Spec**: `.specs/features/casa-remover-membro/spec.md`
-**Status**: Draft
+**Status**: Approved (2026-10-29)
 
 ---
 

@@ -6,9 +6,9 @@ A API já tem `DELETE /api/lar/membros/:id` (titular remove o membro) e `POST /a
 
 ## Objetivos
 
-- [ ] O titular remove o membro pela tela "Casa e membros", com confirmação que diz os efeitos.
-- [ ] O membro sai da casa pela mesma tela, com confirmação que diz os efeitos, e cai no primeiro acesso.
-- [ ] Nenhuma ação destrutiva entra na fila offline.
+- [x] O titular remove o membro pela tela "Casa e membros", com confirmação que diz os efeitos.
+- [x] O membro sai da casa pela mesma tela, com confirmação que diz os efeitos, e cai no primeiro acesso.
+- [x] Nenhuma ação destrutiva entra na fila offline.
 
 ## Out of Scope
 
