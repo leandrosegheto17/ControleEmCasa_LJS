@@ -113,3 +113,11 @@ Sem segredo: só links, nomes e resultados.
 - **Meta cumprida:** PWA ≥ 90 nos dois caminhos.
 - **Desempenho (fora da meta da tarefa, registrado):** FCP 7,0 s e LCP 7,7 s na landing (7,5 s e 8,3 s no app), TBT 10 ms, CLS 0. O servidor responde em 20 a 50 ms; a lentidão vem de **recursos que bloqueiam a renderização** (economia estimada de 2,6 s) e de JavaScript não usado (56 KiB), sob a simulação de celular lento com CPU reduzida. Não é a meta de Início ≤ 2 s da T9, que se mede no navegador real, sem essa simulação.
 - Sem ajuste aberto: a nota que a tarefa exige (PWA) passou. O desempenho fica como candidato a melhoria futura.
+
+## T12 — Backup diário ligado e primeiro backup (2026-10-29)
+
+- Secrets novos no environment `producao`, criados pelo usuário no terminal dele: `NEON_URL_OWNER` (11:03Z) e `NEON_URL_BACKUP` (11:04Z), só nomes e datas conferidos (`gh secret list --env producao`). Os antigos (`DATABASE_URL_OWNER`, `DATABASE_URL_BACKUP`, `NEON_API_KEY`) e a variável `NEON_PROJECT_ID` seguem lá, a apagar depois do backup e da purga verdes (decisão do usuário).
+- Com a confirmação específica do usuário: `gh variable set BACKUP_ATIVO --body true` e `gh workflow run backup.yml --ref main`.
+- Execução: https://github.com/leandrosegheto17/ControleEmCasa_LJS/actions/runs/40862690411 — **success**; todos os passos verdes, incluindo "Dump cifrado do banco de produção"; passo de alerta pulado. A validação única da URL (`validarUrlNeon`) aceitou o `NEON_URL_BACKUP`.
+- Artefato `backup-2026-10-29-40862690411-1`: **178.587 bytes**, criado 2026-10-29 11:06:54Z, expira 2026-11-28 11:06:53Z (**30 dias**), não expirado.
+- Agendamento diário (04:00 BRT) ativo a partir de agora. Falta o download do artefato para o ensaio da T13.

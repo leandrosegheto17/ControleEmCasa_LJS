@@ -394,7 +394,7 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Execução do `backup.yml` verde (link) e artefato com retenção de 30 dias confirmada
+- [x] Execução do `backup.yml` verde (link) e artefato com retenção de 30 dias confirmada (run 40862690411)
 - [ ] Artefato baixado pelo usuário para o ensaio da T13
 
 **Tests**: none
