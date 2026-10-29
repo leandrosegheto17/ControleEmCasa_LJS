@@ -102,10 +102,10 @@ T7 → T8
 
 **Done when**:
 
-- [ ] O texto da remoção traz o nome do membro e os quatro efeitos da spec (perde o conjunto; individual some em 30 dias; despesas conjuntas ficam como "Ex-membro"; só volta por novo convite)
-- [ ] O texto da saída traz os mesmos quatro efeitos
-- [ ] Os quatro avisos têm o texto exato da spec
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] O texto da remoção traz o nome do membro e os quatro efeitos da spec (perde o conjunto; individual some em 30 dias; despesas conjuntas ficam como "Ex-membro"; só volta por novo convite)
+- [x] O texto da saída traz os mesmos quatro efeitos
+- [x] Os quatro avisos têm o texto exato da spec
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick
