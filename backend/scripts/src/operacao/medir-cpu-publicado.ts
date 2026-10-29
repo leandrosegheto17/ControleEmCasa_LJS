@@ -4,10 +4,9 @@ import { API_CLOUDFLARE } from './cache-hyperdrive';
  * Mede a CPU por requisição do Worker JÁ PUBLICADO, pela API de análise (GraphQL) da Cloudflare (RNF-04; SDD 10
  * "Medição publicada", pendente desde a etapa 9). Diz se o p50 e o p99 da janela passam do teto de 10 ms.
  *
- * [A VALIDAR NA 17C] O conjunto de dados (`workersInvocationsAdaptive`), os campos (`quantiles.cpuTimeP50`,
- * `cpuTimeP99`, em microssegundos; `sum.requests`) e o filtro (`scriptName`, `datetime_geq`/`datetime_leq`) vêm do
- * conhecimento da documentação, NÃO foram conferidos contra a Cloudflare nem executados: a primeira consulta real é da
- * feature 17c. Se o nome de algum campo mudou, só `CONSULTA` e `lerResposta` precisam de ajuste.
+ * Validado na 17c (2026-10-29): o conjunto de dados (`workersInvocationsAdaptive`), os campos (`quantiles.cpuTimeP50`,
+ * `cpuTimeP99`, em microssegundos; `sum.requests`) e o filtro (`scriptName`, `datetime_geq`/`datetime_leq`) responderam
+ * na Cloudflare real, sem ajuste. Se o nome de algum campo mudar, só `CONSULTA` e `lerResposta` precisam de ajuste.
  *
  * Token e conta só por ambiente (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`); o token nunca vai a nenhuma saída.
  * Como a medição de `medir-cpu.ts`, é um relatório de CPU por requisição em ms; aqui vem do runtime real, sem proxy.
@@ -18,7 +17,7 @@ export const SCRIPT_PADRAO = 'controle-em-casa';
 const ID_CONTA = /^[0-9a-f]{32}$/;
 const TOKEN_VALIDO = /^[A-Za-z0-9_-]+$/;
 
-/** [A VALIDAR NA 17C] nomes de conjunto de dados e campos. */
+/** Nomes de conjunto de dados e campos validados na Cloudflare real (17c). */
 export const CONSULTA = `query ($conta: String!, $script: String!, $desde: Time!, $ate: Time!) {
   viewer {
     accounts(filter: { accountTag: $conta }) {

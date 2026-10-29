@@ -45,3 +45,7 @@
 | Recriar o projeto Neon em Postgres 17   | Possível, mas o usuário preferiu manter o projeto criado e subir o resto para o 18 |
 | Neon em 18, local e CI em 17            | Paridade quebrada, e o `pg_dump` 17 não lê o servidor 18: o backup falharia        |
 | Cliente 18 só no backup, resto em 17    | Paridade quebrada entre CI e produção; o risco que o ADR-002 queria evitar         |
+
+## Confirmação da produção (2026-10-29, 17c)
+
+- O `backup.yml` rodou verde em produção: o `pg_dump` da imagem `postgres:18` conferiu a versão maior do servidor do Neon (18) e gerou o dump cifrado (178 KB). A purga (`purgar`) conectou ao Neon 18 com a role owner. **Não confirmado:** a restauração desse dump com `pg_restore` 18 no Neon (ensaio T13 não executado).

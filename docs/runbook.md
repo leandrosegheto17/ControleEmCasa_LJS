@@ -400,6 +400,7 @@ enquanto as duas roles não tiverem `search_path = app` no banco. Não dê `CREA
 | 7   | Ligar o backup diário            | Variável de repositório `BACKUP_ATIVO=true`; conferir a execução (seção 5 deste runbook)                                                            | Link da primeira execução do `backup.yml` e o ensaio da seção 9.3                      |
 | 8   | Ligar a purga diária             | Variável de repositório `PURGA_ATIVA=true`                                                                                                          | Link da primeira execução do `purga.yml`                                               |
 
-`[A VALIDAR NA 17C]`: o conjunto de dados e os campos da API de análise usados no passo 5 (veja o cabeçalho de
-`backend/scripts/src/operacao/medir-cpu-publicado.ts`) e a rota que o passo 6 usa com a produção real (`/api/sessao`
-exige sessão válida para tocar o banco).
+Passo 5 validado na 17c (2026-10-29): o conjunto de dados e os campos da API de análise responderam na Cloudflare real
+(janela de 24 h, 261 requisições: p50 7,07 ms, p99 44,14 ms, acima do teto de 10 ms; risco aceito pelo usuário, ADR-015).
+`[A VALIDAR NA 17D]`: a rota que o passo 6 usa com a produção real (`/api/sessao` exige sessão válida para tocar o banco);
+a retomada a frio não foi medida na 17c.

@@ -89,3 +89,18 @@
   aponta só o artefato `dump-predeploy-<run>-<tentativa>`.
 - **Inalterado:** o resto da ordem fixa, o dump com o `backup_ro`, o rollback do Worker, a concorrência e a inércia
   por `DEPLOY_ATIVO`.
+
+## Emenda de 2026-10-29: o que a produção confirmou (17c)
+
+- **CPU do Worker publicado (RNF-04):** medida pela API de análise da Cloudflare, janela de 24 h e 261 requisições:
+  p50 7,07 ms e **p99 44,14 ms, acima do teto de 10 ms**. A causa da cauda não foi investigada (a medição por rota,
+  T18, foi dispensada). **Decisão do usuário (2026-10-29): aceitar o risco.** O RNF-04 fica "aceito com p99 acima do
+  teto", não "atendido"; reavaliar na 17d com tráfego de pessoas reais.
+- **Deploy e rollback:** o primeiro deploy de produção, a fumaça e o ensaio de rollback do Worker (7 s) funcionaram.
+- **Backup e purga:** `backup.yml` e `purga.yml` rodaram verdes em produção com os secrets `NEON_URL_BACKUP` e
+  `NEON_URL_OWNER`; o artefato do backup tem retenção de 30 dias. **A restauração do backup real não foi ensaiada**
+  (T13 e T14 aprovadas pelo usuário sem execução): RTO e RPO não medidos.
+- **Asaas:** o endereço vem da variável `ASAAS_API_URL` com lista permitida (sandbox ou produção; T17). O token do
+  webhook do Worker foi trocado e **não está alinhado com o painel do Asaas**; a chave de produção não foi verificada
+  de forma independente. Ambos ficam para a 17d.
+
