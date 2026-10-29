@@ -145,3 +145,8 @@ Sem segredo: só links, nomes e resultados.
 - Decisão do usuário: **deixar o alinhamento para a 17d**. Sem cobrança real o Asaas não envia evento, então não há impacto até lá. Risco: um evento real antes do alinhamento recebe 401 e o Asaas pode pausar a fila do webhook.
 - **Pendência obrigatória da 17d, antes da primeira cobrança real:** gravar um token novo no Worker e colar o mesmo no painel do Asaas na mesma sessão, repetir o teste 200/401 (JSON por arquivo, no PowerShell 5.1) e confirmar o primeiro evento real.
 - Chave de produção (`GET /v3/finance/balance` → 200): não verificada de forma independente; refazer na 17d junto com o passo acima.
+
+## T11 — UptimeRobot (2026-10-29)
+
+- Conferência feita só por mim: `GET https://controleemcasa.ljssoftware.com.br/api/health` → `200`, `{"ok":true}`, 62 ms.
+- **Monitor, estado verde e alerta de queda: não verificados.** O usuário pediu para considerar a tarefa checada, sem enviar relato, captura, intervalo nem o horário do e-mail de queda. Registro como **aceite do usuário, sem evidência**; nada disso foi visto por mim.
