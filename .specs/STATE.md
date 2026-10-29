@@ -2,6 +2,17 @@
 
 ## Retomada
 
+- **Fluxo**: recriação do MyMoney no Padrão LJS, conduzida pelo `.md/PLANO.md`, sem skill de fluxo própria (o `/fluxo` não cobre; retome direto pelo plano). Construção pelo `tlc-spec-driven`.
+- **Item**: `.specs/features/casa-remover-membro/` (etapa 18, remover membro e sair do lar; só front, a API já existe).
+- **Fase aprovada**: Specify (`aeb3ea2`) e Tasks (`c1b94e5`) em 2026-10-29; design pulado (padrões existentes). A 17c foi aprovada com ressalvas no mesmo dia.
+- **Próxima fase**: Execute, 1 lote de 8 tarefas (~10,5h, 3 phases), trabalhador `implementador-dominio` (6 tarefas de risco alto); depois `verificador`. Modelo indicado: sonnet.
+- **Construção**: nenhum lote despachado ainda. Ao começar, trocar a Situação da 18 no roadmap para `Em andamento` e rodar `python .claude/scripts/progresso.py --lote`.
+- **Progresso**: Produto: faltam 2 de 22 etapas (91%); o `/progresso` ainda aponta a `publicacao-infra` por causa da T14 (Sentry) adiada; conferida em 2026-10-29, recalcular ao retomar.
+- **Combinado na conversa e não registrado em artefato**: decisões do usuário já na spec (sair leva ao primeiro acesso; confirmação com efeitos completos; ações só online). Push segue não feito; só com confirmação específica e suíte verde. Pendências da 17c herdadas pela 17d estão no roadmap. Mesmas regras de trabalho do histórico abaixo (legado e GestaodaPelada somente leitura; segredos nunca pela conversa; uma etapa por vez).
+- **Gravada em**: 2026-10-29
+
+## Histórico de retomadas (etapas 1 a 17c)
+
 - **Fluxo**: recriação do MyMoney no Padrão LJS — conduzida pelo `.md/PLANO.md`, sem skill de fluxo própria. O `/fluxo` não cobre esse caso: retome direto pelo plano.
 - **Item**: `.specs/features/publicacao-infra/` (etapa 17b, `tasks.md` com 16 tarefas, quase todas ação do usuário; AD-001). A 17a (`publicacao-repositorio`) está concluída. Base do projeto em `.md/` (`PLANO.md`, `PRD.md`, `PRD-TECNICO.md`, `SDD.md`, `GUARDRAILS.md`, `THREAT-MODEL.md`, `adr/`)
 - **Fase aprovada**: etapas 2 e 3 (commits `2f58fc3`, `9415ce9`, `774f1e9`, `bbd9ca6`) e **etapa 4 aprovada em 2026-10-24** (commit `79a3422`, com as 4 decisões do subagente: CA-19.7 no front na etapa 11; 429 do limite = `muitas_requisicoes`; "sair de todos" sem sessão = 204; "esqueci" em conta não confirmada não confirma o e-mail). O usuário escolheu seguir na mesma sessão.
