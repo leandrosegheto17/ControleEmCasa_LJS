@@ -214,8 +214,8 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 **Done when**:
 
 - [x] Token novo gravado nos dois lados (o usuário não passa o valor pela conversa) (Worker provado pelas versões; valor do Asaas só por relato, ver evidencias.md)
-- [ ] Chamada de leitura com a chave de produção responde 200
-- [ ] Evento de teste do Asaas recebido e aceito pelo Worker; evento com token errado recusado (401)
+- [ ] Chamada de leitura com a chave de produção responde 200 — adiada para a 17d (decisão do usuário, 2026-10-29)
+- [x] Evento de teste aceito pelo Worker (200) e token errado recusado (401), provado do lado do Worker; token do painel do Asaas desalinhado, a alinhar na 17d (decisão do usuário, 2026-10-29)
 - [x] Evidência registrada, sem valores
 
 **Tests**: none
