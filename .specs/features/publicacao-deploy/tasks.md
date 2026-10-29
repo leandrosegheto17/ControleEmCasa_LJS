@@ -724,8 +724,8 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Caminho que funcionou, RTO e RPO medidos e registrados na seção 9.3
-- [ ] App de volta à `main` e `conferir-banco` sem acusação
+- [ ] Caminho que funcionou, RTO e RPO medidos e registrados na seção 9.3 — **não executada**; aprovada pelo usuário em 2026-10-29 sem execução
+- [ ] App de volta à `main` e `conferir-banco` sem acusação — **não executada**
 
 **Tests**: none
 **Gate**: evidência registrada
@@ -1092,8 +1092,8 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Caminho que funcionou, RTO e RPO medidos e registrados na seção 9.3
-- [ ] App de volta à `main` e `conferir-banco` sem acusação
+- [ ] Caminho que funcionou, RTO e RPO medidos e registrados na seção 9.3 — **não executada**; aprovada pelo usuário em 2026-10-29 sem execução
+- [ ] App de volta à `main` e `conferir-banco` sem acusação — **não executada**
 
 **Tests**: none
 **Gate**: evidência registrada

@@ -164,3 +164,9 @@ Sem segredo: só links, nomes e resultados.
 - Continuam em aberto, e não foram verificados: o `COPY` sob `FORCE ROW LEVEL SECURITY` com o `controle_owner` do Neon (que não é superusuário; `[A VALIDAR NA ETAPA 17]` do runbook 4.2), o tempo de restauração (referência de RTO) e o RPO medido. O runbook seção 9.3 segue como pendente.
 - Destino: levar o ensaio para a 17d (T16 registra) ou fazê-lo antes de a primeira conta real entrar no sistema; o risco cresce com os dados reais.
 - Limpeza: o arquivo cifrado em `%TEMP%\backup-ensaio` pode ser apagado quando o ensaio for feito ou descartado.
+
+## T14 — Restaurar pelo procedimento do runbook e medir RTO e RPO (2026-10-29)
+
+- **Não executada.** O usuário pediu para considerar a T14 aprovada, sem rodar a restauração. Registro como **aprovação do usuário sem execução**; RTO e RPO **não foram medidos**.
+- O texto da tarefa menciona a branch `restauracao-*`, que o ADR-017 eliminou: o procedimento vigente é o do runbook 4.2 (dump cifrado, restaurar na `dev` e, conferido, na `main`). A tarefa fica como está no `tasks.md` por histórico; o caminho a ensaiar é o do runbook.
+- Em aberto, junto com a T13: tempo de restauração (RTO), intervalo de dados perdidos (RPO, até 24 h pelo backup diário) e a volta da produção à `main` com `conferir-banco` sem acusação. Destino: antes da primeira conta real, ou na 17d.
