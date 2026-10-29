@@ -2,6 +2,7 @@ import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
 import { EsqueletoLista } from '../componentes/base/EsqueletoLista';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { ListaMembros } from '../componentes/lar/ListaMembros';
+import { useConectado } from '../ganchos/useConectado';
 import { useLar } from '../ganchos/useLar';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { ConviteConectado } from './lar/ConviteConectado';
@@ -10,6 +11,7 @@ import { ConviteConectado } from './lar/ConviteConectado';
 export function Lar() {
   const consulta = useLar();
   const leitura = useLeituraComCache(consulta);
+  const conectado = useConectado();
   return (
     <>
       <CabecalhoPagina titulo="Casa e membros" voltarPara="/app/ajustes" rotuloVoltar="Voltar para Ajustes" />
@@ -23,7 +25,7 @@ export function Lar() {
           {(lar) => (
             <>
               <p className="texto-2 pequeno">{lar.lar.nome}</p>
-              <ListaMembros membros={lar.membros} />
+              <ListaMembros membros={lar.membros} conectado={conectado} />
               <ConviteConectado lar={lar} />
             </>
           )}

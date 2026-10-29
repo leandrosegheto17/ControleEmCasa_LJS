@@ -157,12 +157,12 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Titular com outro membro vê "Remover" só nesse membro; nunca em si mesmo
-- [ ] Membro não titular vê "Sair da casa" só em si mesmo; titular nunca vê "Sair da casa"
-- [ ] Titular sozinho na casa não vê botão nenhum
-- [ ] Sem conexão os botões ficam desativados e o aviso "Precisa de conexão para esta ação" aparece
-- [ ] Os botões só avisam o pai (`aoRemover(id)`, `aoSair()`); nenhuma chamada de API aqui
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] Titular com outro membro vê "Remover" só nesse membro; nunca em si mesmo
+- [x] Membro não titular vê "Sair da casa" só em si mesmo; titular nunca vê "Sair da casa"
+- [x] Titular sozinho na casa não vê botão nenhum
+- [x] Sem conexão os botões ficam desativados e o aviso "Precisa de conexão para esta ação" aparece
+- [x] Os botões só avisam o pai (`aoRemover(id)`, `aoSair()`); nenhuma chamada de API aqui
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick
