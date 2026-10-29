@@ -186,14 +186,14 @@ T7 → T8
 
 **Done when**:
 
-- [ ] "Remover" abre a confirmação com o nome do membro e o texto dos efeitos
-- [ ] Cancelar, véu e Esc fecham sem chamar a API
-- [ ] Confirmar chama a remoção uma vez; durante a chamada o botão fica inerte (sem segundo envio)
-- [ ] Sucesso: lista relida e aviso "Membro removido"; o formulário de convite volta a aparecer
-- [ ] `registro_invalido`: lista relida e aviso "Este membro já não está na casa"
-- [ ] Falha de rede ou do servidor: confirmação aberta, mensagem de erro, lista inalterada
-- [ ] Componente ligado em `paginas/Lar.tsx`
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] "Remover" abre a confirmação com o nome do membro e o texto dos efeitos
+- [x] Cancelar, véu e Esc fecham sem chamar a API
+- [x] Confirmar chama a remoção uma vez; durante a chamada o botão fica inerte (sem segundo envio)
+- [x] Sucesso: lista relida e aviso "Membro removido"; o formulário de convite volta a aparecer
+- [x] `registro_invalido`: lista relida e aviso "Este membro já não está na casa"
+- [x] Falha de rede ou do servidor: confirmação aberta, mensagem de erro, lista inalterada
+- [x] Componente ligado em `paginas/Lar.tsx`
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick

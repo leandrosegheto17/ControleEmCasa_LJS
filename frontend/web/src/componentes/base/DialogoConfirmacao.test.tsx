@@ -324,3 +324,50 @@ describe('DialogoConfirmacao sobre a Folha', () => {
     expect(gatilho).toHaveFocus();
   });
 });
+
+/** Etapa 18 (remover membro, sair da casa): erro dentro do diálogo e véu que cancela, só quando pedidos. */
+describe('DialogoConfirmacao: erro e véu que cancela', () => {
+  function montar(props: { erro?: string; fecharNoVeu?: boolean; ocupado?: boolean }) {
+    const aoConfirmar = vi.fn();
+    const aoCancelar = vi.fn();
+    render(
+      <DialogoConfirmacao
+        aberto
+        titulo={TITULO}
+        texto={TEXTO}
+        rotuloConfirmar="Excluir"
+        variante="destrutiva"
+        aoConfirmar={aoConfirmar}
+        aoCancelar={aoCancelar}
+        {...props}
+      />,
+    );
+    const veu = document.querySelector('[class*="veu"]');
+    if (!veu) throw new Error('véu ausente');
+    return { aoConfirmar, aoCancelar, veu, dialogo: screen.getByRole('alertdialog') };
+  }
+
+  it('com erro, mostra o texto como alerta dentro do diálogo, sem trocar a descrição', () => {
+    const { dialogo } = montar({ erro: 'Sem conexão. Tente de novo' });
+    expect(within(dialogo).getByRole('alert')).toHaveTextContent('Sem conexão. Tente de novo');
+    expect(dialogo).toHaveAccessibleDescription(TEXTO);
+  });
+
+  it('sem erro, não há alerta', () => {
+    const { dialogo } = montar({});
+    expect(within(dialogo).queryByRole('alert')).toBeNull();
+  });
+
+  it('com fecharNoVeu, tocar no véu chama só aoCancelar', async () => {
+    const { aoConfirmar, aoCancelar, veu } = montar({ fecharNoVeu: true });
+    await userEvent.click(veu);
+    expect(aoCancelar).toHaveBeenCalledTimes(1);
+    expect(aoConfirmar).not.toHaveBeenCalled();
+  });
+
+  it('com fecharNoVeu e ocupado, o véu não cancela', async () => {
+    const { aoCancelar, veu } = montar({ fecharNoVeu: true, ocupado: true });
+    await userEvent.click(veu);
+    expect(aoCancelar).not.toHaveBeenCalled();
+  });
+});

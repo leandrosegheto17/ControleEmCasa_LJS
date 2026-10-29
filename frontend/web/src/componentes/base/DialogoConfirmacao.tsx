@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { AvisoErroTopo } from './AvisoErroTopo';
 import { Botao } from './Botao';
 import type { NomeIcone } from './Icone';
 import { liberar, travar } from './travaRolagem';
@@ -18,13 +19,18 @@ interface Props {
   rotuloCancelar?: string;
   /** Ação em curso: confirmar fica inerte (com giro, mantendo o rótulo) e cancelar/Esc são desligados. */
   ocupado?: boolean;
+  /** Erro da última tentativa, mostrado como alerta dentro do diálogo (o diálogo continua aberto). */
+  erro?: string;
+  /** Tocar no véu cancela (fora de `ocupado`). Sem ele, o véu é inerte. */
+  fecharNoVeu?: boolean;
   aoConfirmar: () => void;
   aoCancelar: () => void;
 }
 
 /**
  * Confirmação modal (`alertdialog`), aberta por cima de uma `Folha` se houver. Só o botão de confirmar
- * confirma: Esc, véu e foco inicial ficam do lado seguro (foco em "Cancelar", véu inerte).
+ * confirma: Esc, véu e foco inicial ficam do lado seguro (foco em "Cancelar"; véu inerte, ou cancelando com
+ * `fecharNoVeu`).
  */
 export function DialogoConfirmacao({
   aberto,
@@ -35,6 +41,8 @@ export function DialogoConfirmacao({
   iconeConfirmar,
   rotuloCancelar = 'Cancelar',
   ocupado = false,
+  erro,
+  fecharNoVeu = false,
   aoConfirmar,
   aoCancelar,
 }: Props) {
@@ -64,7 +72,16 @@ export function DialogoConfirmacao({
   // Em portal, para não herdar a rolagem/recorte do corpo da folha e ficar fora do seu DOM de foco.
   return createPortal(
     <>
-      <Veu variante="dialogo" />
+      <Veu
+        variante="dialogo"
+        aoTocar={
+          fecharNoVeu
+            ? () => {
+                if (!ocupado) aoCancelar();
+              }
+            : undefined
+        }
+      />
       <section
         ref={ref}
         className={styles.dialogo}
@@ -79,6 +96,7 @@ export function DialogoConfirmacao({
         <p id={idTexto} className={styles.texto}>
           {texto}
         </p>
+        {erro ? <AvisoErroTopo>{erro}</AvisoErroTopo> : null}
         <div className={destrutiva ? styles.acoes : `${styles.acoes} ${styles.neutra}`}>
           <Botao ref={refCancelar} variante="secundario" disabled={ocupado} onClick={aoCancelar}>
             {rotuloCancelar}

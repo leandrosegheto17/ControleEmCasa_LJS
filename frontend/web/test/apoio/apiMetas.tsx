@@ -281,6 +281,15 @@ export async function atenderMetas(s: ServidorMetas, metodo: string, url: string
     if (s.lar.convite_pendente?.id === revogar[1]) delete s.lar.convite_pendente;
     return semCorpo();
   }
+  // CA-23.14 (ADR-009 §9): o titular remove o outro membro ativo; o resto (não titular, ele mesmo, já saiu) é
+  // `registro_invalido`.
+  const remover = /^\/api\/lar\/membros\/([^/]+)$/.exec(caminho);
+  if (remover && metodo === 'DELETE') {
+    const alvo = s.lar.membros.find((x) => x.id === remover[1]);
+    if (!souTitular(s) || !alvo || alvo.sou_eu) return registroInvalido();
+    s.lar.membros = s.lar.membros.filter((x) => x !== alvo);
+    return semCorpo();
+  }
   return undefined;
 }
 

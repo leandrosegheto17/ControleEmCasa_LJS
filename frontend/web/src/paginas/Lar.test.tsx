@@ -10,6 +10,7 @@ import {
   type ServidorMetas,
 } from '../../test/apoio/apiMetas';
 import { lerResposta } from '../../test/apoio/fetchSimulado';
+import { ligarPerdaDeSessao } from '../sessaoGlobal';
 
 /**
  * Membros e convite do lar (etapa 12, lote 4). Critérios: RN-22 (lar com titular, no máximo dois membros), RN-23 e
@@ -233,5 +234,196 @@ describe('Lar: convite pendente', () => {
     expect(escritas(servidor)[0]).toMatchObject({ url: `/api/lar/convites/${ID_CONVITE}`, metodo: 'DELETE' });
     expect(servidor.lar.convite_pendente).toBeUndefined();
     expect(await campo()).toBeInTheDocument();
+  });
+});
+
+/**
+ * Remover o membro (etapa 18; spec "Titular remove o membro", critérios 1 a 8, e os casos limite). O titular é Ana e
+ * o membro é Beatriz (`lar-dois-membros.json`).
+ */
+describe('Lar: remover o membro', () => {
+  type Usuario = ReturnType<typeof userEvent.setup>;
+  const ID_BEATRIZ = '00000000-0000-4000-8000-000000000102';
+  const remocoes = () =>
+    escritas(servidor).filter((c) => c.metodo === 'DELETE' && c.url.startsWith('/api/lar/membros/'));
+  const membros = async () => within(await screen.findByRole('region', { name: 'Membros' })).getAllByRole('listitem');
+
+  async function abrirConfirmacao(usuario: Usuario) {
+    await usuario.click(await screen.findByRole('button', { name: 'Remover' }));
+    return screen.findByRole('alertdialog');
+  }
+
+  it('o titular vê "Remover" ao lado do membro, que abre a confirmação com o nome e os efeitos', async () => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const itens = await membros();
+    expect(within(itens[1]!).getByRole('button', { name: 'Remover' })).toBeInTheDocument();
+    expect(within(itens[0]!).queryByRole('button')).not.toBeInTheDocument();
+    const dialogo = await abrirConfirmacao(usuario);
+
+    expect(dialogo).toHaveAccessibleName('Remover Beatriz da casa?');
+    expect(dialogo).toHaveAccessibleDescription(
+      'Beatriz perde o acesso ao que é do conjunto da casa. O que é só de Beatriz some em 30 dias. ' +
+        'As despesas conjuntas que Beatriz pagou ficam como "Ex-membro". Para voltar, só com um novo convite.',
+    );
+    expect(remocoes()).toHaveLength(0);
+  });
+
+  it.each([
+    ['Cancelar', (u: Usuario, d: HTMLElement) => u.click(within(d).getByRole('button', { name: 'Cancelar' }))],
+    ['Esc', (u: Usuario) => u.keyboard('{Escape}')],
+    // O véu do diálogo é o irmão logo antes dele (a folha de lançar tem o seu, por baixo).
+    ['o véu', (u: Usuario, d: HTMLElement) => u.click(d.previousElementSibling as HTMLElement)],
+  ] as const)('%s fecha a confirmação sem chamar a API', async (_, fechar) => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    await fechar(usuario, dialogo);
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(remocoes()).toHaveLength(0);
+    expect(await membros()).toHaveLength(2);
+  });
+
+  it('confirmar chama DELETE uma vez; durante a chamada o confirmar fica inerte e não há segundo envio', async () => {
+    servidor.atrasos.set('DELETE /api/lar/membros/:id', 300);
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    const confirmar = within(dialogo).getByRole('button', { name: 'Remover' });
+    await usuario.click(confirmar);
+
+    await waitFor(() => expect(confirmar).toHaveAttribute('aria-disabled', 'true'));
+    await usuario.click(confirmar);
+    await usuario.keyboard('{Escape}');
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+
+    expect(await screen.findByText('Membro removido')).toBeInTheDocument();
+    expect(remocoes()).toEqual([expect.objectContaining({ url: `/api/lar/membros/${ID_BEATRIZ}`, metodo: 'DELETE' })]);
+    expect(remocoes()[0]!.corpo).toBeUndefined();
+  });
+
+  it('sucesso: confirmação fechada, aviso "Membro removido", lista relida só com o titular e o convite de volta', async () => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Remover' }));
+
+    expect(await screen.findByText('Membro removido')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(async () => expect(await membros()).toHaveLength(1));
+    expect((await membros())[0]).toHaveTextContent('Ana');
+    expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument();
+    expect(await campo()).toBeInTheDocument();
+  });
+
+  it('registro_invalido (o membro já saiu): lista relida e aviso "Este membro já não está na casa", sem erro', async () => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    // Beatriz saiu por conta própria enquanto a confirmação estava aberta.
+    servidor.lar = lerResposta('lar-sozinha.json');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Remover' }));
+
+    expect(await screen.findByText('Este membro já não está na casa')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(async () => expect(await membros()).toHaveLength(1));
+    expect(screen.queryByText('Membro removido')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Não encontramos este item/)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['rede', () => (servidor.semRede = true), 'Sem conexão. Tente de novo'],
+    [
+      'servidor',
+      () => servidor.falhas.set('DELETE /api/lar/membros/:id', { status: 500, code: 'erro_interno' }),
+      'Serviço indisponível no momento. Tente de novo em instantes',
+    ],
+  ] as const)('falha de %s: confirmação aberta com a mensagem, lista inalterada', async (_, falhar, mensagem) => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    falhar();
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Remover' }));
+
+    expect(await within(dialogo).findByRole('alert')).toHaveTextContent(mensagem);
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(within(dialogo).getByRole('button', { name: 'Remover' })).not.toHaveAttribute('aria-disabled');
+    expect(await membros()).toHaveLength(2);
+    expect(servidor.lar.membros).toHaveLength(2);
+    expect(screen.queryByText('Membro removido')).not.toBeInTheDocument();
+  });
+
+  it('o erro some ao reabrir a confirmação depois de cancelar', async () => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    let dialogo = await abrirConfirmacao(usuario);
+    servidor.semRede = true;
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Remover' }));
+    await within(dialogo).findByRole('alert');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+
+    dialogo = await abrirConfirmacao(usuario);
+    expect(within(dialogo).queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('quem não é titular não vê "Remover"', async () => {
+    servidor.lar = lerResposta('lar-como-membro.json');
+    montarApp(LAR);
+
+    await membros();
+    expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument();
+  });
+
+  it('titular sozinho na casa não vê botão de remover nem de sair', async () => {
+    comoSozinha();
+    montarApp(LAR);
+
+    await membros();
+    expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sair da casa' })).not.toBeInTheDocument();
+  });
+
+  it('sem conexão "Remover" fica desativado, com o aviso, e nada é enviado', async () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      const usuario = userEvent.setup();
+      montarApp(LAR);
+
+      const remover = await screen.findByRole('button', { name: 'Remover' });
+      expect(remover).toBeDisabled();
+      expect(screen.getByText('Precisa de conexão para esta ação')).toBeInTheDocument();
+      await usuario.click(remover);
+
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(remocoes()).toHaveLength(0);
+    } finally {
+      online.mockRestore();
+    }
+  });
+
+  it('sessão expirada no meio da remoção: segue para o login sem repetir a chamada', async () => {
+    servidor.falhas.set('DELETE /api/lar/membros/:id', { status: 401, code: 'sessao_expirada' });
+    const usuario = userEvent.setup();
+    const { cliente, roteador, local } = montarApp(LAR);
+    const desligar = ligarPerdaDeSessao(cliente, roteador);
+
+    try {
+      const dialogo = await abrirConfirmacao(usuario);
+      await usuario.click(within(dialogo).getByRole('button', { name: 'Remover' }));
+
+      await waitFor(() => expect(local()).toMatch(/^\/entrar\?volta=/));
+      expect(remocoes()).toHaveLength(1);
+    } finally {
+      desligar();
+    }
   });
 });

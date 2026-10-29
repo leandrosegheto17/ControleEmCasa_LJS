@@ -1,3 +1,5 @@
+import type { SaidaLarDetalhe } from '@controle/contrato';
+import { useState } from 'react';
 import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
 import { EsqueletoLista } from '../componentes/base/EsqueletoLista';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
@@ -6,12 +8,14 @@ import { useConectado } from '../ganchos/useConectado';
 import { useLar } from '../ganchos/useLar';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { ConviteConectado } from './lar/ConviteConectado';
+import { RemoverMembroConectado } from './lar/RemoverMembroConectado';
 
 /** Membros do lar e convite do segundo membro (RN-22, RN-23). Disponível no Free (CA-23.8). */
 export function Lar() {
   const consulta = useLar();
   const leitura = useLeituraComCache(consulta);
   const conectado = useConectado();
+  const [removendo, setRemovendo] = useState<SaidaLarDetalhe['membros'][number] | null>(null);
   return (
     <>
       <CabecalhoPagina titulo="Casa e membros" voltarPara="/app/ajustes" rotuloVoltar="Voltar para Ajustes" />
@@ -25,7 +29,12 @@ export function Lar() {
           {(lar) => (
             <>
               <p className="texto-2 pequeno">{lar.lar.nome}</p>
-              <ListaMembros membros={lar.membros} conectado={conectado} />
+              <ListaMembros
+                membros={lar.membros}
+                conectado={conectado}
+                aoRemover={(id) => setRemovendo(lar.membros.find((m) => m.id === id) ?? null)}
+              />
+              <RemoverMembroConectado membro={removendo} aoFechar={() => setRemovendo(null)} />
               <ConviteConectado lar={lar} />
             </>
           )}
