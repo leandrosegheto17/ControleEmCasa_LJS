@@ -9,6 +9,7 @@ import { useLar } from '../ganchos/useLar';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { ConviteConectado } from './lar/ConviteConectado';
 import { RemoverMembroConectado } from './lar/RemoverMembroConectado';
+import { SairDaCasaConectado } from './lar/SairDaCasaConectado';
 
 /** Membros do lar e convite do segundo membro (RN-22, RN-23). Disponível no Free (CA-23.8). */
 export function Lar() {
@@ -16,6 +17,7 @@ export function Lar() {
   const leitura = useLeituraComCache(consulta);
   const conectado = useConectado();
   const [removendo, setRemovendo] = useState<SaidaLarDetalhe['membros'][number] | null>(null);
+  const [saindo, setSaindo] = useState(false);
   return (
     <>
       <CabecalhoPagina titulo="Casa e membros" voltarPara="/app/ajustes" rotuloVoltar="Voltar para Ajustes" />
@@ -33,8 +35,10 @@ export function Lar() {
                 membros={lar.membros}
                 conectado={conectado}
                 aoRemover={(id) => setRemovendo(lar.membros.find((m) => m.id === id) ?? null)}
+                aoSair={() => setSaindo(true)}
               />
               <RemoverMembroConectado membro={removendo} aoFechar={() => setRemovendo(null)} />
+              <SairDaCasaConectado aberto={saindo} aoFechar={() => setSaindo(false)} />
               <ConviteConectado lar={lar} />
             </>
           )}

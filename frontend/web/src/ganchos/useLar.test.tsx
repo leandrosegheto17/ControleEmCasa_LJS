@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ErroDados } from '../comum/erros';
 import { removerMembro, sairDoLar } from '../dados/lar';
 import { CHAVES } from './chavesConsulta';
+import { tomarSaidaDaCasa } from './saidaDaCasa';
 import { useRemoverMembro, useSairDoLar } from './useLar';
 import { CHAVE_SESSAO } from './useSessao';
 
@@ -132,5 +133,32 @@ describe('useSairDoLar', () => {
     await waitFor(() => expect(result.current.error).toEqual({ tipo: 'rede' }));
     expect(result.current.isPaused).toBe(false);
     expect(sairDoLar).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useSairDoLar: aviso na chegada ao primeiro acesso', () => {
+  afterEach(() => void tomarSaidaDaCasa());
+
+  it('só a saída feita agora deixa a marca, uma vez', async () => {
+    vi.mocked(sairDoLar).mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSairDoLar(), { wrapper: envoltorio() });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(tomarSaidaDaCasa()).toBe(true);
+    expect(tomarSaidaDaCasa()).toBe(false);
+  });
+
+  it.each<ErroDados>([
+    { tipo: 'regra', codigo: 'registro_invalido' },
+    { tipo: 'regra', codigo: 'sem_lar' },
+    { tipo: 'rede' },
+  ])('%j não deixa a marca', async (erro) => {
+    vi.mocked(sairDoLar).mockRejectedValue(erro);
+    const { result } = renderHook(() => useSairDoLar(), { wrapper: envoltorio() });
+
+    await act(() => result.current.mutateAsync().catch(() => undefined));
+
+    expect(tomarSaidaDaCasa()).toBe(false);
   });
 });

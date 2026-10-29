@@ -217,14 +217,14 @@ T7 → T8
 
 **Done when**:
 
-- [ ] "Sair da casa" abre a confirmação com o texto dos efeitos
-- [ ] Cancelar, véu e Esc fecham sem chamar a API
-- [ ] Confirmar chama a saída uma vez; durante a chamada o botão fica inerte
-- [ ] Sucesso: sessão renovada, o app vai a `/app/bem-vindo` e o aviso "Você saiu da casa" aparece lá
-- [ ] `registro_invalido` ou `sem_lar`: sessão renovada e segue o destino da sessão, sem mensagem de erro
-- [ ] Falha de rede ou do servidor: confirmação aberta, mensagem de erro, membro continua na casa
-- [ ] Componente ligado em `paginas/Lar.tsx`
-- [ ] Gate quick passa e o total de testes não diminui
+- [x] "Sair da casa" abre a confirmação com o texto dos efeitos
+- [x] Cancelar, véu e Esc fecham sem chamar a API
+- [x] Confirmar chama a saída uma vez; durante a chamada o botão fica inerte
+- [x] Sucesso: sessão renovada, o app vai a `/app/bem-vindo` e o aviso "Você saiu da casa" aparece lá
+- [x] `registro_invalido` ou `sem_lar`: sessão renovada e segue o destino da sessão, sem mensagem de erro
+- [x] Falha de rede ou do servidor: confirmação aberta, mensagem de erro, membro continua na casa
+- [x] Componente ligado em `paginas/Lar.tsx`
+- [x] Gate quick passa e o total de testes não diminui
 
 **Tests**: unit
 **Gate**: quick

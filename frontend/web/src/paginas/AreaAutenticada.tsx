@@ -2,17 +2,20 @@ import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { flushSync } from 'react-dom';
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router';
 import { RegiaoAvisos } from '../componentes/base/RegiaoAvisos';
+import { useAviso } from '../componentes/base/useAviso';
 import { correcaoDoItem } from '../componentes/envios/correcaoDoItem';
 import { EstruturaApp } from '../componentes/EstruturaApp';
 import { ProvedorInstalar } from '../componentes/instalar/ProvedorInstalar';
 import { lerMesDaUrl } from '../formatacao/mes';
-import { decidirRotaDoApp } from '../ganchos/guardas';
+import { decidirRotaDoApp, ROTA_BEM_VINDO } from '../ganchos/guardas';
+import { tomarSaidaDaCasa } from '../ganchos/saidaDaCasa';
 import { saiuDePropositoAgora, desmarcarSaidaDeProposito } from '../ganchos/saidaDeProposito';
 import { useAcoesFila } from '../ganchos/useAcoesFila';
 import { useContexto } from '../ganchos/useContexto';
 import { useEnvioAutomatico } from '../ganchos/useEnvioAutomatico';
 import { useSessao } from '../ganchos/useSessao';
 import type { ItemFila } from '../ganchos/usePendentes';
+import { AVISO_SAIU_DA_CASA } from '../rotulos/lar';
 import { useHandleDaRota, useTituloDaPagina } from '../ganchos/useTituloDaPagina';
 import { EncerramentoConectado } from './EncerramentoConectado';
 import { EnviosConectado } from './envios/EnviosConectado';
@@ -115,5 +118,11 @@ function GastarMarcaDeSaida() {
 
 function SemMoldura() {
   useTituloDaPagina();
+  const { pathname } = useLocation();
+  const { mostrar } = useAviso();
+  // Quem acabou de sair da casa chega aqui pela guarda; o aviso da tela anterior não sobrevive à troca de área.
+  useEffect(() => {
+    if (pathname === ROTA_BEM_VINDO && tomarSaidaDaCasa()) mostrar('sucesso', AVISO_SAIU_DA_CASA);
+  }, [pathname, mostrar]);
   return <Outlet />;
 }

@@ -14,6 +14,7 @@ import {
 } from '../dados/lar';
 import type { ErroDados } from '../dados/erros';
 import { CHAVES } from './chavesConsulta';
+import { marcarSaidaDaCasa } from './saidaDaCasa';
 import { useComandoCadastro } from './useComandoCadastro';
 import { CHAVE_SESSAO } from './useSessao';
 
@@ -83,7 +84,9 @@ export function useSairDoLar() {
   return useMutation<ResultadoSaida, ErroDados, void>({
     mutationFn: sairOuJaFora,
     networkMode: 'always',
-    onSuccess: async () => {
+    onSuccess: async (resultado) => {
+      // Antes de reler a sessão: a guarda pode trocar de tela assim que ela chegar.
+      if (resultado === 'saiu') marcarSaidaDaCasa();
       await cliente.invalidateQueries({ queryKey: CHAVE_SESSAO });
       cliente.removeQueries({ predicate: (consulta) => consulta.queryKey[0] !== CHAVE_SESSAO[0] });
     },

@@ -1,6 +1,6 @@
 import type { SaidaLarDetalhe, SaidaLinhaMetas, SaidaMovimentoMeta } from '@controle/contrato';
 import { vi } from 'vitest';
-import { json, semCorpo } from './apiCadastros';
+import { json, semCorpo, sessao } from './apiCadastros';
 import { atender } from './apiLancamentos';
 import { atenderFixas, criarServidorFixas, type ServidorFixas } from './apiFixas';
 import { lerResposta } from './fetchSimulado';
@@ -47,6 +47,8 @@ export interface ServidorMetas extends ServidorFixas {
   metas: MetaGravada[];
   movimentos: MovimentoGravado[];
   lar: SaidaLarDetalhe;
+  /** Depois de `POST /api/lar/sair`, `GET /api/sessao` vem sem lar (o ex-membro cai no primeiro acesso). */
+  saiuDoLar?: boolean;
 }
 
 const hojeSp = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
@@ -289,6 +291,15 @@ export async function atenderMetas(s: ServidorMetas, metodo: string, url: string
     if (!souTitular(s) || !alvo || alvo.sou_eu) return registroInvalido();
     s.lar.membros = s.lar.membros.filter((x) => x !== alvo);
     return semCorpo();
+  }
+  // CA-23.12, CA-23.13: o membro sai e, no próximo acesso, a sessão vem sem lar; o titular não sai por aqui.
+  if (caminho === '/api/lar/sair' && metodo === 'POST') {
+    if (souTitular(s)) return registroInvalido();
+    s.saiuDoLar = true;
+    return semCorpo();
+  }
+  if (caminho === '/api/sessao' && metodo === 'GET' && s.saiuDoLar) {
+    return json({ ...sessao(s.plano ?? null), membro: null, lar: null });
   }
   return undefined;
 }

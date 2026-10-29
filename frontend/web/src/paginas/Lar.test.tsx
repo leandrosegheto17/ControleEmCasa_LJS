@@ -41,6 +41,22 @@ afterEach(() => {
 });
 
 const LAR = '/app/ajustes/lar';
+
+/**
+ * Segura a resposta do `fetch` simulado para `metodo url` até `soltar()`, para o estado "em andamento" ser observado
+ * sem depender de tempo (um atraso fixo fica curto quando a suíte inteira roda em paralelo).
+ */
+function segurar(metodo: string, url: string): () => void {
+  let soltar = () => {};
+  const portao = new Promise<void>((resolver) => (soltar = resolver));
+  const original = globalThis.fetch;
+  vi.stubGlobal('fetch', async (entrada: RequestInfo | URL, init?: RequestInit) => {
+    if (String(entrada) === url && (init?.method ?? 'GET') === metodo) await portao;
+    return original(entrada, init);
+  });
+  return soltar;
+}
+
 const campo = () => screen.findByLabelText('E-mail de quem vai participar');
 
 function comoSozinha() {
@@ -288,7 +304,7 @@ describe('Lar: remover o membro', () => {
   });
 
   it('confirmar chama DELETE uma vez; durante a chamada o confirmar fica inerte e não há segundo envio', async () => {
-    servidor.atrasos.set('DELETE /api/lar/membros/:id', 300);
+    const soltar = segurar('DELETE', `/api/lar/membros/${ID_BEATRIZ}`);
     const usuario = userEvent.setup();
     montarApp(LAR);
 
@@ -300,6 +316,7 @@ describe('Lar: remover o membro', () => {
     await usuario.click(confirmar);
     await usuario.keyboard('{Escape}');
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    soltar();
 
     expect(await screen.findByText('Membro removido')).toBeInTheDocument();
     expect(remocoes()).toEqual([expect.objectContaining({ url: `/api/lar/membros/${ID_BEATRIZ}`, metodo: 'DELETE' })]);
@@ -422,6 +439,211 @@ describe('Lar: remover o membro', () => {
 
       await waitFor(() => expect(local()).toMatch(/^\/entrar\?volta=/));
       expect(remocoes()).toHaveLength(1);
+    } finally {
+      desligar();
+    }
+  });
+});
+
+/**
+ * Sair da casa (etapa 18; spec "Membro sai da casa", critérios 1 a 8, e os casos limite). Beatriz é o membro e a
+ * sessão (`lar-como-membro.json`); Ana é a titular.
+ */
+describe('Lar: sair da casa', () => {
+  type Usuario = ReturnType<typeof userEvent.setup>;
+  const saidas = () => escritas(servidor).filter((c) => c.url === '/api/lar/sair');
+  const membros = async () => within(await screen.findByRole('region', { name: 'Membros' })).getAllByRole('listitem');
+
+  beforeEach(() => {
+    servidor.lar = lerResposta('lar-como-membro.json');
+  });
+
+  async function abrirConfirmacao(usuario: Usuario) {
+    await usuario.click(await screen.findByRole('button', { name: 'Sair da casa' }));
+    return screen.findByRole('alertdialog');
+  }
+
+  it('o membro vê "Sair da casa" na própria linha, que abre a confirmação com os efeitos', async () => {
+    const usuario = userEvent.setup();
+    montarApp(LAR);
+
+    const itens = await membros();
+    expect(within(itens[1]!).getByRole('button', { name: 'Sair da casa' })).toBeInTheDocument();
+    expect(within(itens[0]!).queryByRole('button')).not.toBeInTheDocument();
+    const dialogo = await abrirConfirmacao(usuario);
+
+    expect(dialogo).toHaveAccessibleName('Sair da casa?');
+    expect(dialogo).toHaveAccessibleDescription(
+      'Você perde o acesso ao que é do conjunto da casa. O que é só seu some em 30 dias. ' +
+        'As despesas conjuntas que você pagou ficam como "Ex-membro". Para voltar, só com um novo convite.',
+    );
+    expect(saidas()).toHaveLength(0);
+  });
+
+  it.each([
+    ['Cancelar', (u: Usuario, d: HTMLElement) => u.click(within(d).getByRole('button', { name: 'Cancelar' }))],
+    ['Esc', (u: Usuario) => u.keyboard('{Escape}')],
+    // O véu do diálogo é o irmão logo antes dele (a folha de lançar tem o seu, por baixo).
+    ['o véu', (u: Usuario, d: HTMLElement) => u.click(d.previousElementSibling as HTMLElement)],
+  ] as const)('%s fecha a confirmação sem chamar a API', async (_, fechar) => {
+    const usuario = userEvent.setup();
+    const { local } = montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    await fechar(usuario, dialogo);
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(saidas()).toHaveLength(0);
+    expect(local()).toBe(LAR);
+  });
+
+  it('confirmar chama POST /api/lar/sair uma vez, sem corpo; durante a chamada o confirmar fica inerte', async () => {
+    const soltar = segurar('POST', '/api/lar/sair');
+    const usuario = userEvent.setup();
+    const { local } = montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    const confirmar = within(dialogo).getByRole('button', { name: 'Sair da casa' });
+    await usuario.click(confirmar);
+
+    await waitFor(() => expect(confirmar).toHaveAttribute('aria-disabled', 'true'));
+    await usuario.click(confirmar);
+    await usuario.keyboard('{Escape}');
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    soltar();
+
+    await waitFor(() => expect(local()).toBe('/app/bem-vindo'));
+    expect(saidas()).toEqual([expect.objectContaining({ url: '/api/lar/sair', metodo: 'POST' })]);
+    expect(saidas()[0]!.corpo).toBeUndefined();
+  });
+
+  it('sucesso: sessão relida, o app vai a /app/bem-vindo e o aviso "Você saiu da casa" aparece lá', async () => {
+    const usuario = userEvent.setup();
+    const { local } = montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    const lidasAntes = servidor.chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/sessao').length;
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Sair da casa' }));
+
+    await waitFor(() => expect(local()).toBe('/app/bem-vindo'));
+    expect(await screen.findByText('Você saiu da casa')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Criar meu lar' })).toBeInTheDocument();
+    expect(servidor.chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/sessao').length).toBeGreaterThan(
+      lidasAntes,
+    );
+  });
+
+  it('o aviso "Você saiu da casa" aparece uma vez só: voltar ao primeiro acesso depois não o repete', async () => {
+    const usuario = userEvent.setup();
+    const { local, roteador } = montarApp(LAR);
+
+    const dialogo = await abrirConfirmacao(usuario);
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Sair da casa' }));
+    await screen.findByText('Você saiu da casa');
+    await waitFor(() => expect(screen.queryByText('Você saiu da casa')).not.toBeInTheDocument(), { timeout: 6000 });
+
+    await roteador.navigate('/app/ajustes/conta');
+    await roteador.navigate('/app/bem-vindo');
+
+    await waitFor(() => expect(local()).toBe('/app/bem-vindo'));
+    expect(screen.queryByText('Você saiu da casa')).not.toBeInTheDocument();
+  }, 15_000);
+
+  it.each([
+    ['sem_lar', 403, true, '/app/bem-vindo'],
+    ['registro_invalido', 400, false, LAR],
+  ] as const)(
+    '%s: sessão relida e segue o destino que ela indicar, sem mensagem de erro',
+    async (code, status, semLarNaSessao, destino) => {
+      servidor.falhas.set('POST /api/lar/sair', { status, code });
+      const usuario = userEvent.setup();
+      const { local } = montarApp(LAR);
+
+      const dialogo = await abrirConfirmacao(usuario);
+      const lidasAntes = servidor.chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/sessao').length;
+      servidor.saiuDoLar = semLarNaSessao;
+      await usuario.click(within(dialogo).getByRole('button', { name: 'Sair da casa' }));
+
+      await waitFor(() =>
+        expect(servidor.chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/sessao').length).toBeGreaterThan(
+          lidasAntes,
+        ),
+      );
+      await waitFor(() => expect(local()).toBe(destino));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+      // A região de avisos assertiva fica sempre montada (vazia); nenhum alerta pode ter texto.
+      expect(screen.queryAllByRole('alert').map((e) => e.textContent?.trim())).toEqual(
+        screen.queryAllByRole('alert').map(() => ''),
+      );
+      expect(screen.queryByText(/Não encontramos este item|Algo deu errado/)).not.toBeInTheDocument();
+      expect(screen.queryByText('Você saiu da casa')).not.toBeInTheDocument();
+    },
+  );
+
+  it.each([
+    ['rede', () => (servidor.semRede = true), 'Sem conexão. Tente de novo'],
+    [
+      'servidor',
+      () => servidor.falhas.set('POST /api/lar/sair', { status: 500, code: 'erro_interno' }),
+      'Serviço indisponível no momento. Tente de novo em instantes',
+    ],
+  ] as const)(
+    'falha de %s: confirmação aberta com a mensagem e o membro continua na casa',
+    async (_, falhar, mensagem) => {
+      const usuario = userEvent.setup();
+      const { local } = montarApp(LAR);
+
+      const dialogo = await abrirConfirmacao(usuario);
+      falhar();
+      await usuario.click(within(dialogo).getByRole('button', { name: 'Sair da casa' }));
+
+      expect(await within(dialogo).findByRole('alert')).toHaveTextContent(mensagem);
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+      expect(within(dialogo).getByRole('button', { name: 'Sair da casa' })).not.toHaveAttribute('aria-disabled');
+      expect(local()).toBe(LAR);
+      expect(await membros()).toHaveLength(2);
+      expect(servidor.saiuDoLar).toBeFalsy();
+    },
+  );
+
+  it('o titular não vê "Sair da casa"', async () => {
+    servidor.lar = lerResposta('lar-dois-membros.json');
+    montarApp(LAR);
+
+    await membros();
+    expect(screen.queryByRole('button', { name: 'Sair da casa' })).not.toBeInTheDocument();
+  });
+
+  it('sem conexão "Sair da casa" fica desativado, com o aviso, e nada é enviado', async () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      const usuario = userEvent.setup();
+      montarApp(LAR);
+
+      const sair = await screen.findByRole('button', { name: 'Sair da casa' });
+      expect(sair).toBeDisabled();
+      expect(screen.getByText('Precisa de conexão para esta ação')).toBeInTheDocument();
+      await usuario.click(sair);
+
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(saidas()).toHaveLength(0);
+    } finally {
+      online.mockRestore();
+    }
+  });
+
+  it('sessão expirada no meio da saída: segue para o login sem repetir a chamada', async () => {
+    servidor.falhas.set('POST /api/lar/sair', { status: 401, code: 'sessao_expirada' });
+    const usuario = userEvent.setup();
+    const { cliente, roteador, local } = montarApp(LAR);
+    const desligar = ligarPerdaDeSessao(cliente, roteador);
+
+    try {
+      const dialogo = await abrirConfirmacao(usuario);
+      await usuario.click(within(dialogo).getByRole('button', { name: 'Sair da casa' }));
+
+      await waitFor(() => expect(local()).toMatch(/^\/entrar\?volta=/));
+      expect(saidas()).toHaveLength(1);
     } finally {
       desligar();
     }
