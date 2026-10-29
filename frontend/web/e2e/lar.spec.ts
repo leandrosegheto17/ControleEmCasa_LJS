@@ -135,3 +135,69 @@ test('registro_invalido (o membro já saiu): avisa "Este membro já não está n
   await expect(page.getByRole('region', { name: 'Membros' }).getByRole('listitem')).toHaveCount(1);
   await expect(page.getByText('Membro removido', { exact: true })).toHaveCount(0);
 });
+
+/**
+ * Sair da casa (etapa 18; spec "Membro sai da casa" e "Sem conexão"): Beatriz, membro (`lar-como-membro.json`), sai e
+ * cai no primeiro acesso. Sem conexão, "Remover" e "Sair da casa" ficam desativados e nada vai para a fila.
+ */
+test('o membro sai da casa e cai no primeiro acesso com o aviso "Você saiu da casa"', async ({ page }) => {
+  const { escritas, estado } = await simularApiMetas(page, 'lar-como-membro.json');
+  await page.goto('/app/ajustes/lar');
+
+  await expect(page.getByRole('button', { name: 'Remover' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Sair da casa' }).click();
+  const dialogo = page.getByRole('alertdialog');
+  await expect(dialogo).toHaveAccessibleName('Sair da casa?');
+  await expect(dialogo).toContainText('Ex-membro');
+  await dialogo.getByRole('button', { name: 'Sair da casa' }).click();
+
+  await expect(page).toHaveURL(/\/app\/bem-vindo$/);
+  await expect(page.getByText('Você saiu da casa', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Criar meu lar' })).toBeVisible();
+  const saidas = escritas.filter((e) => e.url === '/api/lar/sair');
+  expect(saidas).toHaveLength(1);
+  expect(saidas[0]?.metodo).toBe('POST');
+  expect(saidas[0]?.cabecalhos['x-controle-em-casa']).toBe('1');
+  expect(estado.saiuDoLar).toBe(true);
+});
+
+test('cancelar a saída não chama POST /api/lar/sair', async ({ page }) => {
+  const { escritas } = await simularApiMetas(page, 'lar-como-membro.json');
+  await page.goto('/app/ajustes/lar');
+
+  await page.getByRole('button', { name: 'Sair da casa' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar' }).click();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Sair da casa' }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+  await expect(page).toHaveURL(/\/app\/ajustes\/lar$/);
+  expect(escritas.filter((e) => e.url === '/api/lar/sair')).toHaveLength(0);
+});
+
+for (const [quem, fixture, rotulo, rota] of [
+  ['titular', 'lar-dois-membros.json', 'Remover', '/api/lar/membros/'],
+  ['membro', 'lar-como-membro.json', 'Sair da casa', '/api/lar/sair'],
+] as const) {
+  test(`sem conexão (${quem}): "${rotulo}" desativado com o aviso, e nada é enfileirado`, async ({ page, context }) => {
+    const { escritas } = await simularApiMetas(page, fixture);
+    await page.goto('/app/ajustes/lar');
+    const botao = page.getByRole('button', { name: rotulo });
+    await expect(botao).toBeEnabled();
+
+    await context.setOffline(true);
+
+    await expect(botao).toBeDisabled();
+    await expect(page.getByText('Precisa de conexão para esta ação', { exact: true })).toBeVisible();
+    await botao.click({ force: true });
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+    // De volta à rede, a fila do aparelho enviaria o que tivesse guardado: nada pode sair para a rota.
+    await context.setOffline(false);
+    await expect(botao).toBeEnabled();
+    await expect(page.getByText('Precisa de conexão para esta ação', { exact: true })).toHaveCount(0);
+    await page.waitForLoadState('networkidle');
+    expect(escritas.filter((e) => e.url.startsWith(rota))).toHaveLength(0);
+  });
+}

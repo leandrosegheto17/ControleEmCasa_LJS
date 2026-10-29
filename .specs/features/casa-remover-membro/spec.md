@@ -106,13 +106,13 @@ A API já tem `DELETE /api/lar/membros/:id` (titular remove o membro) e `POST /a
 
 | ID | História | Fase | Situação |
 | --- | --- | --- | --- |
-| CASA-01 | P1: Titular remove o membro (critérios 1 a 4) | Tarefas | Pendente |
-| CASA-02 | P1: Titular remove o membro (critérios 5 a 8) | Tarefas | Pendente |
-| CASA-03 | P1: Membro sai da casa (critérios 1 a 4) | Tarefas | Pendente |
-| CASA-04 | P1: Membro sai da casa (critérios 5 a 8) | Tarefas | Pendente |
-| CASA-05 | P2: Sem conexão | Tarefas | Pendente |
+| CASA-01 | P1: Titular remove o membro (critérios 1 a 4) | T1, T2, T4, T5, T7 | Implementado |
+| CASA-02 | P1: Titular remove o membro (critérios 5 a 8) | T3, T5, T7 | Implementado |
+| CASA-03 | P1: Membro sai da casa (critérios 1 a 4) | T1, T2, T4, T6, T8 | Implementado |
+| CASA-04 | P1: Membro sai da casa (critérios 5 a 8) | T3, T6, T8 | Implementado |
+| CASA-05 | P2: Sem conexão | T2, T4, T8 | Implementado |
 
-**Cobertura:** 5 requisitos, 0 mapeados a tarefas.
+**Cobertura:** 5 requisitos, 5 mapeados a tarefas.
 
 ---
 

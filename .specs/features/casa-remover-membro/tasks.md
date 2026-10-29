@@ -275,10 +275,10 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Sair leva a `/app/bem-vindo` com o aviso "Você saiu da casa"
-- [ ] Cancelar não faz nenhuma chamada a `POST /api/lar/sair`
-- [ ] Sem conexão (modo offline do Playwright) os dois botões ficam desativados e nada é enfileirado
-- [ ] Gate full passa e o total de testes não diminui
+- [x] Sair leva a `/app/bem-vindo` com o aviso "Você saiu da casa"
+- [x] Cancelar não faz nenhuma chamada a `POST /api/lar/sair`
+- [x] Sem conexão (modo offline do Playwright) os dois botões ficam desativados e nada é enfileirado
+- [x] Gate full passa e o total de testes não diminui
 
 **Tests**: e2e
 **Gate**: full
