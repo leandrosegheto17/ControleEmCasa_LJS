@@ -150,3 +150,9 @@ Sem segredo: só links, nomes e resultados.
 
 - Conferência feita só por mim: `GET https://controleemcasa.ljssoftware.com.br/api/health` → `200`, `{"ok":true}`, 62 ms.
 - **Monitor, estado verde e alerta de queda: não verificados.** O usuário pediu para considerar a tarefa checada, sem enviar relato, captura, intervalo nem o horário do e-mail de queda. Registro como **aceite do usuário, sem evidência**; nada disso foi visto por mim.
+
+## T9 — Retomada a frio e Início em até 2 s (2026-10-29)
+
+- **Não medida.** O usuário pediu para considerar a tarefa checada, sem rodar o `medir-retomada-a-frio` nem enviar tempos da primeira requisição, da mediana ou do Início no navegador. Registro como **aceite do usuário, sem evidência**.
+- Sem medida, ficam em aberto: a retomada a frio do Neon pelo Hyperdrive (timeout de conexão de 8 s da API, ADR-017), a rota `/api/sessao` em produção (`[A VALIDAR NA 17C]` no script) e a meta de Início ≤ 2 s. O único dado de CPU/latência publicado é o da T8 (p50 7,07 ms, p99 44,14 ms) e o do Lighthouse (servidor responde em 20 a 50 ms).
+- Destino do `[A VALIDAR NA 17C]` da rota: segue em aberto; vai para a 17d na T16.

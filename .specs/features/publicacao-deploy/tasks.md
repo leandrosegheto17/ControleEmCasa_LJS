@@ -327,9 +327,9 @@ T5, T6, T7, T9, T10, T11, T14, T15 → T16
 
 **Done when**:
 
-- [ ] Relatório da primeira requisição contra a mediana das seguintes
-- [ ] Início medido no navegador contra a meta de 2 s
-- [ ] Meta estourada: registrar e abrir ajuste
+- [x] Relatório da primeira requisição contra a mediana das seguintes (aceite do usuário, sem medida)
+- [x] Início medido no navegador contra a meta de 2 s (aceite do usuário, sem medida)
+- [x] Meta estourada: sem medida, não se aplica
 
 **Tests**: unit (se o script mudar)
 **Gate**: Quick
