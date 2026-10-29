@@ -131,3 +131,10 @@ Sem segredo: só links, nomes e resultados.
 - **Avisos para a T16 e a 17d:**
   - O `pg` avisa que `sslmode=require` hoje equivale a `verify-full` e vai mudar para a semântica fraca do libpq na próxima versão maior (pg 9). Opção: gravar `sslmode=verify-full` nas URLs do Neon (a validação única já aceita) ou fixar a versão do `pg`.
   - A purga usa `ASAAS_API_URL` = sandbox com `ASAAS_API_KEY` = chave de produção. Com zero cancelamentos a execução não tocou o Asaas, mas, quando houver conta a purgar, a chave de produção contra o endereço do sandbox não vai autenticar. Alinhar os dois antes da 17d.
+
+## T5 — Lado do Worker provado (2026-10-29, 11:14Z)
+
+- Token novo (43 caracteres, `RandomNumberGenerator` de 32 bytes em base64url) gerado no terminal do usuário e gravado no Worker por `wrangler secret put ASAAS_WEBHOOK_TOKEN` via stdin, sem passar pela conversa. **Prova pelo estado do sistema:** a lista de versões do Worker ganhou a versão `4faa816e` em 2026-10-29T11:14:43Z (a anterior era de 2026-10-28T21:46Z).
+- Teste do usuário, com o mesmo token da sessão, evento fictício `evt_teste_17c_2` (`PAYMENT_CREATED`, cobrança inexistente): **com token → 200** (`{"ok":true,"resultado":"ignorado"}`, sem efeito em nenhuma conta) e **token errado → 401**. Os dois primeiros testes deram 400 por causa do corpo: faltava `dateCreated` (obrigatório) e, depois, o PowerShell 5.1 removeu as aspas do JSON passado ao `curl.exe`; a rota autenticou nos dois casos. Lição para o runbook: no PowerShell 5.1, enviar o JSON por arquivo (`--data-binary "@arquivo"`, gravado com `-Encoding ascii`).
+- Fica um registro de idempotência de teste em `webhook_evento` (`evt_teste_17c_2`), removido pela limpeza dos 12 meses.
+- **Ainda não provado:** (1) o token no painel do Asaas é idêntico ao do Worker (campo mascarado; a prova real é o primeiro evento enviado pelo Asaas, na 17d); (2) a chave de produção (`GET /v3/finance/balance` → 200) com consulta feita ou verificável por mim.
