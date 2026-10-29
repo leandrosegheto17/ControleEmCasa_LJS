@@ -121,3 +121,13 @@ Sem segredo: só links, nomes e resultados.
 - Execução: https://github.com/leandrosegheto17/ControleEmCasa_LJS/actions/runs/40862690411 — **success**; todos os passos verdes, incluindo "Dump cifrado do banco de produção"; passo de alerta pulado. A validação única da URL (`validarUrlNeon`) aceitou o `NEON_URL_BACKUP`.
 - Artefato `backup-2026-10-29-40862690411-1`: **178.587 bytes**, criado 2026-10-29 11:06:54Z, expira 2026-11-28 11:06:53Z (**30 dias**), não expirado.
 - Agendamento diário (04:00 BRT) ativo a partir de agora. Falta o download do artefato para o ensaio da T13.
+
+## T15 — Purga diária ligada e primeira execução (2026-10-29)
+
+- Com a confirmação específica do usuário: `gh variable set PURGA_ATIVA --body true` e `gh workflow run purga.yml --ref main`.
+- Execução: https://github.com/leandrosegheto17/ControleEmCasa_LJS/actions/runs/40863106175 — **success**, usando o `NEON_URL_OWNER` novo (a validação única aceitou a URL e a conexão com o Neon funcionou).
+- Resultado do script (JSON do log): `purga_concluida` com **zero em tudo** (`exclusoes_purgadas`, `lares_apagados`, `ex_membros_purgados`, `contas_nao_confirmadas`, `sessoes`, `tokens`, `tentativas`, `webhook_eventos`; `linhas: {}`) e **`falhas: 0`**. Era o esperado: nenhuma conta em janela de exclusão. Nada foi apagado.
+- Agendamento diário (05:00 BRT) ativo a partir de agora.
+- **Avisos para a T16 e a 17d:**
+  - O `pg` avisa que `sslmode=require` hoje equivale a `verify-full` e vai mudar para a semântica fraca do libpq na próxima versão maior (pg 9). Opção: gravar `sslmode=verify-full` nas URLs do Neon (a validação única já aceita) ou fixar a versão do `pg`.
+  - A purga usa `ASAAS_API_URL` = sandbox com `ASAAS_API_KEY` = chave de produção. Com zero cancelamentos a execução não tocou o Asaas, mas, quando houver conta a purgar, a chave de produção contra o endereço do sandbox não vai autenticar. Alinhar os dois antes da 17d.
