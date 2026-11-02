@@ -52,7 +52,7 @@ Os V2 de `--tarefa` e `--lote` são **uma linha**, para copiar como saíram:
 
 ```
 T12 concluída: 38 min (estimada 1h) · Phase 3: 2 de 5 tarefas · Feature: 52 de 170 tarefas (31%)
-Lote 3 de 7 concluído: 12 tarefas em 3h10 (estimado 14h) · Feature: 52 de 170 tarefas (31%)
+Lote 3 de 24 concluído: 3 tarefas em 1h10 (estimado 6h) · Feature: 52 de 170 tarefas (31%)
 ```
 
 Linhas começadas por `Aviso:` (tarefa acima de 2h ou sem **Estimativa**) também são do script: copie-as. Só acrescente algo nestes casos, em **uma linha**:

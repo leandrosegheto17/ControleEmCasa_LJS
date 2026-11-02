@@ -459,9 +459,9 @@ class TestLotes(unittest.TestCase):
         return [(primeira + i, [False], estimativa) for i in range(quantas)]
 
     def test_junta_phases_inteiras_ate_a_capacidade(self):
-        # 14h = capacidade: duas Phases de 8h fecham o lote 1 (16h); a terceira abre o lote 2
-        lotes = self.lotes(self.fase(1, 4), self.fase(5, 4), self.fase(9, 4), self.fase(13, 4))
-        self.assertEqual([(l["fases"], len(l["tarefas"])) for l in lotes], [([1, 2], 8), ([3, 4], 8)])
+        # 6h = capacidade: duas Phases de 4h fecham o lote 1 (8h); a terceira abre o lote 2
+        lotes = self.lotes(self.fase(1, 2), self.fase(3, 2), self.fase(5, 2), self.fase(7, 2))
+        self.assertEqual([(l["fases"], len(l["tarefas"])) for l in lotes], [([1, 2], 4), ([3, 4], 4)])
         self.assertEqual([l["numero"] for l in lotes], [1, 2])
 
     def test_nunca_parte_uma_phase(self):
@@ -478,14 +478,14 @@ class TestLotes(unittest.TestCase):
         self.assertEqual([l["fases"] for l in lotes], [[1], [2]])
 
     def test_sem_estimativa_cada_tarefa_conta_1h(self):
-        lotes = self.lotes(self.fase(1, 7, None), self.fase(8, 7, None), self.fase(15, 7, None))
+        lotes = self.lotes(self.fase(1, 3, None), self.fase(4, 3, None), self.fase(7, 3, None))
         self.assertEqual([l["fases"] for l in lotes], [[1, 2], [3]])
-        self.assertEqual(lotes[0]["horas"], 14.0)
+        self.assertEqual(lotes[0]["horas"], 6.0)
 
     def test_sem_phases_cada_tarefa_e_uma_unidade(self):
         tarefas, fs = pr.tarefas_de(tasks_md(*[tarefa(i, [False], estimativa="2h") for i in range(1, 17)]))
         lotes = pr.lotes_de(tarefas, fs)
-        self.assertEqual([len(l["tarefas"]) for l in lotes], [7, 9])  # 7×2h = 14h; cauda de 2 foi absorvida
+        self.assertEqual([len(l["tarefas"]) for l in lotes], [3, 3, 3, 3, 4])  # 3×2h = 6h; cauda de 1 foi absorvida
 
 
 def _git(pasta, *args, quando=None):

@@ -1,6 +1,6 @@
 ---
 name: implementador-dominio
-description: Implementa tarefas de domínio — regras de negócio não óbvias, casos limite difíceis, integrações novas, concorrência, cálculos, máquinas de estado — seguindo o ciclo do tlc-spec-driven (testes da spec, implementação, gate, commit atômico). Use como trabalhador de um lote na construção (um lote por vez) quando ele tiver tarefa de domínio ou ambígua. Para trabalho mecânico, use implementador.
+description: Implementa tarefas de domínio — regras de negócio não óbvias, casos limite difíceis, integrações novas, concorrência, cálculos, máquinas de estado — seguindo o ciclo do tlc-spec-driven (testes da spec, implementação, gate, commit atômico). Use como trabalhador de um lote na construção (um lote por vez) quando ele tiver tarefa de `**Domínio**: sim` (regra difícil ou ambígua). Para o resto, mesmo de risco alto, use implementador.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: opus
 effort: medium

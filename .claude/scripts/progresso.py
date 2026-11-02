@@ -58,7 +58,7 @@ from pathlib import Path
 
 ROADMAP = ".specs/projeto/roadmap.md"
 LIMITE_HORAS = 2.0  # tarefa acima disso é grande demais: avise e peça para dividir (não há limite de quantidade)
-LOTE_HORAS = 14.0  # lote = Phases inteiras somando até isso (7 tarefas de 2h, a capacidade que o tlc calibrou)
+LOTE_HORAS = 6.0  # lote = Phases inteiras somando até isso (3 tarefas de 2h): lote menor mantém o contexto do trabalhador pequeno
 HORAS_SEM_ESTIMATIVA = 1.0  # peso da tarefa sem Estimativa ao montar o lote
 PAUSA_MIN = 90  # intervalo maior entre duas conclusões é pausa, não tempo de trabalho
 JANELA_RITMO = 10  # o ritmo e o fator de calibração usam as últimas tarefas com tempo medido

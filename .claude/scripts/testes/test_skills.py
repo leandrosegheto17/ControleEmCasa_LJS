@@ -159,7 +159,7 @@ class TestSkills(unittest.TestCase):
         """Sempre por subagente, um lote por vez; o trabalhador relata o V2 de cada tarefa; a revisão segue o risco."""
         claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
         for trecho in ("## Execução", "Sempre por subagente, um lote por vez", "Não há execução inline",
-                       "progresso.py --tarefa", "progresso.py --lote", "`**Risco**: alto|baixo`", "**14h**",
+                       "progresso.py --tarefa", "progresso.py --lote", "`**Risco**: alto|baixo`", "**6h**",
                        "substitui o passo 6.4", "uma linha V2 por tarefa"):
             with self.subTest(trecho=trecho):
                 self.assertIn(trecho, claude_md)
@@ -178,6 +178,26 @@ class TestSkills(unittest.TestCase):
         marcos = (SKILLS / "fluxo" / "references" / "marcos.md").read_text(encoding="utf-8")
         self.assertIn("Feature atual", marcos)
         self.assertIn("commit-msg", (CLAUDE / "scripts" / "instalar.py").read_text(encoding="utf-8"))
+
+    def test_modelo_do_trabalhador_vem_do_dominio_nao_do_risco(self):
+        """Opus só em lote com tarefa de domínio; o risco muda a revisão, não o modelo."""
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        for trecho in ("`**Domínio**: sim|não`", "`**Risco**` não escolhe o modelo", "(lote sem `**Domínio**: sim`"):
+            with self.subTest(trecho=trecho):
+                self.assertIn(trecho, claude_md)
+        self.assertNotIn("alguma tarefa de `**Risco**: alto`", claude_md)
+        dominio = (CLAUDE / "agents" / "implementador-dominio.md").read_text(encoding="utf-8")
+        self.assertIn("`**Domínio**: sim`", dominio.split("---")[1])  # na descrição, que o orquestrador lê
+
+    def test_plano_pronto_vira_conferencia_do_delta(self):
+        """Com plano.md pronto, reconhecimento e arqueologia conferem o plano; a rede de proteção continua."""
+        claude_md = (CLAUDE / "CLAUDE.md").read_text(encoding="utf-8")
+        for trecho in ("## Plano pronto", "Conferência, não nova investigação", "rede de proteção", "Base: plano pronto"):
+            with self.subTest(trecho=trecho):
+                self.assertIn(trecho, claude_md)
+        for nome in ("legado", "feature"):
+            with self.subTest(skill=nome):
+                self.assertIn("**Plano pronto**", (SKILLS / nome / "SKILL.md").read_text(encoding="utf-8"))
 
     def test_trava_de_modelo(self):
         """A sessão compara o próprio modelo com o da fase e pergunta antes de trabalhar."""
